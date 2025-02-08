@@ -11,15 +11,14 @@ ASmoker::ASmoker()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	Hp = 250.0f;
+	Speed = 210.0f;
 }
 
 // Called when the game starts or when spawned
 void ASmoker::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Hp = 250.0f;
-	Speed = 210.0f;
 }
 
 void ASmoker::InitDifficulty()
@@ -45,12 +44,4 @@ void ASmoker::InitDifficulty()
 void ASmoker::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ASmoker::OnDamaged(float Damage)
-{
-}
-
-void ASmoker::OnDie()
-{
 }

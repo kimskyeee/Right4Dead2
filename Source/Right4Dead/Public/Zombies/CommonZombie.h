@@ -27,6 +27,4 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	virtual void OnDamaged(float Damage) override;
-	virtual void OnDie() override;
 };

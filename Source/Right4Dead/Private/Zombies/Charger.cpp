@@ -11,15 +11,14 @@ ACharger::ACharger()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	Hp = 600.0f;
+	Speed = 250.0f;
 }
 
 // Called when the game starts or when spawned
 void ACharger::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Hp = 600.0f;
-	Speed = 250.0f;
 }
 
 void ACharger::InitDifficulty()
@@ -45,12 +44,4 @@ void ACharger::InitDifficulty()
 void ACharger::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ACharger::OnDamaged(float Damage)
-{
-}
-
-void ACharger::OnDie()
-{
 }

@@ -11,15 +11,14 @@ ABoomer::ABoomer()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	Hp = 50.0f;
+	Speed = 175.0f;
 }
 
 // Called when the game starts or when spawned
 void ABoomer::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Hp = 50.0f;
-	Speed = 175.0f;
 }
 
 void ABoomer::InitDifficulty()
@@ -45,12 +44,4 @@ void ABoomer::InitDifficulty()
 void ABoomer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ABoomer::OnDamaged(float Damage)
-{
-}
-
-void ABoomer::OnDie()
-{
 }

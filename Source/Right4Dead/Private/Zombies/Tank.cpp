@@ -11,15 +11,17 @@ ATank::ATank()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	Hp = 3000.0f;
+	Speed = 210.0f;
+	PartDamageMultipliers.Legs = 1;
+	PartDamageMultipliers.Stomach = 1;
+	PartDamageMultipliers.Thorax = 1;
 }
 
 // Called when the game starts or when spawned
 void ATank::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Hp = 3000.0f;
-	Speed = 210.0f;
 }
 
 void ATank::InitDifficulty()
@@ -49,12 +51,4 @@ void ATank::InitDifficulty()
 void ATank::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ATank::OnDamaged(float Damage)
-{
-}
-
-void ATank::OnDie()
-{
 }

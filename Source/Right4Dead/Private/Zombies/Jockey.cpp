@@ -11,15 +11,14 @@ AJockey::AJockey()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	Hp = 325.0f;
+	Speed = 250.0f;
 }
 
 // Called when the game starts or when spawned
 void AJockey::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Hp = 325.0f;
-	Speed = 250.0f;
 }
 
 void AJockey::InitDifficulty()
@@ -45,12 +44,4 @@ void AJockey::InitDifficulty()
 void AJockey::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void AJockey::OnDamaged(float Damage)
-{
-}
-
-void AJockey::OnDie()
-{
 }

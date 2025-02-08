@@ -5,13 +5,14 @@
 
 #include "Right4DeadGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "Right4Dead/Right4Dead.h"
 
 // Sets default values
 ACommonZombie::ACommonZombie()
 {
+	PRINT_CALLINFO();
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	Hp = 50.0f;
 	Speed = 250.0f;
 }
@@ -30,19 +31,19 @@ void ACommonZombie::InitDifficulty()
 		switch (GameInstance->GetDifficulty())
 		{
 		case EDifficulty::Easy:
-			HitDamageRatio = 2; // 200%
+			TakeDamageMultiplier = 2; // 200%
 			AttackDamage = 1;
 			break;
 		case EDifficulty::Normal:
-			HitDamageRatio = 1; // 100%
+			TakeDamageMultiplier = 1; // 100%
 			AttackDamage = 2;
 			break;
 		case EDifficulty::Advanced:
-			HitDamageRatio = 0.75f; // 75%
+			TakeDamageMultiplier = 0.75f; // 75%
 			AttackDamage = 5;
 			break;
 		case EDifficulty::Expert:
-			HitDamageRatio = 0.5f; // 50%
+			TakeDamageMultiplier = 0.5f; // 50%
 			AttackDamage = 20;
 			break;
 		}
@@ -53,13 +54,4 @@ void ACommonZombie::InitDifficulty()
 void ACommonZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ACommonZombie::OnDamaged(float Damage)
-{
-	Damage *= HitDamageRatio;
-}
-
-void ACommonZombie::OnDie()
-{
 }

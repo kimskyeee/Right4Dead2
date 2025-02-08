@@ -11,15 +11,17 @@ AWitch::AWitch()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	Hp = 1000.0f;
+	Speed = 300.0f;
+	PartDamageMultipliers.Legs = 1;
+	PartDamageMultipliers.Stomach = 1;
+	PartDamageMultipliers.Thorax = 1;
 }
 
 // Called when the game starts or when spawned
 void AWitch::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Hp = 1000.0f;
-	Speed = 300.0f;
 }
 
 void AWitch::InitDifficulty()
@@ -45,12 +47,4 @@ void AWitch::InitDifficulty()
 void AWitch::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void AWitch::OnDamaged(float Damage)
-{
-}
-
-void AWitch::OnDie()
-{
 }
