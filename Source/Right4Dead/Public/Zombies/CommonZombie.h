@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ZombieBase.h"
-#include "GameFramework/Actor.h"
 #include "CommonZombie.generated.h"
 
 UCLASS()
@@ -19,6 +18,13 @@ public:
 protected:
 	float HitDamageRatio = 2;
 	float AttackDamage = 1;
+	bool bClimbing = false;
+	bool bFirst = false;
+	bool bSecond = false;
+	FVector FD = FVector::ZeroVector;
+	FVector SD = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere)
+	AActor* Target = nullptr;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -27,4 +33,5 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void StartClimbing(FVector FirstDest, FVector SecondDest);
 };
