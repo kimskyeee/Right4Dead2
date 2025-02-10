@@ -136,6 +136,7 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurTurn, ETriggerEvent::Triggered, this, &ASurvivor::SurTurn);
 		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurJump);
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurCrouch);
+		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::SurFire);
 	}
 }
 
@@ -188,30 +189,48 @@ void ASurvivor::SurJump(const struct FInputActionValue& InputValue)
 
 void ASurvivor::SurFire(const struct FInputActionValue& InputValue)
 {
+	UE_LOG(LogTemp, Warning, TEXT("SurFire 함수 호출됨"));
 	FHitResult Hit;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
 	APlayerCameraManager* FirstCam = UGameplayStatics::GetPlayerCameraManager(GetWorld(),0);
+	if (!FirstCam)
+	{
+		UE_LOG(LogTemp, Error, TEXT("카메라 매니저가 없음"));
+		return;
+	}
 	FVector Start = FirstCam->GetCameraLocation();
 	FVector End = Start + (FirstCam->GetActorForwardVector() * 30000);
+
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 시작 위치: %s"), *Start.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 끝 위치: %s"), *End.ToString());
+    
+	const float DebugLineLifetime = 2.0f;
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params);
+
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("히트") : TEXT("미스"));
 	
-	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params))
+	// 디버그 라인 그리기
+	if (bDrawLine)
 	{
-		//UGameplayStatics::ApplyDamage(,10,);
+		if (bHit)
+		{
+			// 히트가 발생한 경우 빨간색으로 표시
+			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+		}
+		else
+		{
+			// 히트가 없는 경우 초록색으로 표시
+			DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
+			UE_LOG(LogTemp, Error, TEXT("chfrh"));
+		}
 	}
-}
-
-inline void ASurvivor::Reload()
-{
-}
-
-void ASurvivor::StopFire()
-{
-}
-
-void ASurvivor::Fire()
-{
+    
+	if (bHit && Hit.GetActor())
+	{
+		UGameplayStatics::ApplyDamage(Hit.GetActor(),FireDamage,GetController(),this,UDamageType::StaticClass());
+	}
 }
 
 void ASurvivor::SurReload(const struct FInputActionValue& InputValue)

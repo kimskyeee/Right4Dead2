@@ -91,14 +91,14 @@ public:
 	class UInputAction* IA_SurReload;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings")
 	bool bIsReloading;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings",meta=(ClampMin="0"));
+	float FireDamage = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Debug");
+	bool bDrawLine = true;
 	
 	//총쏘기함수
 	void SurFire(const struct FInputActionValue& InputValue);
 	void SurReload(const struct FInputActionValue& InputValue);
-
-	void Fire();
-	void StopFire();
-	void Reload();
 
 	//공격 전환
 	UPROPERTY(EditDefaultsOnly,Category="Settings")
