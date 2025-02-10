@@ -19,12 +19,9 @@ protected:
 	float HitDamageRatio = 2;
 	float AttackDamage = 1;
 	bool bClimbing = false;
-	bool bFirst = false;
-	bool bSecond = false;
-	FVector FD = FVector::ZeroVector;
-	FVector SD = FVector::ZeroVector;
+	FTransform ClimbDestination = FTransform::Identity;
 	UPROPERTY(EditAnywhere)
-	AActor* Target = nullptr;
+	TObjectPtr<AActor> Target = nullptr;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -33,5 +30,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	void StartClimbing(FVector FirstDest, FVector SecondDest);
+	void StartClimbing(const FTransform& Destination);
+	void EndClimbing();
+	AActor* GetChaseTarget();
 };

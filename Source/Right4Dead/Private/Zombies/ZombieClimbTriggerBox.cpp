@@ -4,6 +4,7 @@
 #include "ZombieClimbTriggerBox.h"
 
 #include "CommonZombie.h"
+#include "Components/BoxComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
 
@@ -11,33 +12,53 @@
 AZombieClimbTriggerBox::AZombieClimbTriggerBox()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	ClimbEndTriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("ClimbEndTriggerBox"));
+	ClimbEndTriggerBox->SetupAttachment(RootComponent);
+	ClimbEndTriggerBox->SetCollisionProfileName(TEXT("Trigger"));
+	GetCollisionComponent()->bMultiBodyOverlap = true;
+	ClimbEndTriggerBox->bMultiBodyOverlap = true;
+}
+
+void AZombieClimbTriggerBox::OnClimbEndTriggerBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	const FHitResult& SweepResult)
+{
+	PRINT_CALLINFO();
+	if (ACommonZombie* Zombie = Cast<ACommonZombie>(OtherActor))
+	{
+		Zombie->EndClimbing();
+	}
 }
 
 // Called when the game starts or when spawned
 void AZombieClimbTriggerBox::BeginPlay()
 {
 	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AZombieClimbTriggerBox::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	ClimbEndTriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AZombieClimbTriggerBox::OnClimbEndTriggerBoxBeginOverlap);
 }
 
 void AZombieClimbTriggerBox::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	PRINT_CALLINFO();
-	Super::NotifyActorBeginOverlap(OtherActor);
-	ACommonZombie* Zombie = Cast<ACommonZombie>(OtherActor);
-	if (Zombie)
+
+	// ClimbEndTriggerBox가 이미 오버랩을 감지했으면 부모 NotifyActorBeginOverlap을 무시
+	if (ClimbEndTriggerBox->IsOverlappingActor(OtherActor))
 	{
-		FVector FirstDestination = Zombie->GetActorLocation();
-		FirstDestination.Z += 800;
-		FVector SecondDestination = FirstDestination;
-		SecondDestination.Y -= 300;
-		Zombie->StartClimbing(FirstDestination, SecondDestination);
+		UE_LOG(LogTemp, Warning, TEXT("Ignoring Parent NotifyActorBeginOverlap due to child Box overlap."));
+		return;
+	}
+	Super::NotifyActorBeginOverlap(OtherActor);
+	if (ACommonZombie* Zombie = Cast<ACommonZombie>(OtherActor))
+	{
+		const AActor* Target = Zombie->GetChaseTarget();
+		if (Target) {
+			if (IsOverlappingActor(Target))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("들어있잖아~"));
+				return;
+			}
+			Zombie->StartClimbing(ClimbEndTriggerBox->GetComponentTransform());
+		}
 	}
 }

@@ -6,6 +6,8 @@
 #include "Engine/TriggerBox.h"
 #include "ZombieClimbTriggerBox.generated.h"
 
+class UBoxComponent;
+
 UCLASS()
 class RIGHT4DEAD_API AZombieClimbTriggerBox : public ATriggerBox
 {
@@ -16,12 +18,14 @@ public:
 	AZombieClimbTriggerBox();
 
 protected:
+	UFUNCTION()
+	void OnClimbEndTriggerBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	                                      const FHitResult& SweepResult);
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UBoxComponent> ClimbEndTriggerBox = nullptr;
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 };
