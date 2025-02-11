@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActorBase.h"
 #include "GameFramework/Character.h"
 #include "Survivor.generated.h"
 
 UCLASS()
-class RIGHT4DEAD_API ASurvivor : public ACharacter
+class RIGHT4DEAD_API ASurvivor : public ACharacter, public IActorBase
 {
 	GENERATED_BODY()
 
@@ -33,8 +34,8 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USkeletalMeshComponent* Arms;
 	
-    //카메라 추가
-    UPROPERTY(VisibleAnywhere)
+	//카메라 추가
+	UPROPERTY(VisibleAnywhere)
 	class USpringArmComponent* SpringArmComp;
 	UPROPERTY(VisibleAnywhere)
 	class UCameraComponent* FirstCameraComp;
@@ -95,22 +96,50 @@ public:
 	float FireDamage = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Debug");
 	bool bDrawLine = true;
-	
 	//총쏘기함수
 	void SurFire(const struct FInputActionValue& InputValue);
 	void SurReload(const struct FInputActionValue& InputValue);
+
+	//우클릭 (밀쳐내기)
+	UPROPERTY(EditAnywhere,Category="Input")
+	class UInputAction* IA_SurRight;
+	void SurRight(const struct FInputActionValue& InputValue);
 
 	//공격 전환
 	UPROPERTY(EditDefaultsOnly,Category="Settings")
 	int32 WeaponEquipped;
 
-	//체력구현
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Health = 200.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxHealth = 200.f;
+	//UI
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> MainUIFactory;
+	UPROPERTY(EditAnywhere)
+	class UUISurvivorMain* MainUI;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Stats")
+	class UStatSystem* StatSystem;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	virtual void OnDamaged(float Damage) override;
+	virtual void OnDie() override;
+
+
+	//일단 시험용 빠루 소환
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class USkeletalMeshComponent* CrowMeshComp;
+	UFUNCTION()
+	void TempMontageStarted(UAnimMontage* Montage);
+	UFUNCTION()
+	void TempMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	void CrowLinetrace();
+
+	//몽타주 재생 테스트
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UAnimMontage* CrowMontage;
+	FTimerHandle CrowTimerHandle;
 	
 };
+
 
 
 

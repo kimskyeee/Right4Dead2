@@ -10,26 +10,24 @@
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
-#include "Chaos/ChaosPerfTest.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "StatSystem.h"
+#include "UISurvivorMain.h"
 #include "Kismet/GameplayStatics.h"
+#include "Right4Dead/Right4Dead.h"
 
 // Sets default values
 ASurvivor::ASurvivor()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	//외관 추가
+	
 	Head=CreateDefaultSubobject<USkeletalMeshComponent>("Head");
 	Head->SetupAttachment(GetMesh());
-	Arms=CreateDefaultSubobject<USkeletalMeshComponent>("Arms");
-	Arms->SetupAttachment(Head);
-	
+
 	//기본 카메라 설정
 	FirstCameraComp=CreateDefaultSubobject<UCameraComponent>(TEXT("FirstCameraComp"));
 	FirstCameraComp->SetupAttachment(Head);
-	FirstCameraComp->SetRelativeLocationAndRotation(FVector(0,10,160),FRotator(0,90,0));
+	FirstCameraComp->SetRelativeLocationAndRotation(FVector(0,0,160),FRotator(0,90,0));
 	FirstCameraComp->bUsePawnControlRotation = true;
 	
 	SpringArmComp=CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
@@ -41,52 +39,83 @@ ASurvivor::ASurvivor()
 	ThirdPersonCameraComp=CreateDefaultSubobject<UCameraComponent>(TEXT("ThirdCameraComp"));
 	ThirdPersonCameraComp->SetupAttachment(SpringArmComp);
 
+	Arms=CreateDefaultSubobject<USkeletalMeshComponent>("Arms");
+	Arms->SetupAttachment(FirstCameraComp);
+	
 	bFirstPerson = true;
+
+	//시험용 빠루
+	CrowMeshComp=CreateDefaultSubobject<USkeletalMeshComponent>("CrowMeshComp");
+	CrowMeshComp->SetupAttachment(Arms, TEXT("WeaponSocket"));
+	
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempCrow(TEXT("/Script/Engine.SkeletalMesh'/Game/Fab/Crowbar_Low-poly/SKM_crowbar1.SKM_crowbar1'"));
+	if (TempCrow.Succeeded())
+	{
+		CrowMeshComp->SetSkeletalMesh(TempCrow.Object);
+		CrowMeshComp->SetRelativeLocationAndRotation(FVector(-60,20,80),FRotator(-20,90,0));
+	}
+
+	//몽타주 연동
+	ConstructorHelpers::FObjectFinder<UAnimMontage> TempCrowMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Swing_1_Montage.knife_arms_Swing_1_Montage'"));
+	if (TempCrowMontage.Succeeded())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("몽타주 연동됨"));
+		CrowMontage = TempCrowMontage.Object;
+	}
+		
 
 	//Input데이터 할당하기
 	//이동관련
-	ConstructorHelpers::FObjectFinder<UInputMappingContext> TempIMC(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Skye/Input/IMC_Survivor.IMC_Survivor'"));
+	ConstructorHelpers::FObjectFinder<UInputMappingContext> TempIMC(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Survivor.IMC_Survivor'"));
 	if (TempIMC.Succeeded())
 	{
 		IMC_Survivor=TempIMC.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIAMove(TEXT("/Script/EnhancedInput.InputAction'/Game/Skye/Input/IA_SurMove.IA_SurMove'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAMove(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurMove.IA_SurMove'"));
 	if (TempIAMove.Succeeded())
 	{
 		IA_SurMove=TempIAMove.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIATurn(TEXT("/Script/EnhancedInput.InputAction'/Game/Skye/Input/IA_SurTurn.IA_SurTurn'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIATurn(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurTurn.IA_SurTurn'"));
 	if (TempIATurn.Succeeded())
 	{
 		IA_SurTurn=TempIATurn.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIALook(TEXT("/Script/EnhancedInput.InputAction'/Game/Skye/Input/IA_SurLook.IA_SurLook'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIALook(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurLook.IA_SurLook'"));
 	if (TempIALook.Succeeded())
 	{
 		IA_SurLook=TempIALook.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIAJump(TEXT("/Script/EnhancedInput.InputAction'/Game/Skye/Input/IA_SurJump.IA_SurJump'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAJump(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurJump.IA_SurJump'"));
 	if (TempIALook.Succeeded())
 	{
 		IA_SurJump=TempIAJump.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIACrouch(TEXT("/Script/EnhancedInput.InputAction'/Game/Skye/Input/IA_SurCrouch.IA_SurCrouch'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIACrouch(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurCrouch.IA_SurCrouch'"));
 	if (TempIACrouch.Succeeded())
 	{
 		IA_SurCrouch=TempIACrouch.Object;
 	}
 
 	//공격관련
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIAFire(TEXT("/Script/EnhancedInput.InputAction'/Game/Skye/Input/IA_SurFire.IA_SurFire'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAFire(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurFire.IA_SurFire'"));
 	if (TempIAFire.Succeeded())
 	{
 		IA_SurFire=TempIAFire.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIARelaod(TEXT("/Script/EnhancedInput.InputAction'/Game/Skye/Input/IA_SurReload.IA_SurReload'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIARelaod(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurReload.IA_SurReload'"));
 	if (TempIARelaod.Succeeded())
 	{
 		IA_SurReload=TempIARelaod.Object;
 	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIARight(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurRight.IA_SurRight'"));
+	if (TempIARight.Succeeded())
+	{
+		IA_SurRight=TempIARight.Object;
+	}
+	
+	//스탯
+	StatSystem = CreateDefaultSubobject<UStatSystem>(TEXT("StatSystem"));
 
 }
 
@@ -110,6 +139,14 @@ void ASurvivor::BeginPlay()
 	FirstCameraComp->SetActive(true);
 	ThirdPersonCameraComp->SetActive(false);
 	SpringArmComp->SetActive(false);
+
+	/*//UI로드
+	MainUI=Cast<UUISurvivorMain>(CreateWidget(GetWorld(), MainUIFactory));
+	check(MainUI);
+	if (MainUI)
+	{
+		MainUI->AddToViewport();
+	}*/
 }
 
 // Called every frame
@@ -137,6 +174,7 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurJump);
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurCrouch);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::SurFire);
+		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::SurRight);
 	}
 }
 
@@ -223,7 +261,6 @@ void ASurvivor::SurFire(const struct FInputActionValue& InputValue)
 		{
 			// 히트가 없는 경우 초록색으로 표시
 			DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
-			UE_LOG(LogTemp, Error, TEXT("chfrh"));
 		}
 	}
     
@@ -236,3 +273,102 @@ void ASurvivor::SurFire(const struct FInputActionValue& InputValue)
 void ASurvivor::SurReload(const struct FInputActionValue& InputValue)
 {
 }
+
+
+// 공격 : 밀쳐내기
+void ASurvivor::SurRight(const struct FInputActionValue& InputValue)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SurRight 함수 호출"));
+	
+	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("뭐가없음"));
+		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
+		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
+		AnimInstance->Montage_Play(CrowMontage);
+	}
+}
+
+float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+                            class AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	OnDamaged(DamageAmount);
+	return DamageAmount;
+}
+
+void ASurvivor::OnDamaged(float Damage)
+{
+	//체력깎기
+	float CurrentHealth = StatSystem->Health;
+	CurrentHealth -= Damage;
+	//0되면 ondie호출하기
+	if (CurrentHealth <= 0)
+	{
+		OnDie();
+	}
+	
+}
+
+void ASurvivor::OnDie()
+{
+	StatSystem->bIsDead = true;
+}
+
+void ASurvivor::TempMontageStarted(UAnimMontage* Montage)
+{
+	UE_LOG(LogTemp, Warning, TEXT("몽타주시작"));
+	GetWorld()->GetTimerManager().SetTimer(CrowTimerHandle, this, &ASurvivor::CrowLinetrace, GetWorld()->GetDeltaSeconds(), true);
+	
+	UAnimInstance* AnimInstance = Arms->GetAnimInstance();
+	AnimInstance->OnMontageStarted.RemoveDynamic(this, &ASurvivor::TempMontageStarted);
+}
+
+void ASurvivor::TempMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UE_LOG(LogTemp, Warning, TEXT("몽타주끝"));
+	GetWorld()->GetTimerManager().ClearTimer(CrowTimerHandle);
+	
+	UAnimInstance* AnimInstance = Arms->GetAnimInstance();
+	AnimInstance->OnMontageEnded.RemoveDynamic(this, &ASurvivor::TempMontageEnded);
+}
+
+void ASurvivor::CrowLinetrace()
+{
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	FVector Start = CrowMeshComp->GetSocketLocation(TEXT("Start"));
+	FVector End = CrowMeshComp->GetSocketLocation(TEXT("End"));
+
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 시작 위치: %s"), *Start.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 끝 위치: %s"), *End.ToString());
+    
+	const float DebugLineLifetime = 2.0f;
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params);
+
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("빠루히트") : TEXT("빠루미스"));
+	
+	// 디버그 라인 그리기
+	if (bDrawLine)
+	{
+		if (bHit)
+		{
+			// 히트가 발생한 경우 빨간색으로 표시
+			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+		}
+		else
+		{
+			// 히트가 없는 경우 초록색으로 표시
+			DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
+		}
+	}
+    
+	if (bHit && Hit.GetActor())
+	{
+		UGameplayStatics::ApplyDamage(Hit.GetActor(),FireDamage,GetController(),this,UDamageType::StaticClass());
+	}	
+}
+
+
