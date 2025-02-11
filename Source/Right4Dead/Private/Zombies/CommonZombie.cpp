@@ -3,8 +3,13 @@
 
 #include "Zombies/CommonZombie.h"
 
+#include "AIController.h"
+#include "NavigationPath.h"
+#include "NavigationSystem.h"
 #include "Right4DeadGameInstance.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Right4Dead/Right4Dead.h"
 
 // Sets default values
@@ -15,12 +20,34 @@ ACommonZombie::ACommonZombie()
 	PrimaryActorTick.bCanEverTick = true;
 	Hp = 50.0f;
 	Speed = 250.0f;
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequins/Meshes/SKM_Manny.SKM_Manny'"));
+	if (SkeletalMeshObj.Succeeded())
+	{
+		GetMesh()->SetSkeletalMeshAsset(SkeletalMeshObj.Object);
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
+		GetMesh()->SetRelativeRotation(FRotator(0, 270, 0));
+		ConstructorHelpers::FClassFinder<UAnimInstance> AnimBlueprintClass(TEXT("/Script/Engine.AnimBlueprint'/Game/Assets/ThirdPerson/Characters/Mannequins/Animations/ABP_Manny.ABP_Manny_C'"));
+		if (AnimBlueprintClass.Succeeded())
+		{
+			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
+		}
+	}
+	AIControllerClass = AAIController::StaticClass();
 }
 
 // Called when the game starts or when spawned
 void ACommonZombie::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (Target)
+	{
+		AAIController* AIController = Cast<AAIController>(GetController());
+		if (AIController)
+		{
+			AIController->MoveToActor(Target, -1);
+		}
+	}
 }
 
 void ACommonZombie::InitDifficulty()
@@ -54,4 +81,63 @@ void ACommonZombie::InitDifficulty()
 void ACommonZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bClimbing)
+	{
+
+		const FVector P0 = GetActorLocation();
+		const bool bIsNearZ = GetCharacterMovement()->GetFeetLocation().Z >= ClimbDestination.GetLocation().Z;
+		if (false == bIsNearZ) // 아직 덜 올라왔다면
+		{
+			// Z축으로만 오른다
+			const FVector P = P0 + FVector(0, 0, 1) * Speed * DeltaTime;
+			SetActorLocation(P);
+		}
+		else
+		{
+			const FVector P = P0 + GetActorForwardVector() * Speed * DeltaTime;
+			SetActorLocation(P);
+		}
+	}
+}
+
+void ACommonZombie::StartClimbing(const FTransform& Destination)
+{
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		/*// 이동 가능한 경로 찾기
+		UNavigationPath* NavPath = UNavigationSystemV1::FindPathToActorSynchronously(this, GetActorLocation(), Target);
+		if (NavPath && NavPath->IsValid() && NavPath->PathPoints.Num() > 0)
+		{
+			return;
+		}*/
+		
+		AIController->StopMovement();
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	}
+	bClimbing = true;
+	ClimbDestination = Destination;
+	SetActorRotation(Destination.Rotator());
+}
+
+void ACommonZombie::EndClimbing()
+{
+	if (false == bClimbing)
+	{
+		return;
+	}
+	bClimbing = false;
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		AIController->MoveToActor(Target, 30);
+	}
+	ClimbDestination = FTransform::Identity;
+}
+
+AActor* ACommonZombie::GetChaseTarget()
+{
+	return Target;
 }
