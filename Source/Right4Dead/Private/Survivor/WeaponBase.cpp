@@ -2,7 +2,7 @@
 
 
 #include "WeaponBase.h"
-
+#include "FWeaponData.h" 
 #include "Survivor.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,6 +23,9 @@ AWeaponBase::AWeaponBase()
 	Eject=CreateDefaultSubobject<USceneComponent>("Eject");
 	Eject->SetupAttachment(Muzzle);
 	Eject->SetRelativeLocation(FVector(-50,0,0));
+
+	PrimaryWeapon->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	PrimaryWeapon->SetCollisionProfileName(TEXT("BlockAll"));
 	
 }
 
@@ -92,5 +95,15 @@ void AWeaponBase::UnHideAmmo()
 		PrimaryWeapon->USkinnedMeshComponent::UnHideBoneByName("bullets");
 	}
 }
+
+void AWeaponBase::OnReload_Implementation()
+{
+}
+
+void AWeaponBase::OnFire_Implementation()
+{
+}
+
+
 
 

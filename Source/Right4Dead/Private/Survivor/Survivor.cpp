@@ -7,11 +7,13 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "EWeaponType.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "StatSystem.h"
 #include "UISurvivorMain.h"
+#include "WeaponBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Right4Dead/Right4Dead.h"
 
@@ -45,15 +47,14 @@ ASurvivor::ASurvivor()
 	bFirstPerson = true;
 
 	//시험용 빠루
-	CrowMeshComp=CreateDefaultSubobject<USkeletalMeshComponent>("CrowMeshComp");
-	CrowMeshComp->SetupAttachment(Arms, TEXT("WeaponSocket"));
+	WeaponMesh=CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMeshComp");
+	WeaponMesh->SetupAttachment(Arms, TEXT("WeaponSocket"));
 	
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> TempCrow(TEXT("/Script/Engine.SkeletalMesh'/Game/Fab/Crowbar_Low-poly/SKM_crowbar1.SKM_crowbar1'"));
+	/*ConstructorHelpers::FObjectFinder<USkeletalMesh> TempCrow(TEXT("/Script/Engine.SkeletalMesh'/Game/Fab/Crowbar_Low-poly/SKM_crowbar1.SKM_crowbar1'"));
 	if (TempCrow.Succeeded())
 	{
-		CrowMeshComp->SetSkeletalMesh(TempCrow.Object);
-		CrowMeshComp->SetRelativeLocationAndRotation(FVector(-60,20,80),FRotator(-20,90,0));
-	}
+		WeaponMesh->SetSkeletalMesh(TempCrow.Object);
+	}*/
 
 	//몽타주 연동
 	ConstructorHelpers::FObjectFinder<UAnimMontage> TempCrowMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Swing_1_Montage.knife_arms_Swing_1_Montage'"));
@@ -113,10 +114,34 @@ ASurvivor::ASurvivor()
 	{
 		IA_SurRight=TempIARight.Object;
 	}
+
+	//무기전환
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAPrimary(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Weapon1.IA_Weapon1'"));
+	if (TempIAPrimary.Succeeded())
+	{
+		IA_PrimaryWeapon=TempIAPrimary.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIASecondary(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Weapon2.IA_Weapon2'"));
+	if (TempIASecondary.Succeeded())
+	{
+		IA_SecondaryWeapon=TempIASecondary.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAMelee(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Weapon3.IA_Weapon3'"));
+	if (TempIAMelee.Succeeded())
+	{
+		IA_MeleeWeapon=TempIAMelee.Object;
+	}
+
+	//무기줍기
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAPickUp(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurPickUp.IA_SurPickUp'"));
+	if (TempIAPickUp.Succeeded())
+	{
+		IA_PickUp=TempIAPickUp.Object;
+	}
 	
 	//스탯
 	StatSystem = CreateDefaultSubobject<UStatSystem>(TEXT("StatSystem"));
-
+	
 }
 
 // Called when the game starts or when spawned
@@ -154,9 +179,14 @@ void ASurvivor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//direction을 캐릭터가 바라보는 방향으로 변환
+	Direction=FTransform(GetControlRotation()).TransformVector(Direction);
+
 	//이동 : 캐릭터 무브먼트 이용
 	AddMovementInput(Direction);
 	Direction=FVector::Zero();
+
+	TraceForWeapon();
 
 }
 
@@ -175,6 +205,10 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurCrouch);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::SurFire);
 		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::SurRight);
+		pi->BindAction(IA_PrimaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipPrimaryWeapon);
+		pi->BindAction(IA_SecondaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipSecondaryWeapon);
+		pi->BindAction(IA_MeleeWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipMeleeWeapon);
+		pi->BindAction(IA_PickUp,ETriggerEvent::Started,this,&ASurvivor::PickUpWeapon_Input);
 	}
 }
 
@@ -339,7 +373,7 @@ void ASurvivor::CrowLinetrace()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	FVector Start = CrowMeshComp->GetSocketLocation(TEXT("Start"));
+	/*FVector Start = CrowMeshComp->GetSocketLocation(TEXT("Start"));
 	FVector End = CrowMeshComp->GetSocketLocation(TEXT("End"));
 
 	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 시작 위치: %s"), *Start.ToString());
@@ -368,7 +402,171 @@ void ASurvivor::CrowLinetrace()
 	if (bHit && Hit.GetActor())
 	{
 		UGameplayStatics::ApplyDamage(Hit.GetActor(),FireDamage,GetController(),this,UDamageType::StaticClass());
-	}	
+	}	*/
 }
+
+void ASurvivor::EquipPrimaryWeapon(const struct FInputActionValue& InputValue)
+{
+	if (PrimaryWeaponSlot.WeaponMesh)
+	{
+		EquipWeapon(&PrimaryWeaponSlot);
+	}
+}
+
+void ASurvivor::EquipSecondaryWeapon(const struct FInputActionValue& InputValue)
+{
+	if (SecondaryWeaponSlot.WeaponMesh)
+	{
+		EquipWeapon(&SecondaryWeaponSlot);
+	}
+}
+
+void ASurvivor::EquipMeleeWeapon(const struct FInputActionValue& InputValue)
+{
+	if (MeleeWeaponSlot.WeaponMesh)
+	{
+		EquipWeapon(&MeleeWeaponSlot);
+	}
+}
+
+//무기 발견하기 (카메라 라인트레이스)
+void ASurvivor::TraceForWeapon()
+{
+	FVector Start = FirstCameraComp->GetComponentLocation(); // 카메라 위치
+	FVector ForwardVector = FirstCameraComp->GetForwardVector(); // 카메라의 정면 방향
+	FVector End = Start + (ForwardVector * 1000.f); // 1000cm(10m) 앞까지 탐색
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this); // 자기 자신은 무시
+	// FCollisionObjectQueryParams ObjectParams;
+	// ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	
+	const float DebugLineLifetime = 2.0f;
+
+	// 라인 트레이스 실행
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+
+	if (bHit)
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName());
+			UE_LOG(LogTemp, Warning, TEXT("Hit Actor Class: %s"), *HitActor->GetClass()->GetName());
+		}
+		
+		AWeaponBase* HitWeapon = Cast<AWeaponBase>(HitResult.GetActor()); // 무기인지 확인
+
+		if (HitWeapon)
+		{
+			FocusedWeapon = HitWeapon; // 감지한 무기를 저장
+			UE_LOG(LogTemp, Warning, TEXT("현재 바라보는 무기: %s"), *FocusedWeapon->GetName());
+			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+		}
+		else
+		{
+			FocusedWeapon = nullptr; // 무기가 아니면 초기화
+			UE_LOG(LogTemp, Warning, TEXT("무기가 아님"));
+			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+		}
+	}
+	else
+	{
+		FocusedWeapon = nullptr;
+		UE_LOG(LogTemp, Warning, TEXT("아무것도 없음")); // 감지된 게 없으면 초기화
+	}
+}
+
+//무기줍기 (E) 
+void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
+{
+	if (FocusedWeapon) // 플레이어가 바라보고 있는 무기가 있다면
+	{
+		UE_LOG(LogTemp, Warning, TEXT("주울 무기 발견!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("주울 무기가 없습니다!"));
+	}
+}
+
+void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
+{
+	switch (NewWeapon.WeaponName)
+	{
+	case EWeaponType::Primary:
+		if (PrimaryWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
+		{
+			UnequipWeapon();
+		}
+		PrimaryWeaponSlot = NewWeapon;
+		EquipWeapon(&PrimaryWeaponSlot);
+		break;
+
+	case EWeaponType::Secondary:
+		if (SecondaryWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
+		{
+			UnequipWeapon();
+		}
+		SecondaryWeaponSlot = NewWeapon;
+		EquipWeapon(&SecondaryWeaponSlot);
+		break;
+
+	case EWeaponType::Melee:
+		if (MeleeWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
+		{
+			UnequipWeapon();
+		}
+		MeleeWeaponSlot = NewWeapon;
+		EquipWeapon(&MeleeWeaponSlot);
+		break;
+
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("무기 모르겠어용"));
+		break;
+	}
+}
+
+//무기 장착
+void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
+{
+	if (WeaponData && WeaponData->WeaponMesh)
+	{
+		// 현재 무기 내리기
+		UnequipWeapon();
+
+		// 새 무기 장착
+		WeaponMesh->SetSkeletalMesh(WeaponData->WeaponMesh);
+		if (WeaponData->WeaponMontage && GetMesh()->GetAnimInstance())
+		{
+			GetMesh()->GetAnimInstance()->Montage_Play(WeaponData->WeaponMontage);
+		}
+
+		// 현재 무기 업데이트
+		CurrentWeapon = *WeaponData;  // 구조체 복사
+		bHasWeapon = true;
+	}
+}
+
+//무기 내리기
+void ASurvivor::UnequipWeapon()
+{
+	if (bHasWeapon && UnequipMontage && GetMesh()->GetAnimInstance())
+	{
+		// 무기 내리는 몽타주 재생
+		GetMesh()->GetAnimInstance()->Montage_Play(UnequipMontage);
+
+		// 무기 메시 제거
+		WeaponMesh->SetSkeletalMesh(nullptr);
+
+		// 현재 무기 초기화
+		CurrentWeapon = FWeaponData();  // 기본 값으로 초기화
+		bHasWeapon = false;
+	}
+}
+
+
+
 
 

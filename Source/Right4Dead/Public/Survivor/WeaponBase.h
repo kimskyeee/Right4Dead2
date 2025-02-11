@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EWeapon.h"
+#include "EWeaponType.h"
+#include "FWeaponData.h"
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
+
+struct FWeaponData;
 
 UCLASS()
 class RIGHT4DEAD_API AWeaponBase : public AActor
@@ -23,7 +26,7 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 	//외관
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USkeletalMeshComponent* PrimaryWeapon;
@@ -32,6 +35,10 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USceneComponent* Eject;
 
+	// 무기 데이터 구조체
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Data")
+	FWeaponData WeaponData;
+	
 	//함수 생성
 	void LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation);
 	UFUNCTION(BlueprintCallable) //BP에서 구현하지 않고 cpp에서 구현한거 사용만 할때
@@ -40,10 +47,10 @@ public:
 	void UnHideAmmo();
 
 	//Event
-	UFUNCTION(BlueprintImplementableEvent,Category="Event") //BP에서 구현할 때
-	void Fire();
-	UFUNCTION(BlueprintImplementableEvent,Category="Event")
-	void Reload();
+	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
+	void OnFire();
+    UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
+	void OnReload();
 
 	//Recoil (반동) 변수
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Recoil")
@@ -63,7 +70,7 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	float MaxAmmo;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	EWeapon Name;
+	EWeaponType Name;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	bool bWeaponMode;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
