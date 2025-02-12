@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ZombieBase.h"
+#include "Right4Dead/Right4Dead.h"
 #include "CommonZombie.generated.h"
 
 UCLASS()
@@ -20,17 +21,21 @@ protected:
 	float AttackDamage = 1;
 	bool bClimbing = false;
 	FTransform ClimbDestination = FTransform::Identity;
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<AActor> Target = nullptr;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void InitDifficulty() override;
 
-public:	
+public:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<AActor> Target = nullptr;
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void StartClimbing(const FTransform& Destination);
 	void EndClimbing();
-	AActor* GetChaseTarget();
+	AActor* GetChasingTarget();
+
+	UFUNCTION(CallInEditor, Category = "Debugging")
+	void OnChangedTarget() const;
 };

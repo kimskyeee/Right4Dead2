@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CommonZombie.h"
 #include "GameFramework/Actor.h"
 #include "ZombieSpawnPoint.generated.h"
 
@@ -12,14 +13,14 @@ class RIGHT4DEAD_API AZombieSpawnPoint : public AActor
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	AZombieSpawnPoint();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
+	TSubclassOf<ACommonZombie> ZombieFactory;
 	virtual void Tick(float DeltaTime) override;
+	UFUNCTION(CallInEditor, Category = "Debugging")
+	void SpawnCommonZombie() const;
 };
