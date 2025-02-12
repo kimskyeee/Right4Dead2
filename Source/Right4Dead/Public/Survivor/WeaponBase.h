@@ -8,8 +8,6 @@
 #include "GameFramework/Actor.h"
 #include "WeaponBase.generated.h"
 
-struct FWeaponData;
-
 UCLASS()
 class RIGHT4DEAD_API AWeaponBase : public AActor
 {
@@ -29,7 +27,9 @@ public:
 	
 	//외관
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USkeletalMeshComponent* PrimaryWeapon;
+	class USphereComponent* Root;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class UStaticMeshComponent* PrimaryWeapon;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USceneComponent* Muzzle;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -41,10 +41,6 @@ public:
 	
 	//함수 생성
 	void LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation);
-	UFUNCTION(BlueprintCallable) //BP에서 구현하지 않고 cpp에서 구현한거 사용만 할때
-	void HideAmmo();
-	UFUNCTION(BlueprintCallable)
-	void UnHideAmmo();
 
 	//Event
 	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
@@ -52,15 +48,9 @@ public:
     UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
 	void OnReload();
 
-	//Recoil (반동) 변수
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Recoil")
-	FRotator ControllerRot;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Recoil")
-	FRotator PostRecoilRot;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Recoil")
-	FRotator MaxRecoilRot;
-
 	//Weapon 변수
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
+	EWeaponType Name;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	float ReloadTime;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
@@ -69,13 +59,5 @@ public:
 	float AmmoCount;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	float MaxAmmo;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	EWeaponType Name;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	bool bWeaponMode;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	bool bVariableMode;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	bool bISShotgun;
 	
 };

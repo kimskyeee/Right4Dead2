@@ -154,8 +154,9 @@ public:
 	FWeaponData MeleeWeaponSlot;
 
 	// 현재 장착된 무기
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
-	FWeaponData CurrentWeapon;
+	UPROPERTY(BlueprintReadOnly, Category = "WeaponData")
+	// TObjectPtr<AWeaponBase> == AWeaponBase*
+	TObjectPtr<AWeaponBase> CurrentWeapon;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
 	bool bHasWeapon;
 
@@ -175,9 +176,9 @@ public:
 	// 무기 내리기 함수
 	void UnequipWeapon();
 
-	// 무기 소켓에 부착할 스켈레탈 메시
-	UPROPERTY(VisibleAnywhere, Category = "WeaponData")
-	USkeletalMeshComponent* WeaponMesh;
+	// 무기 소켓에 부착할 static 메시
+	/*UPROPERTY(VisibleAnywhere, Category = "WeaponData")
+	UStaticMeshComponent* WeaponMesh;*/
 	// 무기 내리는 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* UnequipMontage;

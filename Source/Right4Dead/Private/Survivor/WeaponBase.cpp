@@ -5,6 +5,7 @@
 #include "FWeaponData.h" 
 #include "Survivor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -16,7 +17,10 @@ AWeaponBase::AWeaponBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//외관
-	PrimaryWeapon=CreateDefaultSubobject<USkeletalMeshComponent>("PrimaryWeapon");
+	Root=CreateDefaultSubobject<USphereComponent>(TEXT("Root"));
+	SetRootComponent(Root);
+	PrimaryWeapon=CreateDefaultSubobject<UStaticMeshComponent>("PrimaryWeapon");
+	PrimaryWeapon->SetupAttachment(RootComponent);
 	Muzzle=CreateDefaultSubobject<USceneComponent>("Muzzle");
 	Muzzle->SetupAttachment(PrimaryWeapon);
 	Muzzle->SetRelativeLocationAndRotation(FVector(0,57,-2.5),FRotator(0,90,0));
@@ -24,16 +28,14 @@ AWeaponBase::AWeaponBase()
 	Eject->SetupAttachment(Muzzle);
 	Eject->SetRelativeLocation(FVector(-50,0,0));
 
-	PrimaryWeapon->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	PrimaryWeapon->SetCollisionProfileName(TEXT("BlockAll"));
+	Root->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	//Root->SetCollisionProfileName(TEXT("BlockAll"));
 	
 }
 
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
-	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -75,25 +77,6 @@ void AWeaponBase::LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator
 	ImpactPoint = HitResult.ImpactPoint;
 	ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HitResult.TraceStart, HitResult.TraceEnd);
 
-}
-
-
-void AWeaponBase::HideAmmo()
-{
-	if (PrimaryWeapon) //null guard
-	{
-		PrimaryWeapon->USkinnedMeshComponent::HideBoneByName("bullet",PBO_None);
-		PrimaryWeapon->USkinnedMeshComponent::HideBoneByName("bullets",PBO_None);
-	}
-}
-
-void AWeaponBase::UnHideAmmo()
-{
-	if (PrimaryWeapon)
-	{
-		PrimaryWeapon->USkinnedMeshComponent::UnHideBoneByName("bullet");
-		PrimaryWeapon->USkinnedMeshComponent::UnHideBoneByName("bullets");
-	}
 }
 
 void AWeaponBase::OnReload_Implementation()

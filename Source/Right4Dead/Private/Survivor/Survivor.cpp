@@ -12,10 +12,8 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "StatSystem.h"
-#include "UISurvivorMain.h"
 #include "WeaponBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Right4Dead/Right4Dead.h"
 
 // Sets default values
 ASurvivor::ASurvivor()
@@ -47,13 +45,13 @@ ASurvivor::ASurvivor()
 	bFirstPerson = true;
 
 	//시험용 빠루
-	WeaponMesh=CreateDefaultSubobject<USkeletalMeshComponent>("WeaponMeshComp");
+	/*WeaponMesh=CreateDefaultSubobject<UStaticMeshComponent>("WeaponMeshComp");
 	WeaponMesh->SetupAttachment(Arms, TEXT("WeaponSocket"));
 	
-	/*ConstructorHelpers::FObjectFinder<USkeletalMesh> TempCrow(TEXT("/Script/Engine.SkeletalMesh'/Game/Fab/Crowbar_Low-poly/SKM_crowbar1.SKM_crowbar1'"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TempCrow(TEXT("/Script/Engine.StaticMesh'/Game/Fab/Crowbar_Low-poly/crowbar1.crowbar1'"));
 	if (TempCrow.Succeeded())
 	{
-		WeaponMesh->SetSkeletalMesh(TempCrow.Object);
+		WeaponMesh->SetStaticMesh(TempCrow.Object);
 	}*/
 
 	//몽타주 연동
@@ -62,6 +60,14 @@ ASurvivor::ASurvivor()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("몽타주 연동됨"));
 		CrowMontage = TempCrowMontage.Object;
+	}
+
+	//무기 내리기 몽타주 (건)
+	ConstructorHelpers::FObjectFinder<UAnimMontage> TempGunUndrawMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Undraw_Montage.knife_arms_Undraw_Montage'"));
+	if (TempGunUndrawMontage.Succeeded())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Undraw 몽타주 연동됨"));
+		UnequipMontage = TempGunUndrawMontage.Object;
 	}
 		
 
@@ -302,6 +308,8 @@ void ASurvivor::SurFire(const struct FInputActionValue& InputValue)
 	{
 		UGameplayStatics::ApplyDamage(Hit.GetActor(),FireDamage,GetController(),this,UDamageType::StaticClass());
 	}
+
+	CurrentWeapon->OnFire();
 }
 
 void ASurvivor::SurReload(const struct FInputActionValue& InputValue)
@@ -369,11 +377,11 @@ void ASurvivor::TempMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 
 void ASurvivor::CrowLinetrace()
 {
-	FHitResult Hit;
+	/*FHitResult Hit;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 
-	/*FVector Start = CrowMeshComp->GetSocketLocation(TEXT("Start"));
+	FVector Start = CrowMeshComp->GetSocketLocation(TEXT("Start"));
 	FVector End = CrowMeshComp->GetSocketLocation(TEXT("End"));
 
 	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 시작 위치: %s"), *Start.ToString());
@@ -407,26 +415,26 @@ void ASurvivor::CrowLinetrace()
 
 void ASurvivor::EquipPrimaryWeapon(const struct FInputActionValue& InputValue)
 {
-	if (PrimaryWeaponSlot.WeaponMesh)
+	/*if (PrimaryWeaponSlot.WeaponMesh)
 	{
 		EquipWeapon(&PrimaryWeaponSlot);
-	}
+	}*/
 }
 
 void ASurvivor::EquipSecondaryWeapon(const struct FInputActionValue& InputValue)
 {
-	if (SecondaryWeaponSlot.WeaponMesh)
+	/*if (SecondaryWeaponSlot.WeaponMesh)
 	{
 		EquipWeapon(&SecondaryWeaponSlot);
-	}
+	}*/
 }
 
 void ASurvivor::EquipMeleeWeapon(const struct FInputActionValue& InputValue)
 {
-	if (MeleeWeaponSlot.WeaponMesh)
+	/*if (MeleeWeaponSlot.WeaponMesh)
 	{
 		EquipWeapon(&MeleeWeaponSlot);
-	}
+	}*/
 }
 
 //무기 발견하기 (카메라 라인트레이스)
@@ -439,13 +447,25 @@ void ASurvivor::TraceForWeapon()
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this); // 자기 자신은 무시
-	// FCollisionObjectQueryParams ObjectParams;
-	// ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
-	
+	if (CurrentWeapon)
+	{
+		Params.AddIgnoredActor(CurrentWeapon);
+	}
+
+	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
+	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
 	const float DebugLineLifetime = 2.0f;
 
-	// 라인 트레이스 실행
-	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+	// Capsule Trace 실행
+	bool bHit = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		FQuat::Identity, // 회전 없음
+		ECC_Visibility, // 충돌 채널
+		FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), // 캡슐 형태
+		Params
+	);
 
 	if (bHit)
 	{
@@ -455,20 +475,20 @@ void ASurvivor::TraceForWeapon()
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName());
 			UE_LOG(LogTemp, Warning, TEXT("Hit Actor Class: %s"), *HitActor->GetClass()->GetName());
 		}
-		
+
 		AWeaponBase* HitWeapon = Cast<AWeaponBase>(HitResult.GetActor()); // 무기인지 확인
 
 		if (HitWeapon)
 		{
 			FocusedWeapon = HitWeapon; // 감지한 무기를 저장
 			UE_LOG(LogTemp, Warning, TEXT("현재 바라보는 무기: %s"), *FocusedWeapon->GetName());
-			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);
 		}
 		else
 		{
 			FocusedWeapon = nullptr; // 무기가 아니면 초기화
 			UE_LOG(LogTemp, Warning, TEXT("무기가 아님"));
-			DrawDebugLine(GetWorld(), Start, HitResult.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);
 		}
 	}
 	else
@@ -484,6 +504,7 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 	if (FocusedWeapon) // 플레이어가 바라보고 있는 무기가 있다면
 	{
 		UE_LOG(LogTemp, Warning, TEXT("주울 무기 발견!"));
+		PickUpWeapon(FocusedWeapon->WeaponData);
 	}
 	else
 	{
@@ -496,28 +517,28 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 	switch (NewWeapon.WeaponName)
 	{
 	case EWeaponType::Primary:
-		if (PrimaryWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
+		/*if (PrimaryWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
-		}
+		}*/
 		PrimaryWeaponSlot = NewWeapon;
 		EquipWeapon(&PrimaryWeaponSlot);
 		break;
 
 	case EWeaponType::Secondary:
-		if (SecondaryWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
+		/*if (SecondaryWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
-		}
+		}*/
 		SecondaryWeaponSlot = NewWeapon;
 		EquipWeapon(&SecondaryWeaponSlot);
 		break;
 
 	case EWeaponType::Melee:
-		if (MeleeWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
+		/*if (MeleeWeaponSlot.WeaponMesh) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
-		}
+		}*/
 		MeleeWeaponSlot = NewWeapon;
 		EquipWeapon(&MeleeWeaponSlot);
 		break;
@@ -531,22 +552,14 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 //무기 장착
 void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 {
-	if (WeaponData && WeaponData->WeaponMesh)
-	{
-		// 현재 무기 내리기
-		UnequipWeapon();
-
-		// 새 무기 장착
-		WeaponMesh->SetSkeletalMesh(WeaponData->WeaponMesh);
-		if (WeaponData->WeaponMontage && GetMesh()->GetAnimInstance())
-		{
-			GetMesh()->GetAnimInstance()->Montage_Play(WeaponData->WeaponMontage);
-		}
-
-		// 현재 무기 업데이트
-		CurrentWeapon = *WeaponData;  // 구조체 복사
-		bHasWeapon = true;
-	}
+	CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
+	check(CurrentWeapon);
+	CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+	
+	/*if (WeaponData->WeaponMontage && GetMesh()->GetAnimInstance())
+	{w
+		GetMesh()->GetAnimInstance()->Montage_Play(WeaponData->WeaponMontage);
+	}*/
 }
 
 //무기 내리기
@@ -558,10 +571,10 @@ void ASurvivor::UnequipWeapon()
 		GetMesh()->GetAnimInstance()->Montage_Play(UnequipMontage);
 
 		// 무기 메시 제거
-		WeaponMesh->SetSkeletalMesh(nullptr);
+		/*WeaponMesh->SetStaticMesh(nullptr);*/
 
 		// 현재 무기 초기화
-		CurrentWeapon = FWeaponData();  // 기본 값으로 초기화
+		// CurrentWeapon = FWeaponData();  // 기본 값으로 초기화
 		bHasWeapon = false;
 	}
 }
