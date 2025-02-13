@@ -4,12 +4,11 @@
 #include "Zombies/CommonZombie.h"
 
 #include "AIController.h"
-#include "NavigationPath.h"
-#include "NavigationSystem.h"
 #include "Right4DeadGameInstance.h"
+#include "Survivor.h"
+#include "ZombieAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Right4Dead/Right4Dead.h"
 
 // Sets default values
@@ -32,21 +31,31 @@ ACommonZombie::ACommonZombie()
 			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
 		}
 	}
-	AIControllerClass = AAIController::StaticClass();
+	AIControllerClass = AZombieAIController::StaticClass();
 }
 
 // Called when the game starts or when spawned
 void ACommonZombie::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (Target)
+	
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (nullptr == AIController)
 	{
-		AAIController* AIController = Cast<AAIController>(GetController());
-		if (AIController)
+		if (nullptr == (AIController = Cast<AAIController>(GetWorld()->SpawnActor(AIControllerClass))))
 		{
-			AIController->MoveToActor(Target, -1);
+			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
 		}
+		AIController->Possess(this);
+	}
+
+	if (nullptr == Target)
+	{
+		if (nullptr == (Target = UGameplayStatics::GetActorOfClass(this, ASurvivor::StaticClass())))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed Set Target"));
+		}
+		AIController->MoveToActor(Target);
 	}
 }
 
@@ -132,12 +141,20 @@ void ACommonZombie::EndClimbing()
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 	if (AAIController* AIController = Cast<AAIController>(GetController()))
 	{
-		AIController->MoveToActor(Target, 30);
+		AIController->MoveToActor(Target);
 	}
 	ClimbDestination = FTransform::Identity;
 }
 
-AActor* ACommonZombie::GetChaseTarget()
+AActor* ACommonZombie::GetChasingTarget()
 {
 	return Target;
+}
+
+void ACommonZombie::OnChangedTarget() const
+{
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		AIController->MoveToActor(Target);
+	}
 }

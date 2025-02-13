@@ -51,7 +51,7 @@ void AZombieClimbTriggerBox::NotifyActorBeginOverlap(AActor* OtherActor)
 	Super::NotifyActorBeginOverlap(OtherActor);
 	if (ACommonZombie* Zombie = Cast<ACommonZombie>(OtherActor))
 	{
-		const AActor* Target = Zombie->GetChaseTarget();
+		const AActor* Target = Zombie->GetChasingTarget();
 		if (Target) {
 			if (IsOverlappingActor(Target))
 			{
