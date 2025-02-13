@@ -462,26 +462,26 @@ void ASurvivor::spawnCollisionBox()
 //무기 슬롯 설정 (1,2,3 키 바인딩)
 void ASurvivor::EquipPrimaryWeapon(const struct FInputActionValue& InputValue)
 {
-	/*if (PrimaryWeaponSlot.WeaponMesh)
+	if (PrimaryWeaponSlot.WeaponFactory)
 	{
 		EquipWeapon(&PrimaryWeaponSlot);
-	}*/
+	}
 }
 
 void ASurvivor::EquipSecondaryWeapon(const struct FInputActionValue& InputValue)
 {
-	/*if (SecondaryWeaponSlot.WeaponMesh)
+	if (SecondaryWeaponSlot.WeaponFactory)
 	{
 		EquipWeapon(&SecondaryWeaponSlot);
-	}*/
+	}
 }
 
 void ASurvivor::EquipMeleeWeapon(const struct FInputActionValue& InputValue)
 {
-	/*if (MeleeWeaponSlot.WeaponMesh)
+	if (MeleeWeaponSlot.WeaponFactory)
 	{
 		EquipWeapon(&MeleeWeaponSlot);
-	}*/
+	}
 }
 
 
@@ -498,6 +498,7 @@ void ASurvivor::TraceForWeapon()
 	Params.AddIgnoredActor(this); // 자기 자신은 무시
 	if (CurrentWeapon)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Current Weapon : %s"), *CurrentWeapon.GetName());
 		Params.AddIgnoredActor(CurrentWeapon);
 	}
 
@@ -519,31 +520,38 @@ void ASurvivor::TraceForWeapon()
 	if (bHit)
 	{
 		AActor* HitActor = HitResult.GetActor();
-		if (HitActor)
+		/*if (HitActor)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName());
-			UE_LOG(LogTemp, Warning, TEXT("Hit Actor Class: %s"), *HitActor->GetClass()->GetName());
-		}
+			if (GEngine)
+			{
+				FString Message = FString::Printf(TEXT("Hit Actor Class: %s"), *HitActor->GetClass()->GetName());
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
+			}
+		}*/
 
 		AWeaponBase* HitWeapon = Cast<AWeaponBase>(HitResult.GetActor()); // 무기인지 확인
 
 		if (HitWeapon)
 		{
 			FocusedWeapon = HitWeapon; // 감지한 무기를 저장
-			UE_LOG(LogTemp, Warning, TEXT("현재 바라보는 무기: %s"), *FocusedWeapon->GetName());
+			if (GEngine)
+			{
+				FString Message = FString::Printf(TEXT("Hit Actor Class: %s"), *FocusedWeapon->GetName());
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
+			}
 			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);
 		}
 		else
 		{
 			FocusedWeapon = nullptr; // 무기가 아니면 초기화
-			UE_LOG(LogTemp, Warning, TEXT("무기가 아님"));
-			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);
+			/*UE_LOG(LogTemp, Warning, TEXT("무기가 아님"));
+			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);*/
 		}
 	}
 	else
 	{
-		FocusedWeapon = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("아무것도 없음")); // 감지된 게 없으면 초기화
+		FocusedWeapon = nullptr; //감지된게 없으면 초기화
+		//UE_LOG(LogTemp, Warning, TEXT("아무것도 없음")); 
 	}
 }
 
@@ -557,14 +565,15 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("주울 무기 발견!"));
 		PickUpWeapon(FocusedWeapon->WeaponData);
 	}
-	else
+	/*else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("주울 무기가 없습니다!"));
-	}
+	}*/
 }
 
 void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 {
+	//장착할 슬롯을 결정
 	switch (NewWeapon.WeaponName)
 	{
 	case EWeaponType::Primary:
@@ -603,8 +612,28 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 //무기 장착
 void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 {
-	CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
-	check(CurrentWeapon);
+	if (!WeaponData || !WeaponData->WeaponFactory) return;
+	
+	//현재 무기가 기존에 저장된 무기와 같은지 판단
+	//1. 만약 현재무기가 존재하고 / 2. 장착된 무기 데이터가 존재하고 / 3. 장착된 무기의 데이터와 새로 장착하려는 무기의 이름이 같다면
+	//기존 무기를 다시 보이게 하자 (새로 스폰하는 게 아님)
+	if (CurrentWeapon && CurrentWeaponSlot.IsSet() && CurrentWeaponSlot.GetValue().WeaponFactory == WeaponData->WeaponFactory)
+	{
+		CurrentWeapon->SetActorHiddenInGame(false);
+	}
+	
+	else
+	{
+		if (CurrentWeapon)
+		{
+			CurrentWeapon->Destroy(); // 기존 무기 삭제
+		}
+		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
+	}
+
+	// 현재 장착된 무기 슬롯 업데이트!
+	CurrentWeaponSlot = *WeaponData; // TOptional에 값 설정
+
 	CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
 	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
@@ -629,9 +658,9 @@ void ASurvivor::UnequipWeapon()
 {
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->Destroy();
-		CurrentWeapon = nullptr;
+		CurrentWeapon->SetActorHiddenInGame(true);
 	}
+	CurrentWeaponSlot.Reset();
 
 	if (UnequipMontage && GetMesh()->GetAnimInstance())
 	{

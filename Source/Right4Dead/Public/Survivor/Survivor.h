@@ -159,6 +159,8 @@ public:
 	FWeaponData SecondaryWeaponSlot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
 	FWeaponData MeleeWeaponSlot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	TOptional<FWeaponData> CurrentWeaponSlot;
 
 	// 현재 장착된 무기
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponData")
@@ -168,7 +170,7 @@ public:
 	//무기 발견 (trace 해서)
 	UPROPERTY()
 	AWeaponBase* FocusedWeapon;
-	void TraceForWeapon(); //스피어트레이스하기 (라인트레이스는 너무정밀함)
+	void TraceForWeapon(); //스피어트레이스하기 (라인트레이스는 정밀도가 필요해서 인식이 잘 안됨... 꼭 트레이스가 아니라 박스 콜리전으로 고쳐도됨)
 
 	// 무기 줍기 키입력 바인딩
 	UPROPERTY(editanywhere, Category="Input")
