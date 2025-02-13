@@ -18,6 +18,8 @@ struct FWeaponData
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	UAnimMontage* WeaponMontage;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
+	UAnimMontage* WeaponFireMontage;
+	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	uint8 AmmoCount;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	uint8 MaxAmmoCount;

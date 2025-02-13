@@ -21,6 +21,7 @@ AWeaponBase::AWeaponBase()
 	SetRootComponent(Root);
 	PrimaryWeapon=CreateDefaultSubobject<UStaticMeshComponent>("PrimaryWeapon");
 	PrimaryWeapon->SetupAttachment(RootComponent);
+	PrimaryWeapon->CastShadow = false;
 	Muzzle=CreateDefaultSubobject<USceneComponent>("Muzzle");
 	Muzzle->SetupAttachment(PrimaryWeapon);
 	Muzzle->SetRelativeLocationAndRotation(FVector(0,57,-2.5),FRotator(0,90,0));
