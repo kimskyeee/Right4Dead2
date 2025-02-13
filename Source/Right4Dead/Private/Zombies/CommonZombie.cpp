@@ -39,10 +39,10 @@ void ACommonZombie::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	AAIController* AIController = Cast<AAIController>(GetController());
+	AIController = Cast<AZombieAIController>(GetController());
 	if (nullptr == AIController)
 	{
-		if (nullptr == (AIController = Cast<AAIController>(GetWorld()->SpawnActor(AIControllerClass))))
+		if (nullptr == (AIController = Cast<AZombieAIController>(GetWorld()->SpawnActor(AIControllerClass))))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
 		}
@@ -149,12 +149,4 @@ void ACommonZombie::EndClimbing()
 AActor* ACommonZombie::GetChasingTarget()
 {
 	return Target;
-}
-
-void ACommonZombie::OnChangedTarget() const
-{
-	if (AAIController* AIController = Cast<AAIController>(GetController()))
-	{
-		AIController->MoveToActor(Target);
-	}
 }

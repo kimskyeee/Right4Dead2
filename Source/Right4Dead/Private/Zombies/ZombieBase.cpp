@@ -23,7 +23,7 @@ void AZombieBase::BeginPlay()
 }
 
 float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
-	class AController* EventInstigator, AActor* DamageCauser)
+                              class AController* EventInstigator, AActor* DamageCauser)
 {
 	PRINT_CALLINFO();
 	
