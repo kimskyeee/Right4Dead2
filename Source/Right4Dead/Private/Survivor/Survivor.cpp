@@ -51,7 +51,6 @@ ASurvivor::ASurvivor()
 	ConstructorHelpers::FObjectFinder<UAnimMontage> TempCrowMontage(TEXT("/Script/Engine.AnimMontage'/Game/test_1_Montage.test_1_Montage'"));
 	if (TempCrowMontage.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("몽타주 연동됨"));
 		CrowMontage = TempCrowMontage.Object;
 	}
 
@@ -59,7 +58,6 @@ ASurvivor::ASurvivor()
 	ConstructorHelpers::FObjectFinder<UAnimMontage> TempGunUndrawMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Undraw_Montage.knife_arms_Undraw_Montage'"));
 	if (TempGunUndrawMontage.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Undraw 몽타주 연동됨"));
 		UnequipMontage = TempGunUndrawMontage.Object;
 	}
 		
@@ -338,7 +336,6 @@ void ASurvivor::SurRight(const struct FInputActionValue& InputValue)
 	
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("뭐가없음"));
 		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
 		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
 		AnimInstance->Montage_Play(CrowMontage);
@@ -496,11 +493,15 @@ void ASurvivor::TraceForWeapon()
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this); // 자기 자신은 무시
-	if (CurrentWeapon)
+	/*if (CurrentWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Current Weapon : %s"), *CurrentWeapon.GetName());
+		if (GEngine)
+		{
+			FString Message = FString::Printf(TEXT("Current Weapon: %s"), *CurrentWeapon->GetName());
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
+		}
 		Params.AddIgnoredActor(CurrentWeapon);
-	}
+	}*/
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
@@ -613,28 +614,45 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 {
 	if (!WeaponData || !WeaponData->WeaponFactory) return;
-	
-	//현재 무기가 기존에 저장된 무기와 같은지 판단
-	//1. 만약 현재무기가 존재하고 / 2. 장착된 무기 데이터가 존재하고 / 3. 장착된 무기의 데이터와 새로 장착하려는 무기의 이름이 같다면
-	//기존 무기를 다시 보이게 하자 (새로 스폰하는 게 아님)
-	if (CurrentWeapon && CurrentWeaponSlot.IsSet() && CurrentWeaponSlot.GetValue().WeaponFactory == WeaponData->WeaponFactory)
+    
+	// 이미 같은 무기를 들고 있다면 무시
+	if (CurrentWeapon && CurrentWeapon->GetClass() == WeaponData->WeaponFactory->GetDefaultObject()->GetClass())
 	{
-		CurrentWeapon->SetActorHiddenInGame(false);
+		return;
 	}
-	
+
+	// 기존 무기가 있다면 숨기고 장착 해제
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetEquipped(false);
+		CurrentWeapon->SetActorHiddenInGame(true);
+	}
+
+	// 월드에 있는 무기를 찾음
+	AWeaponBase* WorldWeapon = FindWeaponInWorld(WeaponData);
+	if (WorldWeapon)
+	{
+		// 월드에 있는 무기를 장착
+		WorldWeapon->SetEquipped(true);
+		WorldWeapon->SetActorHiddenInGame(false);
+		CurrentWeapon = WorldWeapon;
+	}
 	else
 	{
-		if (CurrentWeapon)
-		{
-			CurrentWeapon->Destroy(); // 기존 무기 삭제
-		}
+		// 월드에 무기가 없으면 새로 생성
 		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
+		CurrentWeapon->SetEquipped(true);
 	}
 
-	// 현재 장착된 무기 슬롯 업데이트!
-	CurrentWeaponSlot = *WeaponData; // TOptional에 값 설정
+	// 현재 장착된 무기 슬롯 업데이트
+	CurrentWeaponSlot = *WeaponData;
 
-	CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+	// 무기를 캐릭터의 소켓에 부착
+	if (CurrentWeapon && Arms)
+	{
+		CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
+	}
 	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	if (AnimInst)
@@ -651,6 +669,24 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		Arms->GetAnimInstance()->Montage_Play(WeaponData->WeaponMontage);
 		UE_LOG(LogTemp, Warning, TEXT("무기 몽타주 플레이"));
 	}
+}
+
+
+//월드에 소환된 무기중에 false값을 가지고 있는 무기만 찾아주기
+AWeaponBase* ASurvivor::FindWeaponInWorld(FWeaponData* WeaponData)
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWeaponBase::StaticClass(), FoundActors);
+
+	for (AActor* Actor : FoundActors)
+	{
+		AWeaponBase* Weapon = Cast<AWeaponBase>(Actor);
+		if (Weapon && Weapon->GetClass() == WeaponData->WeaponFactory->GetDefaultObject()->GetClass() && !Weapon->IsEquipped)
+		{
+			return Weapon;
+		}
+	}
+	return nullptr;
 }
 
 //무기 내리기

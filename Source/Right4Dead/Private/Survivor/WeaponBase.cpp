@@ -43,6 +43,9 @@ void AWeaponBase::BeginPlay()
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	PrimaryActorTick.bCanEverTick = false;
+	IsEquipped = false;
 }
 
 
@@ -78,6 +81,14 @@ void AWeaponBase::LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator
 	ImpactPoint = HitResult.ImpactPoint;
 	ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HitResult.TraceStart, HitResult.TraceEnd);
 
+}
+
+void AWeaponBase::SetEquipped(bool bEquip)
+{
+	IsEquipped = bEquip;
+
+	//월드에 있는 무기는 bIsEquipped를 false로 설정
+	//무기를 장착하면 true로 설정을 변경해주자
 }
 
 void AWeaponBase::OnReload_Implementation()

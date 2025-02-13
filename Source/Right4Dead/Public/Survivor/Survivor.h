@@ -180,6 +180,7 @@ public:
 	void PickUpWeapon(FWeaponData NewWeapon);
 	// 무기 교체 함수
 	void EquipWeapon(FWeaponData* WeaponData);
+	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);
 	// 무기 내리기 함수
 	void UnequipWeapon();
  
