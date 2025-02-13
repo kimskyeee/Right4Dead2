@@ -112,19 +112,9 @@ void ACommonZombie::Tick(float DeltaTime)
 
 void ACommonZombie::StartClimbing(const FTransform& Destination)
 {
-	if (AAIController* AIController = Cast<AAIController>(GetController()))
-	{
-		/*// 이동 가능한 경로 찾기
-		UNavigationPath* NavPath = UNavigationSystemV1::FindPathToActorSynchronously(this, GetActorLocation(), Target);
-		if (NavPath && NavPath->IsValid() && NavPath->PathPoints.Num() > 0)
-		{
-			return;
-		}*/
-		
-		AIController->StopMovement();
-		GetCharacterMovement()->StopMovementImmediately();
-		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	}
+	AIController->StopMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	bClimbing = true;
 	ClimbDestination = Destination;
 	SetActorRotation(Destination.Rotator());
@@ -139,10 +129,7 @@ void ACommonZombie::EndClimbing()
 	bClimbing = false;
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	if (AAIController* AIController = Cast<AAIController>(GetController()))
-	{
-		AIController->MoveToActor(Target);
-	}
+	AIController->MoveToActor(Target);
 	ClimbDestination = FTransform::Identity;
 }
 
