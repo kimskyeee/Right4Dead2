@@ -2,9 +2,10 @@
 
 
 #include "WeaponBase.h"
-
+#include "FWeaponData.h" 
 #include "Survivor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -16,21 +17,25 @@ AWeaponBase::AWeaponBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//외관
-	PrimaryWeapon=CreateDefaultSubobject<USkeletalMeshComponent>("PrimaryWeapon");
+	Root=CreateDefaultSubobject<USphereComponent>(TEXT("Root"));
+	SetRootComponent(Root);
+	PrimaryWeapon=CreateDefaultSubobject<UStaticMeshComponent>("PrimaryWeapon");
+	PrimaryWeapon->SetupAttachment(RootComponent);
 	Muzzle=CreateDefaultSubobject<USceneComponent>("Muzzle");
 	Muzzle->SetupAttachment(PrimaryWeapon);
 	Muzzle->SetRelativeLocationAndRotation(FVector(0,57,-2.5),FRotator(0,90,0));
 	Eject=CreateDefaultSubobject<USceneComponent>("Eject");
 	Eject->SetupAttachment(Muzzle);
 	Eject->SetRelativeLocation(FVector(-50,0,0));
+
+	Root->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	//Root->SetCollisionProfileName(TEXT("BlockAll"));
 	
 }
 
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
-	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -74,23 +79,14 @@ void AWeaponBase::LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator
 
 }
 
-
-void AWeaponBase::HideAmmo()
+void AWeaponBase::OnReload_Implementation()
 {
-	if (PrimaryWeapon) //null guard
-	{
-		PrimaryWeapon->USkinnedMeshComponent::HideBoneByName("bullet",PBO_None);
-		PrimaryWeapon->USkinnedMeshComponent::HideBoneByName("bullets",PBO_None);
-	}
 }
 
-void AWeaponBase::UnHideAmmo()
+void AWeaponBase::OnFire_Implementation()
 {
-	if (PrimaryWeapon)
-	{
-		PrimaryWeapon->USkinnedMeshComponent::UnHideBoneByName("bullet");
-		PrimaryWeapon->USkinnedMeshComponent::UnHideBoneByName("bullets");
-	}
 }
+
+
 
 

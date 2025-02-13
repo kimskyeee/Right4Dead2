@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "ActorBase.h"
+#include "EWeaponType.h"
+#include "FWeaponData.h"
+#include "WeaponBase.h"
 #include "GameFramework/Character.h"
 #include "Survivor.generated.h"
 
@@ -105,10 +108,6 @@ public:
 	class UInputAction* IA_SurRight;
 	void SurRight(const struct FInputActionValue& InputValue);
 
-	//공격 전환
-	UPROPERTY(EditDefaultsOnly,Category="Settings")
-	int32 WeaponEquipped;
-
 	//UI
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UUserWidget> MainUIFactory;
@@ -119,14 +118,10 @@ public:
 	class UStatSystem* StatSystem;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
 
-
 	//일단 시험용 빠루 소환
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USkeletalMeshComponent* CrowMeshComp;
 	UFUNCTION()
 	void TempMontageStarted(UAnimMontage* Montage);
 	UFUNCTION()
@@ -137,8 +132,64 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UAnimMontage* CrowMontage;
 	FTimerHandle CrowTimerHandle;
+
+
+	//무기 교체 키바인딩, 함수
+	UPROPERTY(EditAnywhere,Category="Input")
+	class UInputAction* IA_PrimaryWeapon;
+	void EquipPrimaryWeapon(const struct FInputActionValue& InputValue);
+	UPROPERTY(EditAnywhere,Category="Input")
+	class UInputAction* IA_SecondaryWeapon;
+	void EquipSecondaryWeapon(const struct FInputActionValue& InputValue);
+	UPROPERTY(EditAnywhere,Category="Input")
+	class UInputAction* IA_MeleeWeapon;
+	void EquipMeleeWeapon(const struct FInputActionValue& InputValue);
+	
+	//무기 슬롯
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	FWeaponData PrimaryWeaponSlot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	FWeaponData SecondaryWeaponSlot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	FWeaponData MeleeWeaponSlot;
+
+	// 현재 장착된 무기
+	UPROPERTY(BlueprintReadOnly, Category = "WeaponData")
+	// TObjectPtr<AWeaponBase> == AWeaponBase*
+	TObjectPtr<AWeaponBase> CurrentWeapon;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	bool bHasWeapon;
+
+	//무기 발견 (trace 해서)
+	UPROPERTY()
+	AWeaponBase* FocusedWeapon;
+	void TraceForWeapon();
+
+	// 무기 줍기 키입력 바인딩
+	UPROPERTY(editanywhere, Category="Input")
+	class UInputAction* IA_PickUp;
+	void PickUpWeapon_Input(const FInputActionValue& Value);
+	// 무기 줍기 함수
+	void PickUpWeapon(FWeaponData NewWeapon);
+	// 무기 교체 함수
+	void EquipWeapon(FWeaponData* WeaponData);
+	// 무기 내리기 함수
+	void UnequipWeapon();
+
+	// 무기 소켓에 부착할 static 메시
+	/*UPROPERTY(VisibleAnywhere, Category = "WeaponData")
+	UStaticMeshComponent* WeaponMesh;*/
+	// 무기 내리는 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UAnimMontage* UnequipMontage;
 	
 };
+
+
+
+
+
+
 
 
 
