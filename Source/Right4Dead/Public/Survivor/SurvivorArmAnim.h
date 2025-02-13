@@ -15,9 +15,12 @@ class RIGHT4DEAD_API USurvivorArmAnim : public UAnimInstance
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadOnly, Category = "References")
-	ASurvivor* Survivor;
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon")
 	EWeaponType CurrentWeapon;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool bIsEquippedWeapon=false;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool bIsInAir=false;
 
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 };

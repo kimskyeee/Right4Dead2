@@ -10,6 +10,8 @@
 #include "GameFramework/Character.h"
 #include "Survivor.generated.h"
 
+class UBoxComponent;
+
 UCLASS()
 class RIGHT4DEAD_API ASurvivor : public ACharacter, public IActorBase
 {
@@ -126,14 +128,19 @@ public:
 	void TempMontageStarted(UAnimMontage* Montage);
 	UFUNCTION()
 	void TempMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-	void CrowLinetrace();
+	//void CrowLinetrace();
+
+
+	//콜리전박스 생성 테스트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision", meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* PushCollisionBox;
+	void spawnCollisionBox();
 
 	//몽타주 재생 테스트
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UAnimMontage* CrowMontage;
 	FTimerHandle CrowTimerHandle;
-
-
+	
 	//무기 교체 키바인딩, 함수
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_PrimaryWeapon;
@@ -155,15 +162,13 @@ public:
 
 	// 현재 장착된 무기
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponData")
-	// TObjectPtr<AWeaponBase> == AWeaponBase*
+	// TObjectPtr<AWeaponBase> == AWeaponBase* (언리얼에서 관리하는거라서 전자가 더 좋다. 후자는 CPP전체)
 	TObjectPtr<AWeaponBase> CurrentWeapon;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
-	bool bHasWeapon;
 
 	//무기 발견 (trace 해서)
 	UPROPERTY()
 	AWeaponBase* FocusedWeapon;
-	void TraceForWeapon();
+	void TraceForWeapon(); //스피어트레이스하기 (라인트레이스는 너무정밀함)
 
 	// 무기 줍기 키입력 바인딩
 	UPROPERTY(editanywhere, Category="Input")
@@ -175,10 +180,7 @@ public:
 	void EquipWeapon(FWeaponData* WeaponData);
 	// 무기 내리기 함수
 	void UnequipWeapon();
-
-	// 무기 소켓에 부착할 static 메시
-	/*UPROPERTY(VisibleAnywhere, Category = "WeaponData")
-	UStaticMeshComponent* WeaponMesh;*/
+ 
 	// 무기 내리는 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* UnequipMontage;
