@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ZombieAIController.h"
 #include "ZombieBase.h"
-#include "Right4Dead/Right4Dead.h"
 #include "CommonZombie.generated.h"
 
 UCLASS()
@@ -29,13 +29,12 @@ protected:
 public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<AActor> Target = nullptr;
+	UPROPERTY()
+	TObjectPtr<AZombieAIController> AIController = nullptr;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void StartClimbing(const FTransform& Destination);
 	void EndClimbing();
 	AActor* GetChasingTarget();
-
-	UFUNCTION(CallInEditor, Category = "Debugging")
-	void OnChangedTarget() const;
 };
