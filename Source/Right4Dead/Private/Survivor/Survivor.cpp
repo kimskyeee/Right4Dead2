@@ -3,7 +3,6 @@
 
 #include "Survivor.h"
 
-#include "CookerSettings.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -14,8 +13,11 @@
 #include "InputMappingContext.h"
 #include "StatSystem.h"
 #include "SurvivorArmAnim.h"
+#include "UISurvivorMain.h"
 #include "WeaponBase.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -51,7 +53,6 @@ ASurvivor::ASurvivor()
 	ConstructorHelpers::FObjectFinder<UAnimMontage> TempCrowMontage(TEXT("/Script/Engine.AnimMontage'/Game/test_1_Montage.test_1_Montage'"));
 	if (TempCrowMontage.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("몽타주 연동됨"));
 		CrowMontage = TempCrowMontage.Object;
 	}
 
@@ -59,7 +60,6 @@ ASurvivor::ASurvivor()
 	ConstructorHelpers::FObjectFinder<UAnimMontage> TempGunUndrawMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Undraw_Montage.knife_arms_Undraw_Montage'"));
 	if (TempGunUndrawMontage.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Undraw 몽타주 연동됨"));
 		UnequipMontage = TempGunUndrawMontage.Object;
 	}
 		
@@ -197,13 +197,13 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	auto pi=CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	if (pi)
 	{
-		pi->BindAction(IA_SurMove, ETriggerEvent::Triggered, this, &ASurvivor::SurMove);
-		pi->BindAction(IA_SurLook, ETriggerEvent::Triggered, this, &ASurvivor::SurLook);
-		pi->BindAction(IA_SurTurn, ETriggerEvent::Triggered, this, &ASurvivor::SurTurn);
-		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurJump);
-		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurCrouch);
-		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::SurFire);
-		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::SurRight);
+		pi->BindAction(IA_SurMove, ETriggerEvent::Triggered, this, &ASurvivor::SurvivorMove);
+		pi->BindAction(IA_SurLook, ETriggerEvent::Triggered, this, &ASurvivor::SurvivorLook);
+		pi->BindAction(IA_SurTurn, ETriggerEvent::Triggered, this, &ASurvivor::SurvivorTurn);
+		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurvivorJump);
+		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurvivorCrouch);
+		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::LeftClickAttack);
+		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::RightClickAttack);
 		pi->BindAction(IA_PrimaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipPrimaryWeapon);
 		pi->BindAction(IA_SecondaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipSecondaryWeapon);
 		pi->BindAction(IA_MeleeWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipMeleeWeapon);
@@ -229,87 +229,59 @@ void ASurvivor::SwitchCamera()
 	}
 }
 
-void ASurvivor::SurMove(const struct FInputActionValue& InputValue)
+void ASurvivor::SurvivorMove(const struct FInputActionValue& InputValue)
 {
 	FVector2d dir=InputValue.Get<FVector2d>();
 	Direction.X = dir.Y;
 	Direction.Y = dir.X;
 }
 
-void ASurvivor::SurCrouch(const struct FInputActionValue& InputValue)
+void ASurvivor::SurvivorCrouch(const struct FInputActionValue& InputValue)
 {
 	Crouch();
 }
 
-void ASurvivor::SurTurn(const struct FInputActionValue& InputValue)
+void ASurvivor::SurvivorTurn(const struct FInputActionValue& InputValue)
 {
 	float value = InputValue.Get<float>();
 	AddControllerYawInput(value);
 }
 
-void ASurvivor::SurLook(const struct FInputActionValue& InputValue)
+void ASurvivor::SurvivorLook(const struct FInputActionValue& InputValue)
 {
 	float value = InputValue.Get<float>();
 	AddControllerPitchInput(value);
 }
 
-void ASurvivor::SurJump(const struct FInputActionValue& InputValue)
+void ASurvivor::SurvivorJump(const struct FInputActionValue& InputValue)
 {
 	Jump();
 }
 
-void ASurvivor::SurFire(const struct FInputActionValue& InputValue)
+void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 {
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	USurvivorArmAnim* WeaponInst = Cast<USurvivorArmAnim>(AnimInst);
 	bool bIsEquipped = WeaponInst->bIsEquippedWeapon;
 
-
-	//SKYE : 총무기인지 확인하는 변수 추가해야함
+	//SKYE : 슬롯을 처음에 구분후 슬롯별 무기 공격 추가 필요함
 	if (bIsEquipped) //무기가 있을때만 가능
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SurFire 함수 호출됨"));
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-
-		APlayerCameraManager* FirstCam = UGameplayStatics::GetPlayerCameraManager(GetWorld(),0);
-		if (!FirstCam)
+		switch (CurrentWeaponSlot->WeaponName)
 		{
-			UE_LOG(LogTemp, Error, TEXT("카메라 매니저가 없음"));
-			return;
+		case EWeaponType::Primary:
+			PrimaryWeaponAttack();
+			break;
+		case EWeaponType::Secondary:
+			SecondaryWeaponAttack();
+			break;
+		case EWeaponType::Melee:
+			MeleeWeaponAttack();
+			break;
+		default:
+			NoneAttack();
+			break;
 		}
-		FVector Start = FirstCam->GetCameraLocation();
-		FVector End = Start + (FirstCam->GetActorForwardVector() * 30000);
-
-		UE_LOG(LogTemp, Warning, TEXT("라인트레이스 시작 위치: %s"), *Start.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("라인트레이스 끝 위치: %s"), *End.ToString());
-    
-		const float DebugLineLifetime = 2.0f;
-		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params);
-
-		UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("히트") : TEXT("미스"));
-	
-		// 디버그 라인 그리기
-		if (bDrawLine)
-		{
-			if (bHit)
-			{
-				// 히트가 발생한 경우 빨간색으로 표시
-				DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
-			}
-			else
-			{
-				// 히트가 없는 경우 초록색으로 표시
-				DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
-			}
-		}
-    
-		if (bHit && Hit.GetActor())
-		{
-			UGameplayStatics::ApplyDamage(Hit.GetActor(),FireDamage,GetController(),this,UDamageType::StaticClass());
-		}
-
 
 		//몽타주 플레이
 	
@@ -323,27 +295,104 @@ void ASurvivor::SurFire(const struct FInputActionValue& InputValue)
 			UE_LOG(LogTemp, Warning, TEXT("무기가 없습니다"));
 		}
 	}
-	
-}
 
-void ASurvivor::SurReload(const struct FInputActionValue& InputValue)
+	else
+		NoneAttack();
+}
+	
+
+
+void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 {
 }
 
-
-// 공격 : 밀쳐내기
-void ASurvivor::SurRight(const struct FInputActionValue& InputValue)
+void ASurvivor::PrimaryWeaponAttack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("SurRight 함수 호출"));
-	
+	UE_LOG(LogTemp, Warning, TEXT("좌클릭 바인딩 완료!"));
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	APlayerCameraManager* FirstCam = UGameplayStatics::GetPlayerCameraManager(GetWorld(),0);
+	if (!FirstCam)
+	{
+		UE_LOG(LogTemp, Error, TEXT("카메라 매니저가 없음"));
+		return;
+	}
+	FVector Start = FirstCam->GetCameraLocation();
+	FVector End = Start + (FirstCam->GetActorForwardVector() * 30000);
+
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 시작 위치: %s"), *Start.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 끝 위치: %s"), *End.ToString());
+	    
+	const float DebugLineLifetime = 2.0f;
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params);
+
+	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("히트") : TEXT("미스"));
+		
+	// 디버그 라인 그리기
+	if (bDrawLine)
+	{
+		if (bHit)
+		{
+			// 히트가 발생한 경우 빨간색으로 표시
+			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+		}
+		else
+		{
+			// 히트가 없는 경우 초록색으로 표시
+			DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
+		}
+	}
+	    
+	if (bHit && Hit.GetActor())
+	{
+		UGameplayStatics::ApplyDamage(Hit.GetActor(),FireDamage,GetController(),this,UDamageType::StaticClass());
+	}
+}
+
+void ASurvivor::SecondaryWeaponAttack()
+{
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("뭐가없음"));
+		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
+		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
+		AnimInstance->Montage_Play(SecondaryWeaponSlot.WeaponFireMontage);
+	}
+}
+
+void ASurvivor::MeleeWeaponAttack()
+{
+}
+
+void ASurvivor::NoneAttack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("무기없을때 공격 시작"));
+    
+	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+	{
 		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
 		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
 		AnimInstance->Montage_Play(CrowMontage);
 	}
 }
+
+
+// 공격 : 밀쳐내기
+void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
+{
+	UE_LOG(LogTemp, Warning, TEXT("SurRight 함수 호출"));
+	
+	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+	{
+		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
+		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
+		AnimInstance->Montage_Play(CrowMontage);
+	}
+}
+
+//좌클릭에서 재사용하기 위해 별도 함수로 구현
+
 
 float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                             class AController* EventInstigator, AActor* DamageCauser)
@@ -462,26 +511,26 @@ void ASurvivor::spawnCollisionBox()
 //무기 슬롯 설정 (1,2,3 키 바인딩)
 void ASurvivor::EquipPrimaryWeapon(const struct FInputActionValue& InputValue)
 {
-	/*if (PrimaryWeaponSlot.WeaponMesh)
+	if (PrimaryWeaponSlot.WeaponFactory)
 	{
 		EquipWeapon(&PrimaryWeaponSlot);
-	}*/
+	}
 }
 
 void ASurvivor::EquipSecondaryWeapon(const struct FInputActionValue& InputValue)
 {
-	/*if (SecondaryWeaponSlot.WeaponMesh)
+	if (SecondaryWeaponSlot.WeaponFactory)
 	{
 		EquipWeapon(&SecondaryWeaponSlot);
-	}*/
+	}
 }
 
 void ASurvivor::EquipMeleeWeapon(const struct FInputActionValue& InputValue)
 {
-	/*if (MeleeWeaponSlot.WeaponMesh)
+	if (MeleeWeaponSlot.WeaponFactory)
 	{
 		EquipWeapon(&MeleeWeaponSlot);
-	}*/
+	}
 }
 
 
@@ -498,6 +547,11 @@ void ASurvivor::TraceForWeapon()
 	Params.AddIgnoredActor(this); // 자기 자신은 무시
 	if (CurrentWeapon)
 	{
+		if (GEngine)
+		{
+			FString Message = FString::Printf(TEXT("Current Weapon: %s"), *CurrentWeapon->GetName());
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
+		}
 		Params.AddIgnoredActor(CurrentWeapon);
 	}
 
@@ -521,8 +575,11 @@ void ASurvivor::TraceForWeapon()
 		AActor* HitActor = HitResult.GetActor();
 		if (HitActor)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName());
-			UE_LOG(LogTemp, Warning, TEXT("Hit Actor Class: %s"), *HitActor->GetClass()->GetName());
+			if (GEngine)
+			{
+				FString Message = FString::Printf(TEXT("Hit Actor Class: %s"), *HitActor->GetClass()->GetName());
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
+			}
 		}
 
 		AWeaponBase* HitWeapon = Cast<AWeaponBase>(HitResult.GetActor()); // 무기인지 확인
@@ -530,20 +587,24 @@ void ASurvivor::TraceForWeapon()
 		if (HitWeapon)
 		{
 			FocusedWeapon = HitWeapon; // 감지한 무기를 저장
-			UE_LOG(LogTemp, Warning, TEXT("현재 바라보는 무기: %s"), *FocusedWeapon->GetName());
+			if (GEngine)
+			{
+				FString Message = FString::Printf(TEXT("Hit Actor Class: %s"), *FocusedWeapon->GetName());
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
+			}
 			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);
 		}
 		else
 		{
 			FocusedWeapon = nullptr; // 무기가 아니면 초기화
-			UE_LOG(LogTemp, Warning, TEXT("무기가 아님"));
-			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);
+			/*UE_LOG(LogTemp, Warning, TEXT("무기가 아님"));
+			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);*/
 		}
 	}
 	else
 	{
-		FocusedWeapon = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("아무것도 없음")); // 감지된 게 없으면 초기화
+		FocusedWeapon = nullptr; //감지된게 없으면 초기화
+		//UE_LOG(LogTemp, Warning, TEXT("아무것도 없음")); 
 	}
 }
 
@@ -557,14 +618,15 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("주울 무기 발견!"));
 		PickUpWeapon(FocusedWeapon->WeaponData);
 	}
-	else
+	/*else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("주울 무기가 없습니다!"));
-	}
+	}*/
 }
 
 void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 {
+	//장착할 슬롯을 결정
 	switch (NewWeapon.WeaponName)
 	{
 	case EWeaponType::Primary:
@@ -603,9 +665,48 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 //무기 장착
 void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 {
-	CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
-	check(CurrentWeapon);
-	CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+	if (!WeaponData || !WeaponData->WeaponFactory) return;
+    
+	// 이미 같은 무기를 들고 있다면 무시
+	if (CurrentWeapon && CurrentWeapon->GetClass() == WeaponData->WeaponFactory->GetDefaultObject()->GetClass())
+	{
+		return;
+	}
+
+	// 기존 무기가 있다면 숨기고 장착 해제
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetEquipped(false);
+		CurrentWeapon->SetActorHiddenInGame(true);
+	}
+
+	// 월드에 있는 무기를 찾음
+	AWeaponBase* WorldWeapon = FindWeaponInWorld(WeaponData);
+	if (WorldWeapon)
+	{
+		// 월드에 있는 무기를 장착
+		//SKYE: 무기 프리셋 변경1
+		WorldWeapon->SetEquipped(true);
+		WorldWeapon->SetActorHiddenInGame(false);
+		CurrentWeapon = WorldWeapon;
+		WorldWeapon->Root->SetCollisionProfileName(TEXT("EquipWeapon"));
+	}
+	else
+	{
+		// 월드에 무기가 없으면 새로 생성
+		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
+		CurrentWeapon->SetEquipped(true);
+	}
+
+	// 현재 장착된 무기 슬롯 업데이트
+	CurrentWeaponSlot = *WeaponData;
+
+	// 무기를 캐릭터의 소켓에 부착
+	if (CurrentWeapon && Arms)
+	{
+		CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
+	}
 	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	if (AnimInst)
@@ -624,14 +725,34 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 	}
 }
 
+
+//월드에 소환된 무기중에 false값을 가지고 있는 무기만 찾아주기
+AWeaponBase* ASurvivor::FindWeaponInWorld(FWeaponData* WeaponData)
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AWeaponBase::StaticClass(), FoundActors);
+
+	for (AActor* Actor : FoundActors)
+	{
+		AWeaponBase* Weapon = Cast<AWeaponBase>(Actor);
+		if (Weapon && Weapon->GetClass() == WeaponData->WeaponFactory->GetDefaultObject()->GetClass() && !Weapon->IsEquipped)
+		{
+			return Weapon;
+		}
+	}
+	return nullptr;
+}
+
 //무기 내리기
 void ASurvivor::UnequipWeapon()
 {
 	if (CurrentWeapon)
 	{
-		CurrentWeapon->Destroy();
-		CurrentWeapon = nullptr;
+		//SKYE: 무기 프리셋 변경2
+		CurrentWeapon->Root->SetCollisionProfileName(TEXT("WorldWeapon"));
+		CurrentWeapon->SetActorHiddenInGame(true);
 	}
+	CurrentWeaponSlot.Reset();
 
 	if (UnequipMontage && GetMesh()->GetAnimInstance())
 	{

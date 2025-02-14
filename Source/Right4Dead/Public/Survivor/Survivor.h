@@ -62,7 +62,7 @@ public:
 	UPROPERTY(EditDefaultsOnly,Category="Input")
 	class UInputAction* IA_SurMove;
 	//이동 함수
-	void SurMove(const struct FInputActionValue& InputValue);
+	void SurvivorMove(const struct FInputActionValue& InputValue);
 
 	//앉기
 	UPROPERTY(EditAnywhere,Category="Input")
@@ -70,25 +70,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings")
 	bool bIsCrouching;
 	//앉기 함수
-	void SurCrouch(const struct FInputActionValue& InputValue);
+	void SurvivorCrouch(const struct FInputActionValue& InputValue);
 
 	//회전
 	UPROPERTY(EditDefaultsOnly,Category="Input")
 	class UInputAction* IA_SurTurn;
 	//회전 함수
-	void SurTurn(const struct FInputActionValue& InputValue);
+	void SurvivorTurn(const struct FInputActionValue& InputValue);
 
 	//위아래 회전
 	UPROPERTY(EditDefaultsOnly,Category="Input")
 	class UInputAction* IA_SurLook;
 	//회전 함수
-	void SurLook(const struct FInputActionValue& InputValue);
+	void SurvivorLook(const struct FInputActionValue& InputValue);
 
 	//점프
 	UPROPERTY(EditDefaultsOnly,Category="Input")
 	class UInputAction* IA_SurJump;
 	//회전 함수
-	void SurJump(const struct FInputActionValue& InputValue);
+	void SurvivorJump(const struct FInputActionValue& InputValue);
 
 	//총쏘기, 멈추기, 장전
 	UPROPERTY(EditAnywhere,Category="Input")
@@ -101,14 +101,20 @@ public:
 	float FireDamage = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Debug");
 	bool bDrawLine = true;
-	//총쏘기함수
-	void SurFire(const struct FInputActionValue& InputValue);
-	void SurReload(const struct FInputActionValue& InputValue);
+
+	//좌클릭, R키(장전) 바인딩
+	void LeftClickAttack(const struct FInputActionValue& InputValue);
+	void WeaponReload(const struct FInputActionValue& InputValue);
+	//좌클릭시 무기별 실행될 공격을 따로 함수로 구현하기
+	void PrimaryWeaponAttack();
+	void SecondaryWeaponAttack();
+	void MeleeWeaponAttack();
+	void NoneAttack();
 
 	//우클릭 (밀쳐내기)
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_SurRight;
-	void SurRight(const struct FInputActionValue& InputValue);
+	void RightClickAttack(const struct FInputActionValue& InputValue);
 
 	//UI
 	UPROPERTY(EditAnywhere)
@@ -129,7 +135,6 @@ public:
 	UFUNCTION()
 	void TempMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	//void CrowLinetrace();
-
 
 	//콜리전박스 생성 테스트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision", meta = (AllowPrivateAccess = "true"))
@@ -159,6 +164,8 @@ public:
 	FWeaponData SecondaryWeaponSlot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
 	FWeaponData MeleeWeaponSlot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	TOptional<FWeaponData> CurrentWeaponSlot;
 
 	// 현재 장착된 무기
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponData")
@@ -168,7 +175,7 @@ public:
 	//무기 발견 (trace 해서)
 	UPROPERTY()
 	AWeaponBase* FocusedWeapon;
-	void TraceForWeapon(); //스피어트레이스하기 (라인트레이스는 너무정밀함)
+	void TraceForWeapon(); //스피어트레이스하기 (라인트레이스는 정밀도가 필요해서 인식이 잘 안됨... 꼭 트레이스가 아니라 박스 콜리전으로 고쳐도됨)
 
 	// 무기 줍기 키입력 바인딩
 	UPROPERTY(editanywhere, Category="Input")
@@ -178,6 +185,7 @@ public:
 	void PickUpWeapon(FWeaponData NewWeapon);
 	// 무기 교체 함수
 	void EquipWeapon(FWeaponData* WeaponData);
+	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);
 	// 무기 내리기 함수
 	void UnequipWeapon();
  
