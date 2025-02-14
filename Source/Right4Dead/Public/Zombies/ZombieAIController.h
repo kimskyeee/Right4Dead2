@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
-#include "DetourCrowdAIController.h"
 #include "ZombieAIController.generated.h"
 
 class ACommonZombie;

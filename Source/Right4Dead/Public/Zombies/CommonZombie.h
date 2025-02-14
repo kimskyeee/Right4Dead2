@@ -1,10 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "ZombieAIController.h"
 #include "ZombieBase.h"
+#include "ZombieFSM.h"
 #include "CommonZombie.generated.h"
 
 UCLASS()
@@ -31,10 +30,13 @@ public:
 	TObjectPtr<AActor> Target = nullptr;
 	UPROPERTY()
 	TObjectPtr<AZombieAIController> AIController = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UZombieFSM> FSM = nullptr;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void StartClimbing(const FTransform& Destination);
 	void EndClimbing();
 	AActor* GetChasingTarget();
+	void TriggerAttack();
 };

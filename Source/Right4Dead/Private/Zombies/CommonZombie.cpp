@@ -3,12 +3,11 @@
 
 #include "Zombies/CommonZombie.h"
 
-#include "AIController.h"
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
-#include "ZombieAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
 // Sets default values
@@ -31,7 +30,29 @@ ACommonZombie::ACommonZombie()
 			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
 		}
 	}
+	FSM = CreateDefaultSubobject<UZombieFSM>(TEXT("FSM"));
 	AIControllerClass = AZombieAIController::StaticClass();
+
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	Movement->GravityScale = 1.75f;
+	Movement->MaxAcceleration = 1500.0f;
+	Movement->BrakingFrictionFactor = 1.0f;
+	Movement->bUseSeparateBrakingFriction = true;
+	Movement->MaxWalkSpeed = 500.0f;
+	Movement->MinAnalogWalkSpeed = 20.0f;
+	Movement->BrakingDecelerationWalking = 2000.0f;
+	Movement->JumpZVelocity = 700.0f;
+	Movement->BrakingDecelerationFalling = 1500.0f;
+	Movement->AirControl = 0.35f;
+	Movement->RotationRate = FRotator(0, 500, 0);
+	Movement->bOrientRotationToMovement = true;
+	Movement->bUseRVOAvoidance = true;
+	Movement->AvoidanceConsiderationRadius = 160;
+	Movement->SetFixedBrakingDistance(200.0f);
+	Movement->GetNavMovementProperties()->bUseAccelerationForPaths = true;
+	Movement->GetNavMovementProperties()->bUseFixedBrakingDistanceForPaths = true;
+	Movement->GetNavAgentPropertiesRef().AgentRadius = 42.0f;
+	Movement->GetNavAgentPropertiesRef().AgentHeight = 192.0f;
 }
 
 // Called when the game starts or when spawned
@@ -112,8 +133,7 @@ void ACommonZombie::Tick(float DeltaTime)
 
 void ACommonZombie::StartClimbing(const FTransform& Destination)
 {
-	AIController->StopMovement();
-	GetCharacterMovement()->StopMovementImmediately();
+	AIController->GetPathFollowingComponent()->PauseMove();
 	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 	bClimbing = true;
 	ClimbDestination = Destination;
@@ -127,13 +147,17 @@ void ACommonZombie::EndClimbing()
 		return;
 	}
 	bClimbing = false;
-	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	AIController->MoveToActor(Target);
+	AIController->GetPathFollowingComponent()->ResumeMove();
 	ClimbDestination = FTransform::Identity;
 }
 
 AActor* ACommonZombie::GetChasingTarget()
 {
 	return Target;
+}
+
+void ACommonZombie::TriggerAttack()
+{
+	PRINT_CALLINFO();
 }
