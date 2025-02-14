@@ -13,7 +13,6 @@
 // Sets default values
 ACommonZombie::ACommonZombie()
 {
-	PRINT_CALLINFO();
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	Hp = 50.0f;
@@ -67,7 +66,11 @@ void ACommonZombie::BeginPlay()
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
 		}
-		AIController->Possess(this);
+		else
+		{
+			AIController->Possess(this);
+			FSM->ZombieAI = AIController;
+		}
 	}
 
 	if (nullptr == Target)

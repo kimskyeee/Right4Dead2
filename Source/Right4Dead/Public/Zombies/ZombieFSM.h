@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "ZombieAIController.h"
 #include "Components/ActorComponent.h"
 #include "ZombieFSM.generated.h"
 
@@ -32,25 +33,31 @@ public:
 	TObjectPtr<ACommonZombie> Owner = nullptr;
 	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> Movement = nullptr;
+	UPROPERTY()
+	TObjectPtr<AZombieAIController> ZombieAI = nullptr;
 	UPROPERTY(VisibleAnywhere, Category="Debugging")
 	EZombieState State = EZombieState::EZS_Idle;
 	UPROPERTY(EditAnywhere, Category="Debugging")
 	TObjectPtr<AActor> ChaseTarget = nullptr;
 	
 	// Idle 상태 지속 시간
-	UPROPERTY(VisibleAnywhere, Category="Debugging|Idle")
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Idle")
 	float CurrentIdleTime = 0.0f;
 	// 타겟 탐색 간격
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	float SearchInterval = 1.0f;
 
+	// 추격 관련 디버깅 여부
+	UPROPERTY(EditInstanceOnly, Category="Debugging|Chase")
+	bool bVerboseChase = false;
 	// 인식 거리
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
-	float Awareness = 1000.0f;
+	float Awareness = 2000.0f;
+	// 추격 대상과의 거리
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
 	float Distance = 0.0f;
 	// 추격 지속 시간
-	UPROPERTY(VisibleAnywhere, Category="Debugging|Chase")
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
 	float CurrentChaseTime = 0.0f;
 	// 추격 중단 시간
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
@@ -60,7 +67,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float AttackRange = 150.0f;
 	// 공격 지속 시간
-	UPROPERTY(VisibleAnywhere, Category="Debugging|Attack")
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Attack")
 	float CurrentAttackTime = 0.0f;
 	// 공격 간격
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
