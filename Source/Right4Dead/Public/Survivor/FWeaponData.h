@@ -12,21 +12,21 @@ struct FWeaponData
 	GENERATED_BODY()
 
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	EWeaponType WeaponName;
+	EWeaponType WeaponName = EWeaponType::None;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	TSubclassOf<AWeaponBase> WeaponFactory; 
+	TSubclassOf<AWeaponBase> WeaponFactory;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	UAnimMontage* WeaponMontage;
+	UAnimMontage* WeaponMontage = nullptr;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	UAnimMontage* WeaponFireMontage;
+	UAnimMontage* WeaponFireMontage = nullptr;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	uint8 AmmoCount;
+	uint8 AmmoCount = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	uint8 MaxAmmoCount;
+	uint8 MaxAmmoCount = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	float Damage;
+	float Damage = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	float ReloadTime;
+	float ReloadTime = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	float BulletSpread;
+	float BulletSpread = 0;
 };
