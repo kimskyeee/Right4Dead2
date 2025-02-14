@@ -29,8 +29,10 @@ AWeaponBase::AWeaponBase()
 	Eject->SetupAttachment(Muzzle);
 	Eject->SetRelativeLocation(FVector(-50,0,0));
 
-	Root->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-	//Root->SetCollisionProfileName(TEXT("BlockAll"));
+	//충돌체 설정
+	PrimaryWeapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Root->SetGenerateOverlapEvents(true);
+	Root->SetCollisionProfileName(TEXT("WorldWeapon"));
 	
 }
 
