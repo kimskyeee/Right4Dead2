@@ -38,7 +38,7 @@ public:
 	TObjectPtr<AZombieAIController> ZombieAI = nullptr;
 	UPROPERTY()
 	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
-	UPROPERTY(VisibleAnywhere, Category="Debugging")
+	UPROPERTY(EditAnywhere, Category="Debugging")
 	EZombieState State = EZombieState::EZS_Idle;
 	UPROPERTY(EditAnywhere, Category="Debugging")
 	TObjectPtr<AActor> ChaseTarget = nullptr;
@@ -55,7 +55,7 @@ public:
 	bool bVerboseChase = false;
 	// 인식 거리
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
-	float Awareness = 2000.0f;
+	float Awareness = 1500.0f;
 	// 추격 대상과의 거리
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
 	float Distance = 0.0f;
@@ -64,7 +64,7 @@ public:
 	float CurrentChaseTime = 0.0f;
 	// 추격 중단 시간
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
-	float StopChaseTime = 15.0f;
+	float StopChaseTime = 10.0f;
 
 	// 공격 범위
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
@@ -86,4 +86,6 @@ public:
 	void TickDead();
 
 	void HandleShove(const FVector& FromLocation);
+	void HandleDamage();
+	void HandleDie();
 };

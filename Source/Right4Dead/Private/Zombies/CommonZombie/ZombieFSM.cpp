@@ -2,6 +2,8 @@
 
 #include "CommonZombie.h"
 #include "ZombieAnimInstance.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
@@ -54,9 +56,10 @@ void UZombieFSM::SetState(const EZombieState NewState)
 		CurrentChaseTime = 0.0f;
 		break;
 	case EZombieState::EZS_Attack:
-		CurrentAttackTime = 0.0f;
+		CurrentAttackTime = AttackInterval;
 		break;
 	case EZombieState::EZS_Dead:
+		ChaseTarget = nullptr;
 		break;
 	}
 	Distance = 0.0f;
@@ -125,7 +128,10 @@ void UZombieFSM::TickIdle()
 		{
 			ChaseTarget = OutHits[0].GetActor();
 			State = EZombieState::EZS_Chase;
-			ZombieAI->MoveToActor(ChaseTarget);
+			if (ChaseTarget && ZombieAI)
+			{
+				ZombieAI->MoveToActor(ChaseTarget);
+			}
 		}
 		CurrentIdleTime = 0;
 		return;
@@ -220,4 +226,17 @@ void UZombieFSM::HandleShove(const FVector& FromLocation)
 	}
 
 	// 상태 관련 처리
+}
+
+void UZombieFSM::HandleDamage()
+{
+	// TODO: 방향, 종류에 따라 맞는 애니메이션 분기
+	// ZombieAnimInstance->PlayDamage();
+}
+
+void UZombieFSM::HandleDie()
+{
+	// TODO: 방향에 따라 죽는 애니메이션 분기
+	// ZombieAnimInstance->PlayDie();
+	SetState(EZombieState::EZS_Dead);
 }

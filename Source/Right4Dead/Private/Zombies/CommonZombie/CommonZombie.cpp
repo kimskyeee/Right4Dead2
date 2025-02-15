@@ -8,6 +8,7 @@
 #include "ZombieAIController.h"
 #include "ZombieAnimInstance.h"
 #include "ZombieFSM.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -127,7 +128,6 @@ void ACommonZombie::Tick(float DeltaTime)
 
 	if (bClimbing)
 	{
-
 		const FVector P0 = GetActorLocation();
 		const bool bIsNearZ = GetCharacterMovement()->GetFeetLocation().Z >= ClimbDestination.GetLocation().Z;
 		if (false == bIsNearZ) // 아직 덜 올라왔다면
@@ -180,4 +180,27 @@ void ACommonZombie::HandleShove(const FVector& FromLocation)
 {
 	Super::HandleShove(FromLocation);
 	ZombieFSM->HandleShove(FromLocation);
+}
+
+void ACommonZombie::OnDamaged(float Damage)
+{
+	Super::OnDamaged(Damage);
+	if (Hp > 0)
+	{
+		
+	}
+}
+
+void ACommonZombie::OnDie()
+{
+	Super::OnDie();
+	ZombieFSM->HandleDie();
+}
+
+void ACommonZombie::ForceDie()
+{
+	OnDie();
+	GetCharacterMovement()->bUseRVOAvoidance = false;
+	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
+	GetMesh()->SetCollisionProfileName("NoCollision");
 }

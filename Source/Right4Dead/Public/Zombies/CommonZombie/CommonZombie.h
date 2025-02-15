@@ -45,4 +45,8 @@ public:
 	void TriggerAttack();
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleShove(const FVector& FromLocation) override;
+	virtual void OnDamaged(float Damage) override;
+	virtual void OnDie() override;
+	UFUNCTION(CallInEditor, Category="Debugging")
+	void ForceDie();
 };
