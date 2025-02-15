@@ -1,10 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieAIController.h"
 #include "ZombieBase.h"
-#include "ZombieFSM.h"
 #include "CommonZombie.generated.h"
+
+class UZombieAnimInstance;
+class UZombieFSM;
+class AZombieAIController;
 
 UCLASS()
 class RIGHT4DEAD_API ACommonZombie : public AZombieBase
@@ -31,7 +33,9 @@ public:
 	UPROPERTY()
 	TObjectPtr<AZombieAIController> AIController = nullptr;
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UZombieFSM> FSM = nullptr;
+	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
+	UPROPERTY()
+	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

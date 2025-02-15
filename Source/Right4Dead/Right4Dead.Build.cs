@@ -15,6 +15,7 @@ public class Right4Dead : ModuleRules
 		PublicIncludePaths.AddRange(new string[] {
 			"Right4Dead/Public/Survivor",
 			"Right4Dead/Public/Zombies",
+			"Right4Dead/Public/Zombies/CommonZombie",
 			"Right4Dead/Public/Common",
 			"Right4Dead/Public/Common/UI"
 		});

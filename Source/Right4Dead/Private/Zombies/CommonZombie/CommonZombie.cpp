@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Zombies/CommonZombie.h"
+#include "CommonZombie.h"
 
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
+#include "ZombieAIController.h"
+#include "ZombieAnimInstance.h"
+#include "ZombieFSM.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -17,19 +20,19 @@ ACommonZombie::ACommonZombie()
 	PrimaryActorTick.bCanEverTick = true;
 	Hp = 50.0f;
 	Speed = 250.0f;
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequins/Meshes/SKM_Manny.SKM_Manny'"));
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
 	if (SkeletalMeshObj.Succeeded())
 	{
 		GetMesh()->SetSkeletalMeshAsset(SkeletalMeshObj.Object);
 		GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
 		GetMesh()->SetRelativeRotation(FRotator(0, 270, 0));
-		ConstructorHelpers::FClassFinder<UAnimInstance> AnimBlueprintClass(TEXT("/Script/Engine.AnimBlueprint'/Game/Assets/ThirdPerson/Characters/Mannequins/Animations/ABP_Manny.ABP_Manny_C'"));
+		ConstructorHelpers::FClassFinder<UAnimInstance> AnimBlueprintClass(TEXT("/Script/Engine.AnimBlueprint'/Game/Blueprints/Zombies/CommonZombie/ABP_CommonZombie.ABP_CommonZombie_C'"));
 		if (AnimBlueprintClass.Succeeded())
 		{
 			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
 		}
 	}
-	FSM = CreateDefaultSubobject<UZombieFSM>(TEXT("FSM"));
+	ZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
 	AIControllerClass = AZombieAIController::StaticClass();
 
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
@@ -69,8 +72,14 @@ void ACommonZombie::BeginPlay()
 		else
 		{
 			AIController->Possess(this);
-			FSM->ZombieAI = AIController;
+			ZombieFSM->ZombieAI = AIController;
 		}
+	}
+	
+	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
+	if (nullptr == ZombieAnimInstance)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed Set ZombieAnimInstance"));
 	}
 
 	if (nullptr == Target)
@@ -163,4 +172,5 @@ AActor* ACommonZombie::GetChasingTarget()
 void ACommonZombie::TriggerAttack()
 {
 	PRINT_CALLINFO();
+	ZombieAnimInstance->PlayAttack();
 }
