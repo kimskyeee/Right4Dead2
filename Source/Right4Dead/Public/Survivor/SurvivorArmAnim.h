@@ -20,6 +20,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool bIsEquippedWeapon=false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool PrimaryWeapon;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool SecondaryWeapon;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool MeleeWeapon;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool bIsInAir=false;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

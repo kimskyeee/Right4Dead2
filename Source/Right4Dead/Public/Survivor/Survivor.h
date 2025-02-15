@@ -22,6 +22,11 @@ public:
 	ASurvivor();
 
 protected:
+	UFUNCTION()
+	void OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	                     const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnWeaponEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -176,7 +181,12 @@ public:
 	UPROPERTY()
 	AWeaponBase* FocusedWeapon;
 	void TraceForWeapon(); //스피어트레이스하기 (라인트레이스는 정밀도가 필요해서 인식이 잘 안됨... 꼭 트레이스가 아니라 박스 콜리전으로 고쳐도됨)
-
+	//라인트레이스 말고 오버랩으로 오버레이 해보기
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class UBoxComponent* WeaponOverlapBox;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	UMaterialInterface* OverlayMaterial;
+	
 	// 무기 줍기 키입력 바인딩
 	UPROPERTY(editanywhere, Category="Input")
 	class UInputAction* IA_PickUp;
@@ -188,6 +198,10 @@ public:
 	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);
 	// 무기 내리기 함수
 	void UnequipWeapon();
+	
+	// 무기 던지고 나서 판단하기
+	UPROPERTY(editanywhere, Category="ThrownWeapon")
+	bool bIsThrown;
  
 	// 무기 내리는 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
