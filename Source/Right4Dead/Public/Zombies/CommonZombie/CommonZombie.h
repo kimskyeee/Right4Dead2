@@ -43,4 +43,6 @@ public:
 	void EndClimbing();
 	AActor* GetChasingTarget();
 	void TriggerAttack();
+	UFUNCTION(BlueprintCallable)
+	virtual void HandleShove(const FVector& FromLocation) override;
 };

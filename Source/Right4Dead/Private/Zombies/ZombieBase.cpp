@@ -1,5 +1,8 @@
 ﻿#include "ZombieBase.h"
 
+#include "ShoveDamageType.h"
+#include "Engine/DamageEvents.h"
+#include "Kismet/GameplayStatics.h"
 #include "Right4Dead/Right4Dead.h"
 
 AZombieBase::AZombieBase()
@@ -40,6 +43,12 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	// FinalDamage can set on damage handler
 	OnDamaged(FinalDamage);
+
+	if (DamageEvent.DamageTypeClass == UShoveDamageType::StaticClass())
+	{
+		HandleShove(DamageCauser->GetActorForwardVector());
+	}
+	
 	return FinalDamage;
 }
 
@@ -67,6 +76,11 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 {
 	PRINT_CALLINFO();
 	FinalDamage = Damage;
+}
+
+void AZombieBase::HandleShove(const FVector& FromLocation)
+{
+	PRINT_CALLINFO();
 }
 
 void AZombieBase::OnDamaged(const float Damage)

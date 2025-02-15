@@ -5,6 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "ZombieFSM.generated.h"
 
+class UZombieAnimInstance;
 class UCharacterMovementComponent;
 class ACommonZombie;
 
@@ -35,6 +36,8 @@ public:
 	TObjectPtr<UCharacterMovementComponent> Movement = nullptr;
 	UPROPERTY()
 	TObjectPtr<AZombieAIController> ZombieAI = nullptr;
+	UPROPERTY()
+	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
 	UPROPERTY(VisibleAnywhere, Category="Debugging")
 	EZombieState State = EZombieState::EZS_Idle;
 	UPROPERTY(EditAnywhere, Category="Debugging")
@@ -81,4 +84,6 @@ public:
 	void TickChase();
 	void TickAttack();
 	void TickDead();
+
+	void HandleShove(const FVector& FromLocation);
 };

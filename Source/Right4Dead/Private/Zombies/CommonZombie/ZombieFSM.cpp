@@ -1,6 +1,7 @@
 ﻿#include "ZombieFSM.h"
 
 #include "CommonZombie.h"
+#include "ZombieAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
@@ -15,8 +16,11 @@ void UZombieFSM::BeginPlay()
 	Super::BeginPlay();
 	Owner = Cast<ACommonZombie>(GetOwner());
 	Movement = Owner->GetCharacterMovement();
-	// ZombieAIController는 Owner에서 주입
+	
+	// ZombieAIController와 ZombieAnimInstance는 Owner에서 주입
 	// ZombieAI = Cast<AZombieAIController>(Owner->GetController());
+	// ZombieAnimInstance = (Owner->ZombieAnimInstance);
+	
 	// Verbose 세팅은 인스턴스에서만 껏다 켯다 할 수 있도록 함
 	bVerboseChase = false;
 }
@@ -191,4 +195,29 @@ void UZombieFSM::TickAttack()
 
 void UZombieFSM::TickDead()
 {
+}
+
+void UZombieFSM::HandleShove(const FVector& FromLocation)
+{
+	if (ZombieAnimInstance)
+	{
+		const FVector Location = Owner->GetActorLocation();
+		const FVector ForwardVector = Owner->GetActorForwardVector();
+		// 상대 액터의 Z축 좌표는 무시한다.
+		const FVector FromLocationWithoutZ = FVector(FromLocation.X, FromLocation.Y, Location.Z);
+		// 상대 액터가 어느 방향(상대 기준)으로 밀쳤는지 방향 벡터를 구한다.
+		const FVector DirVector = (FromLocationWithoutZ - Location).GetSafeNormal();
+		// 내적으로 위아래를 구분하고
+		double Theta = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ForwardVector, DirVector)));
+		// 외적으로 좌우를 구분
+		const FVector CrossProduct = FVector::CrossProduct(ForwardVector, DirVector);
+		if (CrossProduct.Z < 0)
+		{
+			Theta *= -1.f;
+		}
+		// AnimBlueprint에서 Theta값에 따른 밀치기 피격 애니메이션을 재생하자.
+		ZombieAnimInstance->PlayKnockBack(Theta);
+	}
+
+	// 상태 관련 처리
 }

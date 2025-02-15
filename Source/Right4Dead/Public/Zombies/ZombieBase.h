@@ -45,6 +45,8 @@ public:
 	UFUNCTION()
 	void OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, FVector Origin, const FHitResult& HitInfo,
 								   class AController* InstigatedBy, AActor* DamageCauser);
+	
+	virtual void HandleShove(const FVector& FromLocation);
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
 };

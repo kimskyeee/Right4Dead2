@@ -77,6 +77,7 @@ void ACommonZombie::BeginPlay()
 	}
 	
 	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
+	ZombieFSM->ZombieAnimInstance = ZombieAnimInstance;
 	if (nullptr == ZombieAnimInstance)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed Set ZombieAnimInstance"));
@@ -173,4 +174,10 @@ void ACommonZombie::TriggerAttack()
 {
 	PRINT_CALLINFO();
 	ZombieAnimInstance->PlayAttack();
+}
+
+void ACommonZombie::HandleShove(const FVector& FromLocation)
+{
+	Super::HandleShove(FromLocation);
+	ZombieFSM->HandleShove(FromLocation);
 }

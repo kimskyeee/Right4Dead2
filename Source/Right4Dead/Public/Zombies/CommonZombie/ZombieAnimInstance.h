@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ZombieFSM.h"
 #include "Animation/AnimInstance.h"
 #include "ZombieAnimInstance.generated.h"
 
+enum class EZombieState : uint8;
 class UCharacterMovementComponent;
-class AZombieBase;
 /**
  * 
  */
@@ -21,13 +22,17 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "References")
-	TObjectPtr<AZombieBase> Zombie = nullptr;
+	TObjectPtr<ACommonZombie> Zombie = nullptr;
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 	TObjectPtr<UCharacterMovementComponent> MovementComponent = nullptr;
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent = nullptr;
+	UPROPERTY(BlueprintReadOnly, Category = "References")
+	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
 	UPROPERTY(BlueprintReadOnly)
 	uint8 AnimSeed = 0;
+	UPROPERTY(BlueprintReadOnly)
+	EZombieState ZombieState = EZombieState::EZS_Idle;
 	UPROPERTY(BlueprintReadOnly, Category = "Essential Movement Data")
 	bool ShouldMove = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Essential Movement Data")
@@ -39,4 +44,6 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayAttack();
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayKnockBack(const double Theta);
 };
