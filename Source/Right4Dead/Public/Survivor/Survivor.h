@@ -176,6 +176,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponData")
 	// TObjectPtr<AWeaponBase> == AWeaponBase* (언리얼에서 관리하는거라서 전자가 더 좋다. 후자는 CPP전체)
 	TObjectPtr<AWeaponBase> CurrentWeapon;
+	// 현재 장착된 무기의 슬롯 인덱스를 반환하는 함수
+	UFUNCTION(BlueprintCallable, Category = "WeaponData")
+	int32 GetCurrentWeaponSlotIndex() const;
 
 	//무기 발견 (trace 해서)
 	UPROPERTY()

@@ -446,9 +446,12 @@ void ASurvivor::MeleeWeaponAttack()
 	//SKYE: 프리셋 추가 설정
 	if (bIsThrown)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Throwing weapon: %s"), *CurrentWeapon->GetName());
 		CurrentWeapon->Root->SetCollisionProfileName(TEXT("ThrownWeapon"));
-		CurrentWeapon->InitialLifeSpan=6.0f;
-		CurrentWeapon=nullptr; //다 던졌으니 초기화 (전부초기화되는지 확인필요)
+		CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
+		CurrentWeapon->SetProjectile(true);
+		CurrentWeapon = nullptr;
+		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon is now null"));
 	}
 }
 
@@ -556,6 +559,31 @@ void ASurvivor::EquipMeleeWeapon(const struct FInputActionValue& InputValue)
 	}
 }
 
+
+int32 ASurvivor::GetCurrentWeaponSlotIndex() const
+{
+	if (!CurrentWeaponSlot.IsSet())
+	{
+		return -1; // 장착된 무기가 없을 경우 -1 반환
+	}
+
+	const FWeaponData& CurrentWeaponData = CurrentWeaponSlot.GetValue();
+
+	if (CurrentWeaponData.WeaponName == EWeaponType::Primary)
+	{
+		return 0; // Primary 슬롯
+	}
+	else if (CurrentWeaponData.WeaponName == EWeaponType::Secondary)
+	{
+		return 1; // Secondary 슬롯
+	}
+	else if (CurrentWeaponData.WeaponName == EWeaponType::Melee)
+	{
+		return 2; // Melee 슬롯
+	}
+
+	return -1; // 알 수 없는 슬롯
+}
 
 //무기 발견하기 (카메라 라인트레이스)
 void ASurvivor::TraceForWeapon()
@@ -695,6 +723,7 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 	{
 		CurrentWeapon->SetEquipped(false);
 		CurrentWeapon->SetActorHiddenInGame(true);
+		UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	}
 
 	// 월드에 있는 무기를 찾음

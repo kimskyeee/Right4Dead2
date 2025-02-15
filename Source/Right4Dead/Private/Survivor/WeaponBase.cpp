@@ -35,7 +35,13 @@ AWeaponBase::AWeaponBase()
 	Root->SetCollisionProfileName(TEXT("WorldWeapon"));
 
 	//Projectile Movement
-
+	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
+	ProjectileMovement->UpdatedComponent = PrimaryWeapon;
+	ProjectileMovement->InitialSpeed = 600.f;
+	ProjectileMovement->MaxSpeed = 800.f;
+	ProjectileMovement->bRotationFollowsVelocity = true;
+	ProjectileMovement->bShouldBounce = true;
+	ProjectileMovement->SetAutoActivate(false);
 	
 }
 
@@ -53,6 +59,18 @@ void AWeaponBase::Tick(float DeltaTime)
 	IsEquipped = false;
 }
 
+
+void AWeaponBase::SetProjectile(bool bIsActive)
+{
+	if (ProjectileMovement)
+	{
+		ProjectileMovement->SetAutoActivate(bIsActive);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ProjectileMovement is null"));
+	}
+}
 
 //공격함수 추가
 void AWeaponBase::LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation)
