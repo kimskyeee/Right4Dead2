@@ -64,7 +64,12 @@ void AZombieBase::OnTakePointDamageHandler(AActor* DamagedActor, float Damage, c
 	const class UDamageType* DamageType, AActor* DamageCauser)
 {
 	PRINT_CALLINFO();
-	// if (bIsHead) Damage *= PartDamageMultipliers.Head;
+	bool bIsHead = BoneName == TEXT("head") || BoneName == TEXT("neck_01");
+	if (bIsHead)
+	{
+		Damage *= PartDamageMultipliers.Head;
+		GetMesh()->HideBoneByName(BoneName, PBO_None);
+	}
 	// if (bIsLegs) Damage *= PartDamageMultipliers.Legs;
 	// if (bIsStomach) Damage *= PartDamageMultipliers.Stomach;
 	// if (bIsThorax) Damage *= PartDamageMultipliers.Thorax;
