@@ -1,6 +1,7 @@
 ﻿#include "ZombieFSM.h"
 
 #include "CommonZombie.h"
+#include "Survivor.h"
 #include "ZombieAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -107,8 +108,6 @@ void UZombieFSM::TickIdle()
 	CurrentIdleTime += GetWorld()->GetDeltaSeconds();
 	if (CurrentIdleTime > SearchInterval)
 	{
-		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel3)); // Player 타입 객체 검사
 		TArray<AActor*> ActorsToIgnore;
         ActorsToIgnore.Add(Owner); // 자기 자신은 검사에서 제외
 		TArray<FHitResult> OutHits;
@@ -117,7 +116,7 @@ void UZombieFSM::TickIdle()
 			Owner->GetActorLocation(),
 			Owner->GetActorLocation(),
 			Awareness,
-			UEngineTypes::ConvertToTraceType(ECC_GameTraceChannel4),
+			UEngineTypes::ConvertToTraceType(ECC_Visibility),
 			false,
 			ActorsToIgnore,
 			(bVerboseChase) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
@@ -126,11 +125,18 @@ void UZombieFSM::TickIdle()
 		);
 		if (bHit && OutHits.Num() > 0)
 		{
-			ChaseTarget = OutHits[0].GetActor();
-			State = EZombieState::EZS_Chase;
-			if (ChaseTarget && ZombieAI)
+			for (auto HitResult : OutHits)
 			{
-				ZombieAI->MoveToActor(ChaseTarget);
+				// TODO: Collision Channel이 정리되면 PipeBomb, 담즙 등에도 반응하도록 수정
+				if (ASurvivor* Survivor = Cast<ASurvivor>(HitResult.GetActor()))
+				{
+					ChaseTarget = Survivor;
+					State = EZombieState::EZS_Chase;
+					if (ZombieAI)
+					{
+						ZombieAI->MoveToActor(ChaseTarget);
+					}
+				}
 			}
 		}
 		CurrentIdleTime = 0;
