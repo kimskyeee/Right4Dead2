@@ -2,7 +2,6 @@
 
 
 #include "WeaponBase.h"
-#include "FWeaponData.h" 
 #include "Survivor.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
@@ -32,7 +31,17 @@ AWeaponBase::AWeaponBase()
 	//충돌체 설정
 	PrimaryWeapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Root->SetGenerateOverlapEvents(true);
+	//SKYE: 무기 프리셋 변경3
 	Root->SetCollisionProfileName(TEXT("WorldWeapon"));
+
+	//Projectile Movement
+	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
+	ProjectileMovement->UpdatedComponent = PrimaryWeapon;
+	ProjectileMovement->InitialSpeed = 600.f;
+	ProjectileMovement->MaxSpeed = 800.f;
+	ProjectileMovement->bRotationFollowsVelocity = true;
+	ProjectileMovement->bShouldBounce = true;
+	ProjectileMovement->SetAutoActivate(false);
 	
 }
 
@@ -50,6 +59,18 @@ void AWeaponBase::Tick(float DeltaTime)
 	IsEquipped = false;
 }
 
+
+void AWeaponBase::SetProjectile(bool bIsActive)
+{
+	if (ProjectileMovement)
+	{
+		ProjectileMovement->SetAutoActivate(bIsActive);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ProjectileMovement is null"));
+	}
+}
 
 //공격함수 추가
 void AWeaponBase::LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation)
@@ -91,6 +112,17 @@ void AWeaponBase::SetEquipped(bool bEquip)
 
 	//월드에 있는 무기는 bIsEquipped를 false로 설정
 	//무기를 장착하면 true로 설정을 변경해주자
+}
+
+void AWeaponBase::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
+{
+	PrimaryWeapon->SetOverlayMaterial(MyOverlayMaterial);
+	
+}
+
+void AWeaponBase::ClearOverlayMaterial()
+{
+	PrimaryWeapon->SetOverlayMaterial(nullptr);
 }
 
 void AWeaponBase::OnReload_Implementation()

@@ -6,6 +6,7 @@
 #include "EWeaponType.h"
 #include "FWeaponData.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "WeaponBase.generated.h"
 
 UCLASS()
@@ -38,8 +39,13 @@ public:
 	// 무기 데이터 구조체
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Data")
 	FWeaponData WeaponData;
+
+	//ProjectileMovement
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	UProjectileMovementComponent* ProjectileMovement;
+	void SetProjectile(bool bIsActive);
 	
-	//함수 생성
+	//공격함수 생성
 	void LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation);
 
 	//Event
@@ -60,10 +66,15 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	float MaxAmmo;
 
-	
 	//SKYE: 월드에 소환된 무기(장착X)와 내가 장착하고 있는 무기를 구분하기 위한 설정 추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	bool IsEquipped;
 	void SetEquipped(bool bEquip);
-	
+
+	//트레이싱 됐을때 overlay 재질 설정해주는 함수
+	TArray<UMaterialInterface*> OriginalMaterials;
+	void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial);
+	void ClearOverlayMaterial();
 };
+
+
