@@ -20,7 +20,6 @@ public:
 protected:
 	float HitDamageRatio = 2;
 	float AttackDamage = 1;
-	bool bClimbing = false;
 	FTransform ClimbDestination = FTransform::Identity;
 	
 	// Called when the game starts or when spawned
@@ -36,6 +35,8 @@ public:
 	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
 	UPROPERTY()
 	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
+	
+	bool bClimbing = false;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

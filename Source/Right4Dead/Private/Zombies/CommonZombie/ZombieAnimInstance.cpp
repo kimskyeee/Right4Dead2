@@ -36,6 +36,7 @@ void UZombieAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			GroundSpeed = UKismetMathLibrary::VSizeXY(Velocity);
 			ShouldMove = GroundSpeed > 3.0f && UKismetMathLibrary::NotEqual_VectorVector(MovementComponent->GetCurrentAcceleration(), FVector::ZeroVector, 0.0f);
 			IsFalling = MovementComponent->IsFalling();
+			IsClimbing = Zombie->bClimbing;
 		}
 	}
 }

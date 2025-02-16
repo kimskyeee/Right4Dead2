@@ -38,6 +38,8 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Essential Movement Data")
 	bool IsFalling = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Essential Movement Data")
+	bool IsClimbing = false;
+	UPROPERTY(BlueprintReadOnly, Category = "Essential Movement Data")
 	float GroundSpeed = 0.0f;
 	UPROPERTY(BlueprintReadOnly, Category = "Essential Movement Data")
 	FVector Velocity = FVector::ZeroVector;
