@@ -3,6 +3,7 @@
 
 #include "Survivor.h"
 
+#include "CommonZombie.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -11,11 +12,10 @@
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "ShoveDamageType.h"
 #include "StatSystem.h"
 #include "SurvivorArmAnim.h"
-#include "UISurvivorMain.h"
 #include "WeaponBase.h"
-#include "Blueprint/UserWidget.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -97,7 +97,7 @@ ASurvivor::ASurvivor()
 		IA_SurCrouch=TempIACrouch.Object;
 	}
 
-	//공격관련
+	//공격관련 input
 	ConstructorHelpers::FObjectFinder<UInputAction> TempIAFire(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurFire.IA_SurFire'"));
 	if (TempIAFire.Succeeded())
 	{
@@ -114,7 +114,7 @@ ASurvivor::ASurvivor()
 		IA_SurRight=TempIARight.Object;
 	}
 
-	//무기전환
+	//무기전환 input
 	ConstructorHelpers::FObjectFinder<UInputAction> TempIAPrimary(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Weapon1.IA_Weapon1'"));
 	if (TempIAPrimary.Succeeded())
 	{
@@ -148,7 +148,7 @@ ASurvivor::ASurvivor()
 	//스탯
 	StatSystem = CreateDefaultSubobject<UStatSystem>(TEXT("StatSystem"));
 
-	//무기 오버레이
+	//무기 오버레이 만들기
 	WeaponOverlapBox=CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponOverlap"));
 	WeaponOverlapBox->SetupAttachment(FirstCameraComp);
 	WeaponOverlapBox->SetRelativeLocation(FVector(280,0,-20));
@@ -156,6 +156,13 @@ ASurvivor::ASurvivor()
 
 	WeaponOverlapBox->SetGenerateOverlapEvents(true);
 	WeaponOverlapBox->SetCollisionProfileName(TEXT("WeaponBox"));
+
+	// 실린더 메시 설정
+	ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMeshAsset(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cylinder.Cylinder'"));
+	if (CylinderMeshAsset.Succeeded())
+	{
+		CylinderMesh = CylinderMeshAsset.Object;
+	}
 	
 }
 
@@ -168,7 +175,7 @@ void ASurvivor::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	if (OverlapWeapon)
 	{
 		OverlapWeapon->SetOverlayMaterial(OverlayMaterial);
-		UE_LOG(LogTemp, Warning, TEXT("overlap이벤트발생!"));
+		//UE_LOG(LogTemp, Warning, TEXT("overlap이벤트발생!"));
 	}
 }
 
@@ -229,6 +236,7 @@ void ASurvivor::Tick(float DeltaTime)
 	AddMovementInput(Direction);
 	Direction=FVector::Zero();
 
+	//트레이스 후 무기면 -> 줍기
 	TraceForWeapon();
 
 }
@@ -361,7 +369,7 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 void ASurvivor::PrimaryWeaponAttack()
 {
 	//총무기 라인트레이스
-	//나중에 따발총 추가되면 바꿔야함
+	//나중에 따발총 추가되면 변수추가해서 바꿔야함
 	UE_LOG(LogTemp, Warning, TEXT("좌클릭 바인딩 완료!"));
 	FHitResult Hit;
 	FCollisionQueryParams Params;
@@ -472,65 +480,105 @@ void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 }
 
 
-// 공격 : 밀쳐내기
+//우클릭시 밀쳐내기
 void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
 {
-	UE_LOG(LogTemp, Warning, TEXT("SurRight 함수 호출"));
-	
-	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
-	{
-		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
-		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
-		AnimInstance->Montage_Play(CrowMontage);
-	}
+    UE_LOG(LogTemp, Warning, TEXT("RightClick 함수 호출"));
+
+    if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+    {
+        AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
+        AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
+        AnimInstance->Montage_Play(CrowMontage);
+    }
 }
 
 void ASurvivor::TempMontageStarted(UAnimMontage* Montage)
 {
-	UE_LOG(LogTemp, Warning, TEXT("몽타주시작"));
-	GetWorld()->GetTimerManager().SetTimer(CrowTimerHandle, this, &ASurvivor::spawnCollisionBox, GetWorld()->GetDeltaSeconds(), true);
-	
-	UAnimInstance* AnimInstance = Arms->GetAnimInstance();
-	AnimInstance->OnMontageStarted.RemoveDynamic(this, &ASurvivor::TempMontageStarted);
+    UE_LOG(LogTemp, Warning, TEXT("몽타주시작"));
+    spawnShoveCylinder(); // 몽타주 시작 시 실린더 생성
+
+    UAnimInstance* AnimInstance = Arms->GetAnimInstance();
+    AnimInstance->OnMontageStarted.RemoveDynamic(this, &ASurvivor::TempMontageStarted);
 }
 
 void ASurvivor::TempMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	UE_LOG(LogTemp, Warning, TEXT("몽타주 끝"));
-	GetWorld()->GetTimerManager().ClearTimer(CrowTimerHandle);
+    UE_LOG(LogTemp, Warning, TEXT("몽타주 끝"));
 
-	if (PushCollisionBox)
-	{
-		PushCollisionBox->DestroyComponent();
-		PushCollisionBox = nullptr; // 포인터 초기화
-	}
+    if (ShoveCollisionCylinder)
+    {
+        ShoveCollisionCylinder->DestroyComponent();
+        ShoveCollisionCylinder = nullptr; // 포인터 초기화
+    }
 
-	UAnimInstance* AnimInstance = Arms->GetAnimInstance();
-	AnimInstance->OnMontageEnded.RemoveDynamic(this, &ASurvivor::TempMontageEnded);
+    UAnimInstance* AnimInstance = Arms->GetAnimInstance();
+    AnimInstance->OnMontageEnded.RemoveDynamic(this, &ASurvivor::TempMontageEnded);
 }
 
-
-void ASurvivor::spawnCollisionBox()
+void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+    const FHitResult& SweepResult)
 {
-	if (!PushCollisionBox)
+    ACommonZombie* CommonZombie = Cast<ACommonZombie>(OtherActor);
+    if (CommonZombie)
+    {
+        // 조건: 좀비가 플레이어 전방 기준 좌우 45도 안에 있는가?
+        FVector ZombieLocation = (CommonZombie->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+        FVector SurvivorForwardVector = GetActorForwardVector();
+
+        float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(SurvivorForwardVector, ZombieLocation)));
+        if (Angle <= 45.0f)
+        {
+            // 피해 적용
+            UGameplayStatics::ApplyDamage(CommonZombie, 10, GetController(), this, UShoveDamageType::StaticClass());
+            UE_LOG(LogTemp, Warning, TEXT("우클릭 공격 적중!"));
+        }
+    }
+}
+
+void ASurvivor::spawnShoveCylinder()
+{
+	if (ShoveCollisionCylinder)
 	{
-		PushCollisionBox = NewObject<UBoxComponent>(this);
-		PushCollisionBox->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		PushCollisionBox->SetBoxExtent(FVector(10.f, 20.f, 5.f)); // 크기 설정
-		PushCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		PushCollisionBox->SetCollisionObjectType(ECC_GameTraceChannel1);
-		PushCollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
-		PushCollisionBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
-		PushCollisionBox->SetHiddenInGame(false);
-		PushCollisionBox->RegisterComponent();
-
-		// 캐릭터 앞쪽에 위치 지정 (카메라 기준으로 해줘야할듯)
-		FVector ForwardVector = FirstCameraComp->GetForwardVector();
-		FVector SpawnLocation = GetActorLocation() + (ForwardVector * 30.f) + FVector(0.f, 0.f, 70.f);
-		PushCollisionBox->SetWorldLocation(SpawnLocation);
-		PushCollisionBox->SetWorldRotation(GetActorRotation()); // 캐릭터 방향과 동일하게 설정
+		ShoveCollisionCylinder->DestroyComponent();
+		ShoveCollisionCylinder = nullptr;
 	}
+
+	//Static Mesh가 정상적으로 로드되었는지 확인
+	if (!CylinderMesh)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CylinderMesh is NULL! Check the asset path."));
+		return;
+	}
+
+	//새로운 Collision Cylinder 생성
+	ShoveCollisionCylinder = NewObject<UStaticMeshComponent>(this);
+	if (!ShoveCollisionCylinder)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to create ShoveCollisionCylinder!"));
+		return;
+	}
+
+	ShoveCollisionCylinder->RegisterComponent();
+	ShoveCollisionCylinder->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	ShoveCollisionCylinder->SetGenerateOverlapEvents(true);
+	ShoveCollisionCylinder->OnComponentBeginOverlap.AddDynamic(this, &ASurvivor::OnShoveOverlap);
+	ShoveCollisionCylinder->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	ShoveCollisionCylinder->SetStaticMesh(CylinderMesh);
+
+	//위치 및 크기 설정
+	FVector StartLocation = FirstCameraComp->GetComponentLocation();
+	FVector CylinderLocation = FVector(StartLocation.X, StartLocation.Y, StartLocation.Z-15);
+	ShoveCollisionCylinder->SetWorldLocation(CylinderLocation);
+	ShoveCollisionCylinder->SetWorldScale3D(FVector(2, 2, 0.2));
+	
+	FRotator CameraRotation = FirstCameraComp->GetComponentRotation();
+	ShoveCollisionCylinder->SetWorldRotation(CameraRotation);
+
+	ShoveCollisionCylinder->SetVisibility(false);
+
+	UE_LOG(LogTemp, Warning, TEXT("Shove Cylinder 생성 완료!"));
 }
 
 
@@ -559,7 +607,7 @@ void ASurvivor::EquipMeleeWeapon(const struct FInputActionValue& InputValue)
 	}
 }
 
-
+//무기 슬롯값 애니메이션 구분하기
 int32 ASurvivor::GetCurrentWeaponSlotIndex() const
 {
 	if (!CurrentWeaponSlot.IsSet())
