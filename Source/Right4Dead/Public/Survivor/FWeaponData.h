@@ -16,9 +16,11 @@ struct FWeaponData
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	TSubclassOf<AWeaponBase> WeaponFactory;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	UAnimMontage* WeaponMontage = nullptr;
+	UAnimMontage* WeaponDrawMontage = nullptr;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	UAnimMontage* WeaponFireMontage = nullptr;
+	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
+	UAnimMontage* WeaponReloadMontage = nullptr;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	uint8 AmmoCount = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")

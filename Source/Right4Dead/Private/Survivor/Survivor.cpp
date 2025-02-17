@@ -9,6 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "EWeaponType.h"
+#include "ExplosionDamageType.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
@@ -416,13 +417,13 @@ void ASurvivor::PrimaryWeaponAttack()
 	}
 }
 
+
 void ASurvivor::SecondaryWeaponAttack()
 {
 	//근접무기 휘두르기
+	Sweep();
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
-		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
-		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
 		AnimInstance->Montage_Play(SecondaryWeaponSlot.WeaponFireMontage);
 	}
 }
@@ -447,11 +448,8 @@ void ASurvivor::MeleeWeaponAttack()
 	if (bIsThrown)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Throwing weapon: %s"), *CurrentWeapon->GetName());
-		CurrentWeapon->Root->SetCollisionProfileName(TEXT("ThrownWeapon"));
 		CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
-		CurrentWeapon->SetProjectile(true);
-		CurrentWeapon = nullptr;
-		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon is now null"));
+		ThrowWeapon();
 	}
 }
 
@@ -467,6 +465,228 @@ void ASurvivor::NoneAttack()
 	}
 }
 
+void ASurvivor::Sweep()
+{
+   //1. BoneMap 초기화 (뼈의 이름과 우선순위 매핑))
+   TMap<FName, int> BoneMap;
+   BoneMap.Add(TEXT("head"), 0); // 머리 (최우선)
+   BoneMap.Add(TEXT("neck_01"), 0);
+   BoneMap.Add(TEXT("spine_02"), 1); // 가슴부분에 해당
+   BoneMap.Add(TEXT("stomach"), 2); // 배부분
+     
+   //2. 충돌을 위한 가상의 박스 생성
+   auto BoxShape = FCollisionShape::MakeBox(FVector(100, 100, 5));
+   
+   //3. 충돌결과 저장을 위한 배열 선언
+   // SweepMultiByChannel이 수행되면 여기에 HitResult 구조체(충돌과 관련된 정보들이 들어있음)들이 쌓인다
+   TArray<struct FHitResult> HitResults;
+  
+   //4. 시작과 끝점 (박스의 중심), 현재의 80은 캐릭터의 머리위치 정도인듯
+   // 시작 지점과 끝 지점은 같도록 하면 된다 (TODO: Z축 좌표를 모니터 정 중앙 위치를 기준으로 해야겠죠?)
+   FVector Start = GetActorLocation() + FVector(0, 0, 80);
+   FVector End = GetActorLocation() + FVector(0, 0, 80);
+
+   // 나 자신은 제외하고 싶다 (필요하면 무기 액터 같은 것들도 제외하면 된다)
+   FCollisionQueryParams Params;
+   Params.AddIgnoredActor(this);
+
+   // SweepMultiByChannel 수행
+   // 1. 감지된 충돌 정보들은 HitResults 배열에 저장하기로 한다
+   // 2~3. 가상의 박스 중심 지점을 설정한다
+   // (Start와 End가 다르면 Start -> End 방향으로 빠빠빠빵 하고 Trace를 쏜다)
+   // 4. 회전값은 그냥 일단 0으로 두자
+   // 5. TraceChannel은 거의 모든 오브젝트들을 감지하도록 설정한다. (벽, 오브젝트, 좀비 등등 전부 때릴 수 있으니까)
+   // 6. 가상의 박스를 넣어주자
+   // 7. 나 자신은 제외하고 싶다
+   const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, ECC_Camera, BoxShape, Params);
+	 // ->HitResults 배열에 충돌 결과들이 저장된다
+
+   // 눈에 보여야 하니까 DebugBox
+   DrawDebugBox(GetWorld(), Start, FVector(100, 100, 5), FColor::Red, true, 3.0f);
+
+	 //5. 충돌결과 처
+   // 만약 가상의 박스 안에 뭔가가 있었다면?
+   if (bHit)
+   {
+      // 한 액터(좀비)의 여러 부위(왼쪽팔, 머리, 오른쪽팔)가 박스 영역 안에 동시에 들어올 수 있다.
+      // 이런 경우 한 좀비에 대해 3번의 타격 명령을 내릴 수는 없는 노릇이다.
+      // 따라서, 어떤 부위들을 맞았는지 좀비별로 분류하여 좀비 1명에 대해서 1번의 타격 명령을 내릴 것이다.
+      // TMap을 어떻게 쓰는지는 아래에 나와있음.
+      TMap<AActor*, TArray<FName>> HitMap;
+
+      // HitResults에서 각각의 HitResult를 꺼내서 확인해보자.
+      for (auto HitResult : HitResults)
+      {
+         // 일단 다른 오브젝트는 고려하지 말고 오직 좀비만 생각하고 해보자.
+         
+         // 만약 BoneName이 None이라면 SkeletalMesh가 아니라는 뜻이다. 스킵하자.
+         // 우리가 원하는건 도대체 내 도끼샷이 좀비의 어느 부위를 맞췄느냐이다.
+         FName BoneName = HitResult.BoneName;
+         if (HitResult.BoneName.IsNone())
+         {
+            continue;
+         }
+
+         // 좀비가 아니라면 스킵하자.
+         AActor* Actor = Cast<AZombieBase>(HitResult.GetActor());
+         if (nullptr == Actor)
+         {
+            continue;
+         }
+
+         // BoneName이 None이 아니라면 Component는 왠만하면 SkeletalMeshComponent일 것이다.
+         USkeletalMeshComponent* Component = Cast<USkeletalMeshComponent>(HitResult.GetComponent());
+         if (nullptr == Component)
+         {
+            continue;
+         }
+
+         // Actor의 BoneName 부위가 피격당했다
+         // 해당 Actor가 아직 없다면 새로운 배열(TArray))을 만들고 피격부위(BoneName)를 추가한 후 HitMAp에 저장
+         if (false == HitMap.Contains(Actor))
+         {
+            TArray<FName> BoneArray;
+            BoneArray.Add(BoneName);
+            HitMap.Add(Actor, BoneArray);
+         }
+         // 이미 존재한다면 기존의 TArray를 가져와서 BoneName을 추가한다.
+         else
+         {
+            /*auto Array = HitMap[Actor];
+            Array.Add(BoneName);
+            -> Array는 복사본이므로 원본에 영향을 주지 않는다고 함*/
+            HitMap[Actor].Add(BoneName); //기존 배열에 직접 추가
+         }
+      }
+
+      // TMap의 Key값은 각각의 좀비를 의미한다.
+      // GetKeys를 통해 어떤 좀비들이 피격을 당했는지 알아낸다.
+      TArray<AActor*> Actors;
+      HitMap.GetKeys(Actors);
+      
+      // 피격을 당한 좀비들을 하나하나 알아본다.
+      for (auto Actor : Actors)
+      {
+         int HighPriority = INT_MAX;
+         FName HighPriorityBoneName;
+         // 피격 당한 부위들을 하나하나 살펴본다.
+         for (auto BoneName : HitMap[Actor])
+         {
+            // 뼈 이름
+            int Priority = BoneMap[BoneName];
+            if (Priority < HighPriority)
+            {
+               HighPriority = Priority;
+               HighPriorityBoneName = BoneName;
+            }
+            // 
+         }
+
+         // 어떤 부위들을 피격 당했는지 알았으니 우선순위가 가장 높은 Bone에 맞았다고 하고
+         FHitResult HR;
+         HR.BoneName = HighPriorityBoneName;
+         UGameplayStatics::ApplyPointDamage(Actor, 20, GetActorLocation(), HR, nullptr, nullptr, nullptr);
+         // 
+      }
+   }
+}
+
+
+void ASurvivor::ThrowWeapon()
+{
+	FVector StartLocation = GetActorLocation() + FVector(0, 0, 80); //캐릭터 머리정도
+	FVector TargetLocation = StartLocation + GetActorForwardVector()*1000;
+	//0~1사이 (포물선 궤적 높이라고 이해하자)
+	float arcValue = 0.5f;
+	FVector outVelocity = FVector::ZeroVector; //결과? 이거 뭐임
+	if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, outVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(),arcValue))
+	{
+		FPredictProjectilePathParams predictParams (20.0f, StartLocation, outVelocity, 15.0f);
+		//->20은 트레이싱이 보여질 프로젝타일 크기 /  15는 시뮬레이션 되는 Max 시간
+		predictParams.DrawDebugTime=15.f;
+		predictParams.DrawDebugType = EDrawDebugTrace::Type::ForDuration;
+		predictParams.OverrideGravityZ=GetWorld()->GetGravityZ();
+		FPredictProjectilePathResult predictResult;
+		UGameplayStatics::PredictProjectilePath(this, predictParams, predictResult);
+
+		//이제 날려보내자
+		CurrentWeapon->Root->SetSimulatePhysics(true);
+		CurrentWeapon->Root->SetPhysicsLinearVelocity(outVelocity);
+		//근데 바닥에 닿으면 멈춰야함!
+		CurrentWeapon->Root->OnComponentHit.AddDynamic(this, &ASurvivor::OnThrowWeaponHit);
+		CurrentWeapon->Root->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		CurrentWeapon->Root->SetCollisionResponseToAllChannels(ECR_Ignore);
+		CurrentWeapon->Root->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		CurrentWeapon->Root->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+		CurrentWeapon->Root->SetNotifyRigidBodyCollision(true); //충돌이벤트 발생가능하게 설정
+	}
+}
+
+void ASurvivor::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+                                 UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	UE_LOG(LogTemp, Warning, TEXT("바닥에 부딪혔다!"));
+
+	//이미 바닥이면 실행하지말자
+	if (bHasLanded) return;
+
+	//바닥에 닿으면 속도를 0으로 만들자
+	bHasLanded = true;
+	
+	//속도 멈추기
+	CurrentWeapon->Root->SetPhysicsLinearVelocity(FVector::ZeroVector);
+	CurrentWeapon->Root->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+
+	//마찰력을 증가시키자
+	CurrentWeapon->Root->SetLinearDamping(5.0f); //이속 감소
+	CurrentWeapon->Root->SetAngularDamping(5.0f); //회전 감소
+
+	//6초후 폭발 타이머 설정 (폭발함수 구현하기)
+	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &ASurvivor::ExplodeWeapon, 6.0f, false);
+}
+
+void ASurvivor::ExplodeWeapon()
+{
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Add(this);
+
+	/*데미지 적용
+	UGameplayStatics::ApplyRadialDamage(
+		this,                   // WorldContextObject
+		ExplosionDamage,       // BaseDamage
+		ExplosionLocation,     // Origin
+		ExplosionRadius,       // DamageRadius
+		ExplosionDamageType,   // DamageTypeClass
+		IgnoreActors,          // IgnoreActors
+		this,                  // DamageCauser (수류탄 자체)
+		GetInstigatorController(), // InstigatedByController (수류탄을 던진 플레이어의 컨트롤러)
+		false,                 // bDoFullDamage (false면 거리에 따라 데미지가 감소)
+		ECC_Visibility        // DamagePreventionChannel*/
+	
+	UGameplayStatics::ApplyRadialDamage(
+		this,500.f,
+		CurrentWeapon->GetActorLocation(),
+		500.f,
+		UDamageType::StaticClass(),
+		IgnoreActors,
+		this,
+		GetWorld()->GetFirstPlayerController(),
+		true,
+		ECC_Visibility);
+
+	// 폭발 반경을 빨간색 구체로 표시 (2초간 유지)
+	DrawDebugSphere(
+		GetWorld(),           // World
+		CurrentWeapon->GetActorLocation(),    // Center
+		500.f,      // Radius
+		32,                   // Segments
+		FColor::Red,          // Color
+		false,               // Persistent Lines
+		2.0f);                // Duration
+}
+
+
+//장전 (SKYE: 추가해야할것)
 void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 {
 }
@@ -513,9 +733,10 @@ void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
     const FHitResult& SweepResult)
 {
     ACommonZombie* CommonZombie = Cast<ACommonZombie>(OtherActor);
+	//조건1: 좀비가 맞았는지?
     if (CommonZombie)
     {
-        // 조건: 좀비가 플레이어 전방 기준 좌우 45도 안에 있는가?
+        //조건2: 좀비가 플레이어 전방 기준 좌우 45도 안에 있는가?
         FVector ZombieLocation = (CommonZombie->GetActorLocation() - GetActorLocation()).GetSafeNormal();
         FVector SurvivorForwardVector = GetActorForwardVector();
 
@@ -523,7 +744,7 @@ void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
         float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(SurvivorForwardVector, ZombieLocation)));
         if (Angle <= 45.0f)
         {
-            // 피해 적용
+            //피해 적용
             UGameplayStatics::ApplyDamage(CommonZombie, 10, GetController(), this, UShoveDamageType::StaticClass());
             UE_LOG(LogTemp, Warning, TEXT("우클릭 공격 적중!"));
         }
@@ -805,9 +1026,9 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		}
 	}
 	
-	if (WeaponData->WeaponMontage)
+	if (WeaponData->WeaponDrawMontage)
 	{
-		Arms->GetAnimInstance()->Montage_Play(WeaponData->WeaponMontage);
+		Arms->GetAnimInstance()->Montage_Play(WeaponData->WeaponDrawMontage);
 		UE_LOG(LogTemp, Warning, TEXT("무기 몽타주 플레이"));
 	}
 }

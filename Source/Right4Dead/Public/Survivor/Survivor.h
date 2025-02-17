@@ -115,6 +115,16 @@ public:
 	void SecondaryWeaponAttack();
 	void MeleeWeaponAttack();
 	void NoneAttack();
+	//좌클릭 함수 추가
+	void Sweep();
+	UFUNCTION()
+	void OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse,
+	                      const FHitResult& Hit);
+	void ThrowWeapon();
+	FTimerHandle ExplosionTimerHandle;
+	void ExplodeWeapon();
+	UPROPERTY()
+	bool bHasLanded=false;
 
 	//우클릭 (밀쳐내기)
 	UPROPERTY(EditAnywhere,Category="Input")
