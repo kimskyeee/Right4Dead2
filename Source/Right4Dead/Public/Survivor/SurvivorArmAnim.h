@@ -25,6 +25,11 @@ public:
 	bool SecondaryWeapon;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool MeleeWeapon;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	float speed = 0;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	float direction = 0;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool bIsInAir=false;
 

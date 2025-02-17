@@ -153,8 +153,8 @@ public:
 
 	//몽타주 재생 테스트
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	UAnimMontage* CrowMontage;
-	FTimerHandle CrowTimerHandle;
+	UAnimMontage* ShoveMontage;
+	FTimerHandle ShoveTimerHandle;
 	
 	//무기 교체 키바인딩, 함수
 	UPROPERTY(EditAnywhere,Category="Input")

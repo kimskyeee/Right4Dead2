@@ -50,19 +50,11 @@ ASurvivor::ASurvivor()
 	bFirstPerson = true;
 
 	//몽타주 연동
-	ConstructorHelpers::FObjectFinder<UAnimMontage> TempCrowMontage(TEXT("/Script/Engine.AnimMontage'/Game/test_1_Montage.test_1_Montage'"));
-	if (TempCrowMontage.Succeeded())
+	ConstructorHelpers::FObjectFinder<UAnimMontage> TempShoveMontage(TEXT("/Script/Engine.AnimMontage'/Game/test_1_Montage.test_1_Montage'"));
+	if (TempShoveMontage.Succeeded())
 	{
-		CrowMontage = TempCrowMontage.Object;
+		ShoveMontage = TempShoveMontage.Object;
 	}
-
-	//무기 내리기 몽타주 (건)
-	ConstructorHelpers::FObjectFinder<UAnimMontage> TempGunUndrawMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Undraw_Montage.knife_arms_Undraw_Montage'"));
-	if (TempGunUndrawMontage.Succeeded())
-	{
-		UnequipMontage = TempGunUndrawMontage.Object;
-	}
-		
 
 	//Input데이터 할당하기
 	//이동관련
@@ -471,7 +463,7 @@ void ASurvivor::NoneAttack()
 	{
 		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
 		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
-		AnimInstance->Montage_Play(CrowMontage);
+		AnimInstance->Montage_Play(ShoveMontage);
 	}
 }
 
@@ -489,7 +481,7 @@ void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
     {
         AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
         AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
-        AnimInstance->Montage_Play(CrowMontage);
+        AnimInstance->Montage_Play(ShoveMontage);
     }
 }
 
@@ -527,6 +519,7 @@ void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
         FVector ZombieLocation = (CommonZombie->GetActorLocation() - GetActorLocation()).GetSafeNormal();
         FVector SurvivorForwardVector = GetActorForwardVector();
 
+    	//내적으로 각도 구하기
         float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(SurvivorForwardVector, ZombieLocation)));
         if (Angle <= 45.0f)
         {
@@ -571,7 +564,7 @@ void ASurvivor::spawnShoveCylinder()
 	FVector StartLocation = FirstCameraComp->GetComponentLocation();
 	FVector CylinderLocation = FVector(StartLocation.X, StartLocation.Y, StartLocation.Z-15);
 	ShoveCollisionCylinder->SetWorldLocation(CylinderLocation);
-	ShoveCollisionCylinder->SetWorldScale3D(FVector(2, 2, 0.2));
+	ShoveCollisionCylinder->SetWorldScale3D(FVector(3, 3, 0.2));
 	
 	FRotator CameraRotation = FirstCameraComp->GetComponentRotation();
 	ShoveCollisionCylinder->SetWorldRotation(CameraRotation);

@@ -15,6 +15,14 @@ void USurvivorArmAnim::NativeUpdateAnimation(float DeltaSeconds)
 	auto player = Cast<ASurvivor>(ownerPawn);
 	if (player)
 	{
+		//방향, 속도
+		FVector velocity = player->GetVelocity();
+		FVector forward = player->GetActorForwardVector();
+		speed = FVector::DotProduct(velocity, forward);
+
+		FVector right = player->GetActorRightVector();
+		direction = FVector::DotProduct(velocity, right);
+		
 		//공중에 있는지 여부
 		bIsInAir = player->GetCharacterMovement()->IsFalling();
 	}
