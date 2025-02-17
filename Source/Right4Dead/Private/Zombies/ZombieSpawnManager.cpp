@@ -3,6 +3,9 @@
 
 #include "ZombieSpawnManager.h"
 
+#include "ZombieSpawnPoint.h"
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values
 AZombieSpawnManager::AZombieSpawnManager()
@@ -15,7 +18,13 @@ AZombieSpawnManager::AZombieSpawnManager()
 void AZombieSpawnManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AZombieSpawnPoint::StaticClass(), Actors);
+	for (auto* Actor : Actors)
+	{
+		SpawnPoints.Add(Cast<AZombieSpawnPoint>(Actor));
+	}
 }
 
 // Called every frame
