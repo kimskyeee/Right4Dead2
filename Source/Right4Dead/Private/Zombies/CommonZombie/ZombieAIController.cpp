@@ -24,17 +24,17 @@ void AZombieAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFol
 	Super::OnMoveCompleted(RequestID, Result);
 	if (Result.IsFailure())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AZombieAIController::OnMoveCompleted::Fail"));
+		// UE_LOG(LogTemp, Warning, TEXT("AZombieAIController::OnMoveCompleted::Fail"));
 	}
 
 	if (Result.IsInterrupted())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AZombieAIController::OnMoveCompleted::Interrupted"));
+		// UE_LOG(LogTemp, Warning, TEXT("AZombieAIController::OnMoveCompleted::Interrupted"));
 	}
 
 	if (Result.IsSuccess())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AZombieAIController::OnMoveCompleted::Success"));
+		// UE_LOG(LogTemp, Warning, TEXT("AZombieAIController::OnMoveCompleted::Success"));
 	}
 }
 

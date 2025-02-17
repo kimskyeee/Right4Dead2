@@ -56,6 +56,22 @@ ACommonZombie::ACommonZombie()
 	Movement->GetNavMovementProperties()->bUseFixedBrakingDistanceForPaths = true;
 	Movement->GetNavAgentPropertiesRef().AgentRadius = 42.0f;
 	Movement->GetNavAgentPropertiesRef().AgentHeight = 192.0f;
+
+	const ConstructorHelpers::FObjectFinder<UStaticMesh> HeadObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/Models/UE4MannequinDismemberment/SK_Mannequin_Head.SK_Mannequin_Head'"));
+	const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Left.SK_Mannequin_Arm_Left'"));
+	const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmRightObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Right.SK_Mannequin_Arm_Right'"));
+	const ConstructorHelpers::FObjectFinder<UStaticMesh> LegLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/Models/UE4MannequinDismemberment/SK_Mannequin_Leg_Left.SK_Mannequin_Leg_Left'"));
+	const ConstructorHelpers::FObjectFinder<UStaticMesh> LegRightObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/Models/UE4MannequinDismemberment/SK_Mannequin_Leg_Right.SK_Mannequin_Leg_Right'"));
+	if (HeadObj.Succeeded())
+		HeadMesh = HeadObj.Object;
+	if (ArmLeftObj.Succeeded())
+		ArmLeftMesh = ArmLeftObj.Object;
+	if (ArmRightObj.Succeeded())
+		ArmRightMesh = ArmRightObj.Object;
+	if (LegLeftObj.Succeeded())
+		LegLeftMesh = LegLeftObj.Object;
+	if (LegRightObj.Succeeded())
+		LegRightMesh = LegRightObj.Object;
 }
 
 // Called when the game starts or when spawned
