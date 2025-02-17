@@ -24,7 +24,7 @@ void AZombieClimbTriggerBox::OnClimbEndTriggerBoxBeginOverlap(UPrimitiveComponen
 	AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	PRINT_CALLINFO();
+	// PRINT_CALLINFO();
 	if (ACommonZombie* Zombie = Cast<ACommonZombie>(OtherActor))
 	{
 		Zombie->EndClimbing();
@@ -40,7 +40,7 @@ void AZombieClimbTriggerBox::BeginPlay()
 
 void AZombieClimbTriggerBox::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	PRINT_CALLINFO();
+	// PRINT_CALLINFO();
 
 	// ClimbEndTriggerBox가 이미 오버랩을 감지했으면 부모 NotifyActorBeginOverlap을 무시
 	if (ClimbEndTriggerBox->IsOverlappingActor(OtherActor))

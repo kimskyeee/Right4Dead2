@@ -194,13 +194,13 @@ void ACommonZombie::OnDamaged(float Damage)
 void ACommonZombie::OnDie()
 {
 	Super::OnDie();
+	GetCharacterMovement()->bUseRVOAvoidance = false;
+	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
+	GetMesh()->SetCollisionProfileName("NoCollision");
 	ZombieFSM->HandleDie();
 }
 
 void ACommonZombie::ForceDie()
 {
 	OnDie();
-	GetCharacterMovement()->bUseRVOAvoidance = false;
-	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
-	GetMesh()->SetCollisionProfileName("NoCollision");
 }
