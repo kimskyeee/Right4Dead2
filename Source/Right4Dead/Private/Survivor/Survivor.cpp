@@ -9,7 +9,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "EWeaponType.h"
-#include "ExplosionDamageType.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
@@ -154,7 +153,39 @@ ASurvivor::ASurvivor()
 	{
 		CylinderMesh = CylinderMeshAsset.Object;
 	}
-	
+
+	//BoneMap 초기화 (뼈의 이름과 우선순위 매핑))
+	//TODO: None이면 예외 처리 해야함
+
+	// 머리
+    BoneMap.Add(TEXT("head"), 0);
+	BoneMap.Add(TEXT("neck_01"), 0);
+
+	// 가슴
+	BoneMap.Add(TEXT("spine_02"), 1);
+
+	// 배
+	BoneMap.Add(TEXT("pelvis"), 2);
+	BoneMap.Add(TEXT("spine_01"), 2);
+
+	// 팔
+	BoneMap.Add(TEXT("upperarm_l"), 3);
+	BoneMap.Add(TEXT("lowerarm_l"), 3);
+	BoneMap.Add(TEXT("hand_l"), 3);
+	BoneMap.Add(TEXT("upperarm_r"), 3);
+	BoneMap.Add(TEXT("lowerarm_r"), 3);
+	BoneMap.Add(TEXT("hand_r"), 3);
+
+	// 다리
+	BoneMap.Add(TEXT("thigh_l"), 3);
+	BoneMap.Add(TEXT("calf_l"), 3);
+	BoneMap.Add(TEXT("foot_l"), 3);
+	BoneMap.Add(TEXT("ball_l"), 3);
+	BoneMap.Add(TEXT("thigh_r"), 3);
+	BoneMap.Add(TEXT("calf_r"), 3);
+	BoneMap.Add(TEXT("foot_r"), 3);
+	BoneMap.Add(TEXT("ball_r"), 3);
+
 }
 
 //무기와 박스가 오버랩 됐을때
@@ -197,6 +228,14 @@ void ASurvivor::BeginPlay()
 		}
 	}
 
+	//UI붙이기
+	SurvivorMainUI=Cast<UUISurvivorMain>(CreateWidget(GetWorld(),MainUIFactory));
+	if (SurvivorMainUI)
+	{
+		SurvivorMainUI->AddToViewport();
+		CurrentHP=MaxHP;
+	}
+
 	//카메라 설정
 	FirstCameraComp->SetActive(true);
 	ThirdPersonCameraComp->SetActive(false);
@@ -205,14 +244,6 @@ void ASurvivor::BeginPlay()
 	//BOX overlap시 발생할 이벤트
 	WeaponOverlapBox->OnComponentBeginOverlap.AddDynamic(this,&ASurvivor::OnWeaponOverlap);
 	WeaponOverlapBox->OnComponentEndOverlap.AddDynamic(this,&ASurvivor::OnWeaponEndOverlap);
-
-	/*//UI로드
-	MainUI=Cast<UUISurvivorMain>(CreateWidget(GetWorld(), MainUIFactory));
-	check(MainUI);
-	if (MainUI)
-	{
-		MainUI->AddToViewport();
-	}*/
 }
 
 // Called every frame
@@ -406,6 +437,10 @@ void ASurvivor::PrimaryWeaponAttack()
 		// TODO: ApplyPointDamage로 주세용~
 		// Player를 인식하지 못하는 이유는 
 		UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
+		if (Hit.BoneName == "None")
+		{
+			// TODO: 예외처리
+		}
 	}
 
 	//몽타주 플레이
@@ -424,7 +459,7 @@ void ASurvivor::PrimaryWeaponAttack()
 void ASurvivor::SecondaryWeaponAttack()
 {
 	//근접무기 휘두르기
-	//Sweep();
+	Sweep();
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
 		AnimInstance->Montage_Play(SecondaryWeaponSlot.WeaponFireMontage);
@@ -441,7 +476,6 @@ void ASurvivor::MeleeWeaponAttack()
 	if (CurrentWeapon->WeaponData.WeaponFireMontage)
 	{
 		Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
-		UE_LOG(LogTemp, Warning, TEXT("무기 발사 몽타주 플레이"));
 	}
 	else
 	{
@@ -450,7 +484,6 @@ void ASurvivor::MeleeWeaponAttack()
 	//SKYE: 프리셋 추가 설정
 	if (bIsThrown)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Throwing weapon: %s"), *CurrentWeapon->GetName());
 		CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
 		ThrowWeapon();
 	}
@@ -458,9 +491,7 @@ void ASurvivor::MeleeWeaponAttack()
 
 void ASurvivor::NoneAttack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("무기없을때 공격 시작"));
-    
-	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+ 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
 		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
 		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
@@ -470,25 +501,19 @@ void ASurvivor::NoneAttack()
 
 void ASurvivor::Sweep()
 {
-    //1. BoneMap 초기화 (뼈의 이름과 우선순위 매핑))
-    TMap<FName, int> BoneMap;
-    BoneMap.Add(TEXT("head"), 0); // 머리 (최우선)
-    BoneMap.Add(TEXT("neck_01"), 0);
-    BoneMap.Add(TEXT("spine_02"), 1); // 가슴부분에 해당
-    BoneMap.Add(TEXT("stomach"), 2); // 배부분
-     
-    //2. 충돌을 위한 가상의 박스 생성
+    // 충돌을 위한 가상의 박스 생성
     auto BoxShape = FCollisionShape::MakeBox(FVector(100, 100, 5));
    
-    //3. 충돌결과 저장을 위한 배열 선언
+    // 충돌결과 저장을 위한 배열 선언
     // SweepMultiByChannel이 수행되면 여기에 HitResult 구조체(충돌과 관련된 정보들이 들어있음)들이 쌓인다
     TArray<struct FHitResult> HitResults;
   
-    //4. 시작과 끝점 (박스의 중심), 현재의 80은 캐릭터의 머리위치 정도인듯
-    // 시작 지점과 끝 지점은 같도록 하면 된다 (TODO: Z축 좌표를 모니터 정 중앙 위치를 기준으로 해야겠죠?)
+    // 시작과 끝점 (박스의 중심), 현재의 80은 캐릭터의 머리위치 정도인듯
+    // 시작 지점과 끝 지점은 같도록 하면 된다 (Z축 좌표를 모니터 정 중앙 위치를 기준으로)
 
 	FVector Start,End;
 	FRotator CameraRotation;
+	FVector BoxLocation;
 	
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (PC)
@@ -507,11 +532,11 @@ void ASurvivor::Sweep()
 		{
 			// 뷰포트 중심을 기준으로 시작점과 끝점 설정
 			Start = WorldLocation;
-			End = Start + (WorldDirection * 1000.f); // 적당한 거리로 설정
+			End = Start + (WorldDirection * 500.f); // 적당한 거리로 설정
 
 			// 박스의 위치를 뷰포트 중심으로 설정
-			FVector BoxLocation = Start + (WorldDirection * 500.f); // 적당한 거리로 설정
-			CameraRotation = FirstCameraComp->GetComponentRotation();
+			BoxLocation = Start; // 적당한 거리로 설정
+			CameraRotation = PC->PlayerCameraManager->GetCameraRotation();
 		}
 	}
 	
@@ -523,7 +548,7 @@ void ASurvivor::Sweep()
     const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, CameraRotation.Quaternion(), ECC_Camera, BoxShape, Params);
 	// ->HitResults 배열에 충돌 결과들이 저장된다
 	
-    DrawDebugBox(GetWorld(), Start, FVector(100, 100, 5), FColor::Red, true, 3.0f);
+    DrawDebugBox(GetWorld(), BoxLocation, FVector(100, 100, 5), CameraRotation.Quaternion(), FColor::Red, true, 3.0f);
 
 	//5. 충돌결과 처리
     // 만약 가상의 박스 안에 뭔가가 있었다면?
@@ -545,7 +570,7 @@ void ASurvivor::Sweep()
           FName BoneName = HitResult.BoneName;
           if (HitResult.BoneName.IsNone())
           {
-             continue;
+          	continue;
           }
 
           // 좀비가 아니라면 스킵하자.
@@ -600,7 +625,6 @@ void ASurvivor::Sweep()
                 HighPriority = Priority;
                 HighPriorityBoneName = BoneName;
              }
-             // 
           }
 
           // 어떤 부위들을 피격 당했는지 알았으니 우선순위가 가장 높은 Bone에 맞았다고 하고

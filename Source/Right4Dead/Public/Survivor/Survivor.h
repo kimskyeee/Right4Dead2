@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ActorBase.h"
-#include "EWeaponType.h"
 #include "FWeaponData.h"
 #include "WeaponBase.h"
 #include "GameFramework/Character.h"
@@ -37,6 +36,11 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//UI붙이기 (Widget)
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> MainUIFactory;
+	UPROPERTY(EditAnywhere)
+	class UUISurvivorMain* SurvivorMainUI;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -132,16 +136,14 @@ public:
 	UPROPERTY()
 	bool bHasLanded=false;
 
+	//Tmap
+	UPROPERTY(VisibleAnywhere)
+	TMap<FName, int> BoneMap;
+
 	//우클릭 (밀쳐내기)
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_SurRight;
 	void RightClickAttack(const struct FInputActionValue& InputValue);
-
-	//UI
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UUserWidget> MainUIFactory;
-	UPROPERTY(EditAnywhere)
-	class UUISurvivorMain* MainUI;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void OnDamaged(float Damage) override;
