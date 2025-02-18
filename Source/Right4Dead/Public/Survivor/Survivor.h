@@ -132,16 +132,14 @@ public:
 	UPROPERTY()
 	bool bHasLanded=false;
 
+	//Tmap
+	UPROPERTY(VisibleAnywhere)
+	TMap<FName, int> BoneMap;
+
 	//우클릭 (밀쳐내기)
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_SurRight;
 	void RightClickAttack(const struct FInputActionValue& InputValue);
-
-	//UI
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class UUserWidget> MainUIFactory;
-	UPROPERTY(EditAnywhere)
-	class UUISurvivorMain* MainUI;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void OnDamaged(float Damage) override;
