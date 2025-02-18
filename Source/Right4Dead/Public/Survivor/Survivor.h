@@ -47,7 +47,7 @@ public:
 	//카메라 추가
 	UPROPERTY(VisibleAnywhere)
 	class USpringArmComponent* SpringArmComp;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class UCameraComponent* FirstCameraComp;
 
 	//카메라 전환 (1<->3)
@@ -57,6 +57,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UCameraComponent* ThirdPersonCameraComp;
 
+	//기본
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	float CurrentHP;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	float MaxHP=100.f;
+	
 	//이동
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	float Speed=700.f;
@@ -115,6 +121,16 @@ public:
 	void SecondaryWeaponAttack();
 	void MeleeWeaponAttack();
 	void NoneAttack();
+	//좌클릭 함수 추가
+	void Sweep();
+	UFUNCTION()
+	void OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse,
+	                      const FHitResult& Hit);
+	void ThrowWeapon();
+	FTimerHandle ExplosionTimerHandle;
+	void ExplodeWeapon();
+	UPROPERTY()
+	bool bHasLanded=false;
 
 	//우클릭 (밀쳐내기)
 	UPROPERTY(EditAnywhere,Category="Input")
@@ -127,12 +143,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UUISurvivorMain* MainUI;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Stats")
-	class UStatSystem* StatSystem;
-
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	bool bIsDead=false;
 
 	//일단 시험용 빠루 소환
 	UFUNCTION()
@@ -142,14 +157,19 @@ public:
 	//void CrowLinetrace();
 
 	//콜리전박스 생성 테스트
+	UPROPERTY(EditAnywhere, Category = "Shove Attack")
+	UStaticMesh* CylinderMesh;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision", meta = (AllowPrivateAccess = "true"))
-	UBoxComponent* PushCollisionBox;
-	void spawnCollisionBox();
+	UStaticMeshComponent* ShoveCollisionCylinder;
+	UFUNCTION()
+	void OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+	                    const FHitResult& SweepResult);
+	void spawnShoveCylinder();
 
 	//몽타주 재생 테스트
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	UAnimMontage* CrowMontage;
-	FTimerHandle CrowTimerHandle;
+	UAnimMontage* ShoveMontage;
+	FTimerHandle ShoveTimerHandle;
 	
 	//무기 교체 키바인딩, 함수
 	UPROPERTY(EditAnywhere,Category="Input")

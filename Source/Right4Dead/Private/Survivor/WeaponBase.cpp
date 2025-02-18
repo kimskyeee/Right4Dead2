@@ -34,15 +34,6 @@ AWeaponBase::AWeaponBase()
 	//SKYE: 무기 프리셋 변경3
 	Root->SetCollisionProfileName(TEXT("WorldWeapon"));
 
-	//Projectile Movement
-	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
-	ProjectileMovement->UpdatedComponent = PrimaryWeapon;
-	ProjectileMovement->InitialSpeed = 600.f;
-	ProjectileMovement->MaxSpeed = 800.f;
-	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->bShouldBounce = true;
-	ProjectileMovement->SetAutoActivate(false);
-	
 }
 
 // Called when the game starts or when spawned
@@ -57,19 +48,6 @@ void AWeaponBase::Tick(float DeltaTime)
 
 	PrimaryActorTick.bCanEverTick = false;
 	IsEquipped = false;
-}
-
-
-void AWeaponBase::SetProjectile(bool bIsActive)
-{
-	if (ProjectileMovement)
-	{
-		ProjectileMovement->SetAutoActivate(bIsActive);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ProjectileMovement is null"));
-	}
 }
 
 //공격함수 추가

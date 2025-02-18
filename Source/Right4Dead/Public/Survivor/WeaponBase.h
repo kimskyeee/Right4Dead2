@@ -39,11 +39,6 @@ public:
 	// 무기 데이터 구조체
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Data")
 	FWeaponData WeaponData;
-
-	//ProjectileMovement
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	UProjectileMovementComponent* ProjectileMovement;
-	void SetProjectile(bool bIsActive);
 	
 	//공격함수 생성
 	void LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation);
