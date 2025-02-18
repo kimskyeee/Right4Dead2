@@ -17,4 +17,6 @@ class RIGHT4DEAD_API UUISurvivorMain : public UUserWidget
 public:
 	UPROPERTY(meta = (BindWidget))
 	class UUISurvivorHP* PlayerHP;
+	UPROPERTY(meta = (BindWidget))
+	class UUISurvivorCrosshair* Crosshair;
 };

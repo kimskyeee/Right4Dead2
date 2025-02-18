@@ -12,14 +12,18 @@
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "InterchangeResult.h"
 #include "ShoveDamageType.h"
 #include "SurvivorArmAnim.h"
+#include "UISurvivorCrosshair.h"
 #include "UISurvivorMain.h"
 #include "WeaponBase.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
+#include "DSP/DelayStereo.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Right4Dead/Right4Dead.h"
 
 // Sets default values
@@ -235,8 +239,9 @@ void ASurvivor::BeginPlay()
 	{
 		SurvivorMainUI->AddToViewport();
 		CurrentHP=MaxHP;
+		CrosshairUI = Cast<UUISurvivorCrosshair>(SurvivorMainUI->Crosshair);
 	}
-
+		
 	//카메라 설정
 	FirstCameraComp->SetActive(true);
 	ThirdPersonCameraComp->SetActive(false);
@@ -262,6 +267,14 @@ void ASurvivor::Tick(float DeltaTime)
 	//트레이스 후 무기면 -> 줍기
 	TraceForWeapon();
 
+	// 조준선 UI 업데이트
+	float Value = UKismetMathLibrary::VSize(GetVelocity());
+	if (CrosshairUI)
+	{
+		CrosshairUI->CrosshairSpread = UKismetMathLibrary::MapRangeClamped(Value,0,450,5,70);
+	}
+
+	//(LogTemp, Warning, TEXT("Crosshair Spread: %f"), CrosshairUI->CrosshairSpread);
 }
 
 // Called to bind functionality to input
@@ -343,7 +356,7 @@ float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& Damag
 
 void ASurvivor::OnDamaged(float Damage)
 {
-	PRINT_CALLINFO();
+	bIsDamaged=true;
 	//체력깎기
 	CurrentHP -= Damage;
 	//0되면 ondie호출하기
@@ -392,8 +405,7 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 void ASurvivor::PrimaryWeaponAttack()
 {
 	//총무기 라인트레이스
-	//나중에 따발총 추가되면 변수추가해서 바꿔야함
-	UE_LOG(LogTemp, Warning, TEXT("좌클릭 바인딩 완료!"));
+	//TODO: 나중에 따발총 추가되면 변수추가해서 바꿔야함
 	FHitResult Hit;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
@@ -446,7 +458,6 @@ void ASurvivor::PrimaryWeaponAttack()
 		if (CurrentWeapon->WeaponData.WeaponFireMontage)
 	{
 		Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
-		UE_LOG(LogTemp, Warning, TEXT("무기 발사 몽타주 플레이"));
 	}
 	else
 	{
