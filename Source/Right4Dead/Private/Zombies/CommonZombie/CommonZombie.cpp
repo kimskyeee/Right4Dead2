@@ -72,6 +72,7 @@ void ACommonZombie::BeginPlay()
 		}
 		else
 		{
+			UE_LOG(LogTemp,Warning, TEXT("이거찍히나요"));
 			AIController->Possess(this);
 			ZombieFSM->ZombieAI = AIController;
 		}

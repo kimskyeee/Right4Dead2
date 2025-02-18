@@ -168,9 +168,12 @@ void UZombieFSM::TickChase()
 	}
 	else
 	{
-		if (ZombieAI->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
+		if (ZombieAI)
 		{
-			ZombieAI->MoveToActor(ChaseTarget);
+			if (ZombieAI->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
+			{
+				ZombieAI->MoveToActor(ChaseTarget);
+			}
 		}
 	}
 	

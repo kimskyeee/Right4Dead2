@@ -47,7 +47,7 @@ public:
 	//카메라 추가
 	UPROPERTY(VisibleAnywhere)
 	class USpringArmComponent* SpringArmComp;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class UCameraComponent* FirstCameraComp;
 
 	//카메라 전환 (1<->3)
@@ -57,6 +57,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UCameraComponent* ThirdPersonCameraComp;
 
+	//기본
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	float CurrentHP;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	float MaxHP=100.f;
+	
 	//이동
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	float Speed=700.f;
@@ -137,12 +143,11 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UUISurvivorMain* MainUI;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Stats")
-	class UStatSystem* StatSystem;
-
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	bool bIsDead=false;
 
 	//일단 시험용 빠루 소환
 	UFUNCTION()

@@ -14,9 +14,10 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "ShoveDamageType.h"
-#include "StatSystem.h"
 #include "SurvivorArmAnim.h"
+#include "UISurvivorMain.h"
 #include "WeaponBase.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -137,9 +138,6 @@ ASurvivor::ASurvivor()
 	{
 		OverlayMaterial=TempWeaponOverlay.Object;
 	}
-		
-	//스탯
-	StatSystem = CreateDefaultSubobject<UStatSystem>(TEXT("StatSystem"));
 
 	//무기 오버레이 만들기
 	WeaponOverlapBox=CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponOverlap"));
@@ -314,10 +312,9 @@ float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& Damag
 void ASurvivor::OnDamaged(float Damage)
 {
 	//체력깎기
-	float CurrentHealth = StatSystem->Health;
-	CurrentHealth -= Damage;
+	CurrentHP -= Damage;
 	//0되면 ondie호출하기
-	if (CurrentHealth <= 0)
+	if (CurrentHP <= 0)
 	{
 		OnDie();
 	}
@@ -326,7 +323,7 @@ void ASurvivor::OnDamaged(float Damage)
 
 void ASurvivor::OnDie()
 {
-	StatSystem->bIsDead = true;
+	bIsDead = true;
 }
 
 void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
@@ -377,13 +374,15 @@ void ASurvivor::PrimaryWeaponAttack()
 	FVector Start = FirstCam->GetCameraLocation();
 	FVector End = Start + (FirstCam->GetActorForwardVector() * 30000);
 
+	/*
 	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 시작 위치: %s"), *Start.ToString());
 	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 끝 위치: %s"), *End.ToString());
+	*/
 	    
 	const float DebugLineLifetime = 2.0f;
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params);
 
-	UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("히트") : TEXT("미스"));
+	//UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("히트") : TEXT("미스"));
 		
 	// 디버그 라인 그리기
 	if (bDrawLine)
@@ -392,6 +391,8 @@ void ASurvivor::PrimaryWeaponAttack()
 		{
 			// 히트가 발생한 경우 빨간색으로 표시
 			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+			FString BoneNameStr = FString::Printf(TEXT("Hit Bone: %s"), *Hit.BoneName.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("%s %s"), *Hit.GetActor()->GetName(), *BoneNameStr);
 		}
 		else
 		{
@@ -402,7 +403,9 @@ void ASurvivor::PrimaryWeaponAttack()
 	    
 	if (bHit && Hit.GetActor())
 	{
-		UGameplayStatics::ApplyDamage(Hit.GetActor(),FireDamage,GetController(),this,UDamageType::StaticClass());
+		// TODO: ApplyPointDamage로 주세용~
+		// Player를 인식하지 못하는 이유는 
+		UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 0.01, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
 	}
 
 	//몽타주 플레이
@@ -421,7 +424,7 @@ void ASurvivor::PrimaryWeaponAttack()
 void ASurvivor::SecondaryWeaponAttack()
 {
 	//근접무기 휘두르기
-	Sweep();
+	//Sweep();
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
 		AnimInstance->Montage_Play(SecondaryWeaponSlot.WeaponFireMontage);
@@ -467,128 +470,145 @@ void ASurvivor::NoneAttack()
 
 void ASurvivor::Sweep()
 {
-   //1. BoneMap 초기화 (뼈의 이름과 우선순위 매핑))
-   TMap<FName, int> BoneMap;
-   BoneMap.Add(TEXT("head"), 0); // 머리 (최우선)
-   BoneMap.Add(TEXT("neck_01"), 0);
-   BoneMap.Add(TEXT("spine_02"), 1); // 가슴부분에 해당
-   BoneMap.Add(TEXT("stomach"), 2); // 배부분
+    //1. BoneMap 초기화 (뼈의 이름과 우선순위 매핑))
+    TMap<FName, int> BoneMap;
+    BoneMap.Add(TEXT("head"), 0); // 머리 (최우선)
+    BoneMap.Add(TEXT("neck_01"), 0);
+    BoneMap.Add(TEXT("spine_02"), 1); // 가슴부분에 해당
+    BoneMap.Add(TEXT("stomach"), 2); // 배부분
      
-   //2. 충돌을 위한 가상의 박스 생성
-   auto BoxShape = FCollisionShape::MakeBox(FVector(100, 100, 5));
+    //2. 충돌을 위한 가상의 박스 생성
+    auto BoxShape = FCollisionShape::MakeBox(FVector(100, 100, 5));
    
-   //3. 충돌결과 저장을 위한 배열 선언
-   // SweepMultiByChannel이 수행되면 여기에 HitResult 구조체(충돌과 관련된 정보들이 들어있음)들이 쌓인다
-   TArray<struct FHitResult> HitResults;
+    //3. 충돌결과 저장을 위한 배열 선언
+    // SweepMultiByChannel이 수행되면 여기에 HitResult 구조체(충돌과 관련된 정보들이 들어있음)들이 쌓인다
+    TArray<struct FHitResult> HitResults;
   
-   //4. 시작과 끝점 (박스의 중심), 현재의 80은 캐릭터의 머리위치 정도인듯
-   // 시작 지점과 끝 지점은 같도록 하면 된다 (TODO: Z축 좌표를 모니터 정 중앙 위치를 기준으로 해야겠죠?)
-   FVector Start = GetActorLocation() + FVector(0, 0, 80);
-   FVector End = GetActorLocation() + FVector(0, 0, 80);
+    //4. 시작과 끝점 (박스의 중심), 현재의 80은 캐릭터의 머리위치 정도인듯
+    // 시작 지점과 끝 지점은 같도록 하면 된다 (TODO: Z축 좌표를 모니터 정 중앙 위치를 기준으로 해야겠죠?)
 
-   // 나 자신은 제외하고 싶다 (필요하면 무기 액터 같은 것들도 제외하면 된다)
-   FCollisionQueryParams Params;
-   Params.AddIgnoredActor(this);
+	FVector Start,End;
+	FRotator CameraRotation;
+	
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
+	{
+		int32 ViewportX, ViewportY;
+		PC->GetViewportSize(ViewportX, ViewportY);
 
-   // SweepMultiByChannel 수행
-   // 1. 감지된 충돌 정보들은 HitResults 배열에 저장하기로 한다
-   // 2~3. 가상의 박스 중심 지점을 설정한다
-   // (Start와 End가 다르면 Start -> End 방향으로 빠빠빠빵 하고 Trace를 쏜다)
-   // 4. 회전값은 그냥 일단 0으로 두자
-   // 5. TraceChannel은 거의 모든 오브젝트들을 감지하도록 설정한다. (벽, 오브젝트, 좀비 등등 전부 때릴 수 있으니까)
-   // 6. 가상의 박스를 넣어주자
-   // 7. 나 자신은 제외하고 싶다
-   const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, FQuat::Identity, ECC_Camera, BoxShape, Params);
-	 // ->HitResults 배열에 충돌 결과들이 저장된다
+		float CenterX = ViewportX / 2.f;
+		float CenterY = ViewportY / 2.f;
 
-   // 눈에 보여야 하니까 DebugBox
-   DrawDebugBox(GetWorld(), Start, FVector(100, 100, 5), FColor::Red, true, 3.0f);
+		FVector WorldLocation;
+		FVector WorldDirection;
+		bool bDeprojectSuccess = PC->DeprojectScreenPositionToWorld(CenterX, CenterY, WorldLocation, WorldDirection);
 
-	 //5. 충돌결과 처
-   // 만약 가상의 박스 안에 뭔가가 있었다면?
-   if (bHit)
-   {
-      // 한 액터(좀비)의 여러 부위(왼쪽팔, 머리, 오른쪽팔)가 박스 영역 안에 동시에 들어올 수 있다.
-      // 이런 경우 한 좀비에 대해 3번의 타격 명령을 내릴 수는 없는 노릇이다.
-      // 따라서, 어떤 부위들을 맞았는지 좀비별로 분류하여 좀비 1명에 대해서 1번의 타격 명령을 내릴 것이다.
-      // TMap을 어떻게 쓰는지는 아래에 나와있음.
-      TMap<AActor*, TArray<FName>> HitMap;
+		if (bDeprojectSuccess)
+		{
+			// 뷰포트 중심을 기준으로 시작점과 끝점 설정
+			Start = WorldLocation;
+			End = Start + (WorldDirection * 1000.f); // 적당한 거리로 설정
 
-      // HitResults에서 각각의 HitResult를 꺼내서 확인해보자.
-      for (auto HitResult : HitResults)
-      {
-         // 일단 다른 오브젝트는 고려하지 말고 오직 좀비만 생각하고 해보자.
-         
-         // 만약 BoneName이 None이라면 SkeletalMesh가 아니라는 뜻이다. 스킵하자.
-         // 우리가 원하는건 도대체 내 도끼샷이 좀비의 어느 부위를 맞췄느냐이다.
-         FName BoneName = HitResult.BoneName;
-         if (HitResult.BoneName.IsNone())
-         {
-            continue;
-         }
+			// 박스의 위치를 뷰포트 중심으로 설정
+			FVector BoxLocation = Start + (WorldDirection * 500.f); // 적당한 거리로 설정
+			CameraRotation = FirstCameraComp->GetComponentRotation();
+		}
+	}
+	
+    // 나 자신은 제외하고 싶다 (필요하면 무기 액터 같은 것들도 제외하면 된다)
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
 
-         // 좀비가 아니라면 스킵하자.
-         AActor* Actor = Cast<AZombieBase>(HitResult.GetActor());
-         if (nullptr == Actor)
-         {
-            continue;
-         }
+    // SweepMultiByChannel 수행
+    const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, CameraRotation.Quaternion(), ECC_Camera, BoxShape, Params);
+	// ->HitResults 배열에 충돌 결과들이 저장된다
+	
+    DrawDebugBox(GetWorld(), Start, FVector(100, 100, 5), FColor::Red, true, 3.0f);
 
-         // BoneName이 None이 아니라면 Component는 왠만하면 SkeletalMeshComponent일 것이다.
-         USkeletalMeshComponent* Component = Cast<USkeletalMeshComponent>(HitResult.GetComponent());
-         if (nullptr == Component)
-         {
-            continue;
-         }
+	//5. 충돌결과 처리
+    // 만약 가상의 박스 안에 뭔가가 있었다면?
+    if (bHit)
+    {
+       // 한 액터(좀비)의 여러 부위(왼쪽팔, 머리, 오른쪽팔)가 박스 영역 안에 동시에 들어올 수 있다.
+       // 이런 경우 한 좀비에 대해 3번의 타격 명령을 내릴 수는 없는 노릇이다.
+       // 따라서, 어떤 부위들을 맞았는지 좀비별로 분류하여 좀비 1명에 대해서 1번의 타격 명령을 내릴 것이다.
+       // TMap을 어떻게 쓰는지는 아래에 나와있음.
+       TMap<AActor*, TArray<FName>> HitMap;
 
-         // Actor의 BoneName 부위가 피격당했다
-         // 해당 Actor가 아직 없다면 새로운 배열(TArray))을 만들고 피격부위(BoneName)를 추가한 후 HitMAp에 저장
-         if (false == HitMap.Contains(Actor))
-         {
-            TArray<FName> BoneArray;
-            BoneArray.Add(BoneName);
-            HitMap.Add(Actor, BoneArray);
-         }
-         // 이미 존재한다면 기존의 TArray를 가져와서 BoneName을 추가한다.
-         else
-         {
-            /*auto Array = HitMap[Actor];
-            Array.Add(BoneName);
-            -> Array는 복사본이므로 원본에 영향을 주지 않는다고 함*/
-            HitMap[Actor].Add(BoneName); //기존 배열에 직접 추가
-         }
-      }
+       // HitResults에서 각각의 HitResult를 꺼내서 확인해보자.
+       for (auto HitResult : HitResults)
+       {
+          // 일단 다른 오브젝트는 고려하지 말고 오직 좀비만 생각하고 해보자.
+          
+          // 만약 BoneName이 None이라면 SkeletalMesh가 아니라는 뜻이다. 스킵하자.
+          // 우리가 원하는건 도대체 내 도끼샷이 좀비의 어느 부위를 맞췄느냐이다.
+          FName BoneName = HitResult.BoneName;
+          if (HitResult.BoneName.IsNone())
+          {
+             continue;
+          }
 
-      // TMap의 Key값은 각각의 좀비를 의미한다.
-      // GetKeys를 통해 어떤 좀비들이 피격을 당했는지 알아낸다.
-      TArray<AActor*> Actors;
-      HitMap.GetKeys(Actors);
+          // 좀비가 아니라면 스킵하자.
+          AActor* Actor = Cast<AZombieBase>(HitResult.GetActor());
+          if (nullptr == Actor)
+          {
+             continue;
+          }
+
+          // BoneName이 None이 아니라면 Component는 왠만하면 SkeletalMeshComponent일 것이다.
+          USkeletalMeshComponent* Component = Cast<USkeletalMeshComponent>(HitResult.GetComponent());
+          if (nullptr == Component)
+          {
+             continue;
+          }
+
+          // Actor의 BoneName 부위가 피격당했다
+          // 해당 Actor가 아직 없다면 새로운 배열(TArray))을 만들고 피격부위(BoneName)를 추가한 후 HitMAp에 저장
+          if (false == HitMap.Contains(Actor))
+          {
+             TArray<FName> BoneArray;
+             BoneArray.Add(BoneName);
+             HitMap.Add(Actor, BoneArray);
+          }
+          // 이미 존재한다면 기존의 TArray를 가져와서 BoneName을 추가한다.
+          else
+          {
+             /*auto Array = HitMap[Actor];
+             Array.Add(BoneName);
+             -> Array는 복사본이므로 원본에 영향을 주지 않는다고 함*/
+             HitMap[Actor].Add(BoneName); //기존 배열에 직접 추가
+          }
+       }
+
+       // TMap의 Key값은 각각의 좀비를 의미한다.
+       // GetKeys를 통해 어떤 좀비들이 피격을 당했는지 알아낸다.
+       TArray<AActor*> Actors;
+       HitMap.GetKeys(Actors);
       
-      // 피격을 당한 좀비들을 하나하나 알아본다.
-      for (auto Actor : Actors)
-      {
-         int HighPriority = INT_MAX;
-         FName HighPriorityBoneName;
-         // 피격 당한 부위들을 하나하나 살펴본다.
-         for (auto BoneName : HitMap[Actor])
-         {
-            // 뼈 이름
-            int Priority = BoneMap[BoneName];
-            if (Priority < HighPriority)
-            {
-               HighPriority = Priority;
-               HighPriorityBoneName = BoneName;
-            }
-            // 
-         }
+       // 피격을 당한 좀비들을 하나하나 알아본다.
+       for (auto Actor : Actors)
+       {
+          int HighPriority = INT_MAX;
+          FName HighPriorityBoneName;
+          // 피격 당한 부위들을 하나하나 살펴본다.
+          for (auto BoneName : HitMap[Actor])
+          {
+             // 뼈 이름
+             int Priority = BoneMap[BoneName];
+             if (Priority < HighPriority)
+             {
+                HighPriority = Priority;
+                HighPriorityBoneName = BoneName;
+             }
+             // 
+          }
 
-         // 어떤 부위들을 피격 당했는지 알았으니 우선순위가 가장 높은 Bone에 맞았다고 하고
-         FHitResult HR;
-         HR.BoneName = HighPriorityBoneName;
-         UGameplayStatics::ApplyPointDamage(Actor, 20, GetActorLocation(), HR, nullptr, nullptr, nullptr);
-         // 
-      }
-   }
+          // 어떤 부위들을 피격 당했는지 알았으니 우선순위가 가장 높은 Bone에 맞았다고 하고
+          FHitResult HR;
+          HR.BoneName = HighPriorityBoneName;
+          UGameplayStatics::ApplyPointDamage(Actor, 20, GetActorLocation(), HR, nullptr, nullptr, nullptr);
+       }
+    }
 }
 
 
@@ -598,7 +618,7 @@ void ASurvivor::ThrowWeapon()
 	FVector TargetLocation = StartLocation + GetActorForwardVector()*1000;
 	//0~1사이 (포물선 궤적 높이라고 이해하자)
 	float arcValue = 0.5f;
-	FVector outVelocity = FVector::ZeroVector; //결과? 이거 뭐임
+	FVector outVelocity = FVector::ZeroVector;
 	if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, outVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(),arcValue))
 	{
 		FPredictProjectilePathParams predictParams (20.0f, StartLocation, outVelocity, 15.0f);
@@ -643,6 +663,7 @@ void ASurvivor::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* Othe
 
 	//6초후 폭발 타이머 설정 (폭발함수 구현하기)
 	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &ASurvivor::ExplodeWeapon, 6.0f, false);
+	
 }
 
 void ASurvivor::ExplodeWeapon()
@@ -683,6 +704,8 @@ void ASurvivor::ExplodeWeapon()
 		FColor::Red,          // Color
 		false,               // Persistent Lines
 		2.0f);                // Duration
+
+	CurrentWeapon->Destroy();
 }
 
 
@@ -882,14 +905,14 @@ void ASurvivor::TraceForWeapon()
 	if (bHit)
 	{
 		AActor* HitActor = HitResult.GetActor();
-		if (HitActor)
+		/*if (HitActor)
 		{
 			if (GEngine)
 			{
 				FString Message = FString::Printf(TEXT("Hit Actor Class: %s"), *HitActor->GetClass()->GetName());
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
 			}
-		}
+		}*/
 
 		AWeaponBase* HitWeapon = Cast<AWeaponBase>(HitResult.GetActor()); // 무기인지 확인
 
