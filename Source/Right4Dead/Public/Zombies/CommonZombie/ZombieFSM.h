@@ -64,7 +64,7 @@ public:
 	float CurrentChaseTime = 0.0f;
 	// 추격 중단 시간
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
-	float StopChaseTime = 10.0f;
+	float StopChaseTime = 20.0f;
 
 	// 공격 범위
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
