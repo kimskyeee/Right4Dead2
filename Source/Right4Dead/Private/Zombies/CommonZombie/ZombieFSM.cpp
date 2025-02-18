@@ -116,7 +116,7 @@ void UZombieFSM::TickIdle()
 			Owner->GetActorLocation(),
 			Owner->GetActorLocation(),
 			Awareness,
-			UEngineTypes::ConvertToTraceType(ECC_Visibility),
+			UEngineTypes::ConvertToTraceType(ECC_Pawn),
 			false,
 			ActorsToIgnore,
 			(bVerboseChase) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
@@ -131,11 +131,6 @@ void UZombieFSM::TickIdle()
 				if (ASurvivor* Survivor = Cast<ASurvivor>(HitResult.GetActor()))
 				{
 					ChaseTarget = Survivor;
-					State = EZombieState::EZS_Chase;
-					if (ZombieAI)
-					{
-						ZombieAI->MoveToActor(ChaseTarget);
-					}
 				}
 			}
 		}

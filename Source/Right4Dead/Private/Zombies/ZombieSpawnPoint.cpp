@@ -3,8 +3,10 @@
 
 #include "ZombieSpawnPoint.h"
 
-#include "AIController.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "Survivor.h"
+#include "ZombieAIController.h"
+#include "ZombieAnimInstance.h"
+#include "Kismet/GameplayStatics.h"
 #include "Right4Dead/Right4Dead.h"
 
 
@@ -43,7 +45,10 @@ void AZombieSpawnPoint::SpawnCommonZombie() const
 		if (World->WorldType == EWorldType::PIE || World->WorldType == EWorldType::Game)
 		{
 			FActorSpawnParameters SpawnParams;
-			auto* SpawnedActor = World->SpawnActor<ACommonZombie>(ZombieFactory, GetActorLocation(), GetActorRotation());
+			if (auto* SpawnedZombie = World->SpawnActor<ACommonZombie>(ZombieFactory, GetActorLocation(), GetActorRotation()))
+			{
+				SpawnedZombie->Target = SpawnedZombie;
+			}
 		}
 		else
 		{

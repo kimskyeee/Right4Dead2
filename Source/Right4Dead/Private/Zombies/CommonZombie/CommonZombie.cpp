@@ -88,26 +88,16 @@ void ACommonZombie::BeginPlay()
 		}
 		else
 		{
-			UE_LOG(LogTemp,Warning, TEXT("이거찍히나요"));
 			AIController->Possess(this);
-			ZombieFSM->ZombieAI = AIController;
 		}
 	}
+	ZombieFSM->ZombieAI = AIController;
 	
 	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
 	ZombieFSM->ZombieAnimInstance = ZombieAnimInstance;
 	if (nullptr == ZombieAnimInstance)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed Set ZombieAnimInstance"));
-	}
-
-	if (nullptr == Target)
-	{
-		if (nullptr == (Target = UGameplayStatics::GetActorOfClass(this, ASurvivor::StaticClass())))
-		{
-			UE_LOG(LogTemp, Error, TEXT("Failed Set Target"));
-		}
-		AIController->MoveToActor(Target);
 	}
 }
 
