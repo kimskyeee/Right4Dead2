@@ -16,6 +16,7 @@ public class Right4Dead : ModuleRules
 			"Right4Dead/Public/Survivor",
 			"Right4Dead/Public/Zombies",
 			"Right4Dead/Public/Zombies/CommonZombie",
+			"Right4Dead/Public/Zombies/Tank",
 			"Right4Dead/Public/Common",
 			"Right4Dead/Public/Common/UI"
 		});
