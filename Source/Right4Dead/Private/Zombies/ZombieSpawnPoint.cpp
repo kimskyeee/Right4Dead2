@@ -47,8 +47,7 @@ void AZombieSpawnPoint::SpawnCommonZombie() const
 			FActorSpawnParameters SpawnParams;
 			if (auto* SpawnedZombie = World->SpawnActor<ACommonZombie>(ZombieFactory, GetActorLocation(), GetActorRotation()))
 			{
-				SpawnedZombie->ZombieFSM->ChaseTarget = World->GetFirstPlayerController()->GetCharacter();
-				
+				SpawnedZombie->ZombieFSM->ChaseTarget = UGameplayStatics::GetActorOfClass(World, ASurvivor::StaticClass());
 			}
 		}
 		else

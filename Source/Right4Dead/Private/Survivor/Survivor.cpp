@@ -413,7 +413,23 @@ void ASurvivor::PrimaryWeaponAttack()
 	*/
 	    
 	const float DebugLineLifetime = 2.0f;
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera, Params);
+	// bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera, Params);
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	const bool bHit = UKismetSystemLibrary::LineTraceSingle(
+		GetWorld(),
+		Start,
+		End,
+		TraceTypeQuery1,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		Hit,
+		true,
+		FLinearColor::Red,
+		FLinearColor::Green,
+		3.0f
+	);
 
 	//UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("히트") : TEXT("미스"));
 		
@@ -423,14 +439,14 @@ void ASurvivor::PrimaryWeaponAttack()
 		if (bHit)
 		{
 			// 히트가 발생한 경우 빨간색으로 표시
-			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+			// DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
 			FString BoneNameStr = FString::Printf(TEXT("Hit Bone: %s"), *Hit.BoneName.ToString());
 			UE_LOG(LogTemp, Warning, TEXT("%s %s"), *Hit.GetActor()->GetName(), *BoneNameStr);
 		}
 		else
 		{
 			// 히트가 없는 경우 초록색으로 표시
-			DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
+			// DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
 		}
 	}
 	    
