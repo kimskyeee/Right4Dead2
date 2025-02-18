@@ -33,16 +33,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(CallInEditor, Category="Debugging")
-	void CallHorde()
-	{
-		int Rem = NumOfHorde;
-		while (Rem >= 0)
-		{
-			for (const auto* SpawnPoint : SpawnPoints)
-            {
-				if (--Rem < 0) break;
-            	SpawnPoint->SpawnCommonZombie();
-            }
-		}
-	}
+	void CallHorde();
 };

@@ -33,3 +33,17 @@ void AZombieSpawnManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AZombieSpawnManager::CallHorde()
+{
+	int Rem = NumOfHorde;
+	while (Rem >= 0)
+	{
+		for (const auto* SpawnPoint : SpawnPoints)
+		{
+			if (--Rem < 0) break;
+			SpawnPoint->SpawnCommonZombie();
+		}
+	}
+
+	// UGameplayStatics::PlaySound2D();
+}
