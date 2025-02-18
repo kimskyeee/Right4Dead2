@@ -4,7 +4,6 @@
 #include "ShoveDamageType.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/StaticMeshActor.h"
-#include "Kismet/GameplayStatics.h"
 #include "Right4Dead/Right4Dead.h"
 
 AZombieBase::AZombieBase()

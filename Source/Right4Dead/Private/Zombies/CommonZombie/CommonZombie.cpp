@@ -172,15 +172,14 @@ void ACommonZombie::EndClimbing()
 	ClimbDestination = FTransform::Identity;
 }
 
-AActor* ACommonZombie::GetChasingTarget()
-{
-	return Target;
-}
-
 void ACommonZombie::TriggerAttack()
 {
 	PRINT_CALLINFO();
 	ZombieAnimInstance->PlayAttack();
+	if (ASurvivor* Survivor = Cast<ASurvivor>(ZombieFSM->ChaseTarget))
+	{
+		Survivor->OnDamaged(AttackDamage);
+	}
 }
 
 void ACommonZombie::HandleShove(const FVector& FromLocation)

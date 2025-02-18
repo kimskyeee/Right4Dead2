@@ -27,8 +27,6 @@ protected:
 	virtual void InitDifficulty() override;
 
 public:
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<AActor> Target = nullptr;
 	UPROPERTY()
 	TObjectPtr<AZombieAIController> AIController = nullptr;
 	UPROPERTY(VisibleAnywhere)

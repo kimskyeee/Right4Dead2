@@ -3,11 +3,8 @@
 #include "CommonZombie.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
-#include "Components/CapsuleComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "Right4Dead/Right4Dead.h"
 
 UZombieFSM::UZombieFSM()
 {

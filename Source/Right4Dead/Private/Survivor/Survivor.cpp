@@ -20,6 +20,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Right4Dead/Right4Dead.h"
 
 // Sets default values
 ASurvivor::ASurvivor()
@@ -342,6 +343,7 @@ float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& Damag
 
 void ASurvivor::OnDamaged(float Damage)
 {
+	PRINT_CALLINFO();
 	//체력깎기
 	CurrentHP -= Damage;
 	//0되면 ondie호출하기

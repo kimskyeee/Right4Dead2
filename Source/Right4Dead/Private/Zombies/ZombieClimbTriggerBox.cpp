@@ -4,6 +4,7 @@
 #include "ZombieClimbTriggerBox.h"
 
 #include "CommonZombie.h"
+#include "ZombieFSM.h"
 #include "Components/BoxComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
@@ -51,7 +52,7 @@ void AZombieClimbTriggerBox::NotifyActorBeginOverlap(AActor* OtherActor)
 	Super::NotifyActorBeginOverlap(OtherActor);
 	if (ACommonZombie* Zombie = Cast<ACommonZombie>(OtherActor))
 	{
-		const AActor* Target = Zombie->GetChasingTarget();
+		const AActor* Target = Zombie->ZombieFSM->ChaseTarget;
 		if (Target) {
 			if (IsOverlappingActor(Target))
 			{
