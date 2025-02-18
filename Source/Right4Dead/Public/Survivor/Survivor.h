@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ActorBase.h"
-#include "EWeaponType.h"
 #include "FWeaponData.h"
 #include "WeaponBase.h"
 #include "GameFramework/Character.h"
@@ -37,6 +36,11 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	//UI붙이기 (Widget)
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UUserWidget> MainUIFactory;
+	UPROPERTY(EditAnywhere)
+	class UUISurvivorMain* SurvivorMainUI;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)

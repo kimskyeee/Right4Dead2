@@ -9,7 +9,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "EWeaponType.h"
-#include "ExplosionDamageType.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
@@ -229,6 +228,14 @@ void ASurvivor::BeginPlay()
 		}
 	}
 
+	//UI붙이기
+	SurvivorMainUI=Cast<UUISurvivorMain>(CreateWidget(GetWorld(),MainUIFactory));
+	if (SurvivorMainUI)
+	{
+		SurvivorMainUI->AddToViewport();
+		CurrentHP=MaxHP;
+	}
+
 	//카메라 설정
 	FirstCameraComp->SetActive(true);
 	ThirdPersonCameraComp->SetActive(false);
@@ -430,6 +437,10 @@ void ASurvivor::PrimaryWeaponAttack()
 		// TODO: ApplyPointDamage로 주세용~
 		// Player를 인식하지 못하는 이유는 
 		UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 0.01, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
+		if (Hit.BoneName == "None")
+		{
+			// TODO: 예외처리
+		}
 	}
 
 	//몽타주 플레이
@@ -465,7 +476,6 @@ void ASurvivor::MeleeWeaponAttack()
 	if (CurrentWeapon->WeaponData.WeaponFireMontage)
 	{
 		Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
-		UE_LOG(LogTemp, Warning, TEXT("무기 발사 몽타주 플레이"));
 	}
 	else
 	{
@@ -474,7 +484,6 @@ void ASurvivor::MeleeWeaponAttack()
 	//SKYE: 프리셋 추가 설정
 	if (bIsThrown)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Throwing weapon: %s"), *CurrentWeapon->GetName());
 		CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
 		ThrowWeapon();
 	}
@@ -482,9 +491,7 @@ void ASurvivor::MeleeWeaponAttack()
 
 void ASurvivor::NoneAttack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("무기없을때 공격 시작"));
-    
-	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+ 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
 		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
 		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
@@ -502,7 +509,7 @@ void ASurvivor::Sweep()
     TArray<struct FHitResult> HitResults;
   
     // 시작과 끝점 (박스의 중심), 현재의 80은 캐릭터의 머리위치 정도인듯
-    // 시작 지점과 끝 지점은 같도록 하면 된다 (TODO: Z축 좌표를 모니터 정 중앙 위치를 기준으로 해야겠죠?)
+    // 시작 지점과 끝 지점은 같도록 하면 된다 (Z축 좌표를 모니터 정 중앙 위치를 기준으로)
 
 	FVector Start,End;
 	FRotator CameraRotation;
@@ -563,7 +570,7 @@ void ASurvivor::Sweep()
           FName BoneName = HitResult.BoneName;
           if (HitResult.BoneName.IsNone())
           {
-             continue;
+          	continue;
           }
 
           // 좀비가 아니라면 스킵하자.
@@ -618,7 +625,6 @@ void ASurvivor::Sweep()
                 HighPriority = Priority;
                 HighPriorityBoneName = BoneName;
              }
-             // 
           }
 
           // 어떤 부위들을 피격 당했는지 알았으니 우선순위가 가장 높은 Bone에 맞았다고 하고
