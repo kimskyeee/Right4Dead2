@@ -380,7 +380,7 @@ void ASurvivor::PrimaryWeaponAttack()
 	*/
 	    
 	const float DebugLineLifetime = 2.0f;
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_WorldStatic, Params);
 
 	//UE_LOG(LogTemp, Warning, TEXT("라인트레이스 실행됨: %s"), bHit ? TEXT("히트") : TEXT("미스"));
 		
@@ -405,7 +405,7 @@ void ASurvivor::PrimaryWeaponAttack()
 	{
 		// TODO: ApplyPointDamage로 주세용~
 		// Player를 인식하지 못하는 이유는 
-		UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 0.01, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
+		UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
 	}
 
 	//몽타주 플레이
