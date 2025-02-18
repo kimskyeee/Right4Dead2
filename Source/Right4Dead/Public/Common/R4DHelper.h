@@ -15,6 +15,9 @@ class RIGHT4DEAD_API UR4DHelper : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION(BlueprintPure)
+	static FName GetParentBone(const USkeletalMeshComponent* SkeletalMeshComp, const FName& BoneName);
+	
     UFUNCTION(BlueprintPure)
     static bool IsChildBone(const USkeletalMeshComponent* SkeletalMeshComp, const FName& BoneName, const FName& TargetBoneName);
 };

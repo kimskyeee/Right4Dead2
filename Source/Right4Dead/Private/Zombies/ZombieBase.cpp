@@ -46,9 +46,20 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 	// FinalDamage can set on damage handler
 	OnDamaged(FinalDamage);
 
-	if (DamageEvent.DamageTypeClass == UShoveDamageType::StaticClass())
+	if (Hp > 0)
 	{
-		HandleShove(DamageCauser->GetActorForwardVector());
+		if (DamageEvent.DamageTypeClass == UShoveDamageType::StaticClass())
+		{
+			HandleShove(DamageCauser->GetActorForwardVector());
+		}
+	}
+	else
+	{
+		// 죽었고, 죽은 원인이 PointDamage일 때만 해당 부위 사지분해 실시
+		if (const FPointDamageEvent* PointDamageEvent = (FPointDamageEvent*)&DamageEvent)
+		{
+			HandleDismemberment(PointDamageEvent);
+		}
 	}
 	
 	return FinalDamage;
@@ -63,6 +74,11 @@ void AZombieBase::OnTakeAnyDamageHandler(AActor* DamagedActor, float Damage, con
 
 void SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStaticMesh* SpawnMesh, FVector ImpulseDirection, float Power)
 {
+	// 이미 Bone이 숨겨진 상태라면 다시 스폰시키지 않는다
+	if (SkeletalMesh->IsBoneHiddenByName(BoneName))
+	{
+		return;
+	}
 	SkeletalMesh->HideBoneByName(BoneName, PBO_None);
 	const FTransform Transform = SkeletalMesh->GetBoneTransform(BoneName);
 	auto* StaticMeshActor = SkeletalMesh->GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), Transform);
@@ -77,38 +93,16 @@ void AZombieBase::OnTakePointDamageHandler(AActor* DamagedActor, float Damage, c
 	FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection,
 	const class UDamageType* DamageType, AActor* DamageCauser)
 {
-	const bool bIsHead = UR4DHelper::IsChildBone(GetMesh(), BoneName, TEXT("neck_01"));
-	const bool bIsArmLeft = UR4DHelper::IsChildBone(GetMesh(), BoneName, TEXT("lowerarm_l"));
-	const bool bIsArmRight = UR4DHelper::IsChildBone(GetMesh(), BoneName, TEXT("lowerarm_r"));
-	const bool bIsLegLeft = UR4DHelper::IsChildBone(GetMesh(), BoneName, TEXT("thigh_l"));
-	const bool bIsLegRight = UR4DHelper::IsChildBone(GetMesh(), BoneName, TEXT("thigh_r"));
-	const bool bIsThorax = UR4DHelper::IsChildBone(GetMesh(), BoneName, TEXT("spine_02"));
-	if (bIsHead)
+	const FName ParentBoneName = UR4DHelper::GetParentBone(GetMesh(), BoneName);
+	if (ParentBoneName == TEXT("neck_01"))
 	{
 		Damage *= PartDamageMultipliers.Head;
-		SpawnPartMesh(GetMesh(), TEXT("neck_01"), HeadMesh, FVector(1, 0, 0), 1000);
 	}
-	else if (bIsArmLeft)
+	else if (ParentBoneName == TEXT("lowerarm_l") || ParentBoneName == TEXT("lowerarm_r") || ParentBoneName == TEXT("thigh_l") || ParentBoneName == TEXT("thigh_r"))
 	{
 		Damage *= PartDamageMultipliers.Legs;
-		SpawnPartMesh(GetMesh(), TEXT("lowerarm_l"), ArmLeftMesh, FVector(1, 0, 0), 1000);
 	}
-	else if (bIsArmRight)
-	{
-		Damage *= PartDamageMultipliers.Legs;
-		SpawnPartMesh(GetMesh(), TEXT("lowerarm_r"), ArmRightMesh, FVector(1, 0, 0), 1000);
-	}
-	else if (bIsLegLeft)
-	{
-		Damage *= PartDamageMultipliers.Legs;
-		SpawnPartMesh(GetMesh(), TEXT("thigh_l"), LegLeftMesh, FVector(1, 0, 0), 1000);
-	}
-	else if (bIsLegRight)
-	{
-		Damage *= PartDamageMultipliers.Legs;
-		SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, FVector(1, 0, 0), 1000);
-	}
-	else if (bIsThorax)
+	else if (ParentBoneName == TEXT("spine_02"))
 	{
 		Damage *= PartDamageMultipliers.Thorax;
 	}
@@ -131,10 +125,38 @@ void AZombieBase::HandleShove(const FVector& FromLocation)
 	PRINT_CALLINFO();
 }
 
-void AZombieBase::OnDamaged(const float Damage)
+void AZombieBase::HandleDismemberment(const FPointDamageEvent* PointDamageEvent)
 {
 	PRINT_CALLINFO();
-	if ((Hp -= Damage) < 0)
+	const FName ParentBoneName = UR4DHelper::GetParentBone(GetMesh(), PointDamageEvent->HitInfo.BoneName);
+	if (ParentBoneName == TEXT("neck_01"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("neck_01"), HeadMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("lowerarm_l"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("lowerarm_l"), ArmLeftMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("lowerarm_r"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("lowerarm_r"), ArmRightMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("thigh_l"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("thigh_l"), LegLeftMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("thigh_r"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, FVector(1, 0, 0), 1000);
+	}
+}
+
+void AZombieBase::OnDamaged(const float Damage)
+{
+	const float OrgHp = Hp;
+	Hp -= Damage;
+	UE_LOG(LogTemp, Display, TEXT("HP %f -> %f"), OrgHp, Hp);
+	if (Hp < 0)
 	{
 		OnDie();
 	}

@@ -192,10 +192,6 @@ void ACommonZombie::HandleShove(const FVector& FromLocation)
 void ACommonZombie::OnDamaged(float Damage)
 {
 	Super::OnDamaged(Damage);
-	if (Hp > 0)
-	{
-		
-	}
 }
 
 void ACommonZombie::OnDie()

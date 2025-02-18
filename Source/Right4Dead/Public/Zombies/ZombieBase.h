@@ -46,6 +46,8 @@ protected:
 	
 public:
 	AZombieBase();
+
+	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION()
 	void OnTakeAnyDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
@@ -57,6 +59,7 @@ public:
 								   class AController* InstigatedBy, AActor* DamageCauser);
 	
 	virtual void HandleShove(const FVector& FromLocation);
+	virtual void HandleDismemberment(const FPointDamageEvent* PointDamageEvent);
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
 };
