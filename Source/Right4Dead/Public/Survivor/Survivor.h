@@ -41,6 +41,9 @@ public:
 	TSubclassOf<class UUserWidget> MainUIFactory;
 	UPROPERTY(EditAnywhere)
 	class UUISurvivorMain* SurvivorMainUI;
+	//캐싱
+	UPROPERTY()
+	class UUISurvivorCrosshair* CrosshairUI;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -66,6 +69,8 @@ public:
 	float CurrentHP;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	float MaxHP=100.f;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	bool bIsDamaged=false;
 	
 	//이동
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
