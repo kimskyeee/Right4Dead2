@@ -644,6 +644,10 @@ void ASurvivor::Sweep()
           // 피격 당한 부위들을 하나하나 살펴본다.
           for (auto BoneName : HitMap[Actor])
           {
+          	if (false == BoneMap.Contains(BoneName))
+          	{
+          		continue;
+          	}
              // 뼈 이름
              int Priority = BoneMap[BoneName];
              if (Priority < HighPriority)
@@ -1085,6 +1089,7 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 	// 무기를 캐릭터의 소켓에 부착
 	if (CurrentWeapon && Arms)
 	{
+		CurrentWeapon->SetActorRelativeRotation(FRotator(0, 0, 0));
 		CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
 		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
 	}
