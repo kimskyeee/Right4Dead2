@@ -375,6 +375,12 @@ float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& Damag
 void ASurvivor::OnDamaged(float Damage)
 {
 	bIsDamaged=true;
+	//카메라 쉐이크
+	auto pc = GetWorld()->GetFirstPlayerController();
+	if (pc)
+	{
+		pc->PlayerCameraManager->StartCameraShake(DamagedCameraShake);
+	}
 	//체력깎기
 	CurrentHP -= Damage;
 	//0되면 ondie호출하기
@@ -477,6 +483,13 @@ void ASurvivor::PrimaryWeaponAttack()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("무기가 없습니다"));
+	}
+
+	//카메라 쉐이크
+	auto pc = GetWorld()->GetFirstPlayerController();
+	if (pc)
+	{
+		pc->PlayerCameraManager->StartCameraShake(GunCameraShake);
 	}
 }
 
@@ -660,6 +673,12 @@ void ASurvivor::Sweep()
         	AttackZombieUI->PlayAnimationByName(this);
         }
    }
+	//카메라 쉐이크
+	auto pc = GetWorld()->GetFirstPlayerController();
+	if (pc)
+	{
+		pc->PlayerCameraManager->StartCameraShake(SweepCameraShake);
+	}
 }
 
 

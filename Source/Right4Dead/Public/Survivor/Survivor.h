@@ -70,6 +70,14 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class UCameraComponent* FirstCameraComp;
 
+	//카메라 쉐이크 추가
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
+	TSubclassOf<class UCameraShakeBase> GunCameraShake;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
+	TSubclassOf<class UCameraShakeBase> DamagedCameraShake;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
+	TSubclassOf<class UCameraShakeBase> SweepCameraShake;
+
 	//카메라 전환 (1<->3)
 	void SwitchCamera();
 	UPROPERTY(visibleAnywhere)
