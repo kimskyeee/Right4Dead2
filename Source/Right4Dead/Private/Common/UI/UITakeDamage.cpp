@@ -28,7 +28,7 @@ void UUITakeDamage::PlayAnimationByName()
 		{
 			player->bIsDamaged = false;
 		}
-	}, 0.5f, false); // 1초 후 초기화
+	}, 0.5f, false); // 0.5초 후 초기화
 
 	// 애니메이션 종료 후 Visibility를 Hidden으로 변경
 	FTimerHandle TimerHandle2;
