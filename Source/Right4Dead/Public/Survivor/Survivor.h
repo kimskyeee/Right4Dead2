@@ -36,6 +36,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// 디버그모드 온오프
+	UPROPERTY(EditAnywhere, Category=DEBUG)
+	bool bDebugPlay = false;
+	
 	//UI붙이기 (Widget)
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UUserWidget> MainUIFactory;
@@ -44,6 +48,11 @@ public:
 	//캐싱
 	UPROPERTY()
 	class UUISurvivorCrosshair* CrosshairUI;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUITakeDamage> TakeDamageUIClass;
+	UPROPERTY()
+	class UUITakeDamage* TakeDamageUI;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -119,8 +128,6 @@ public:
 	bool bIsReloading;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings",meta=(ClampMin="0"));
 	float FireDamage = 10.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Debug");
-	bool bDrawLine = true;
 
 	//좌클릭, R키(장전) 바인딩
 	void LeftClickAttack(const struct FInputActionValue& InputValue);
