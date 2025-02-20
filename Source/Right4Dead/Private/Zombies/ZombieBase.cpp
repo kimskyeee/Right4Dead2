@@ -85,11 +85,11 @@ void SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStatic
 	const FTransform Transform = SkeletalMesh->GetBoneTransform(BoneName);
 	// 가짜 Static Mesh를 원래 Bone 위치에 스폰
 	auto* StaticMeshActor = SkeletalMesh->GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), Transform);
-	StaticMeshActor->GetStaticMeshComponent()->SetStaticMesh(SpawnMesh);
 	// 이동 가능하게
 	StaticMeshActor->SetMobility(EComponentMobility::Type::Movable);
 	// 물리 시뮬레이트 활성화
 	StaticMeshActor->GetStaticMeshComponent()->SetSimulatePhysics(true);
+	StaticMeshActor->GetStaticMeshComponent()->SetStaticMesh(SpawnMesh);
 	// 적절한 방향으로 적절한 세기로 날린다
 	ImpulseDirection *= Power;
 	StaticMeshActor->GetStaticMeshComponent()->AddImpulse(ImpulseDirection);
