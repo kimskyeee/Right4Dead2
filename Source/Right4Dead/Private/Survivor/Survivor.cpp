@@ -1092,6 +1092,7 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 	if (CurrentWeapon && Arms)
 	{
 		CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+		CurrentWeapon->SetActorRelativeRotation(FRotator(0, 0, 0));
 		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
 		SurvivorMainUI->WeaponSlot->UpdateSlot();
 	}
