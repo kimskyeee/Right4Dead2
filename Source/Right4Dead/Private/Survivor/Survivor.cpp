@@ -26,6 +26,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Logging/LogTrace.h"
 #include "Right4Dead/Right4Dead.h"
 
 // Sets default values
@@ -58,7 +59,7 @@ ASurvivor::ASurvivor()
 	bFirstPerson = true;
 
 	//몽타주 연동
-	ConstructorHelpers::FObjectFinder<UAnimMontage> TempShoveMontage(TEXT("/Script/Engine.AnimMontage'/Game/test_1_Montage.test_1_Montage'"));
+	ConstructorHelpers::FObjectFinder<UAnimMontage> TempShoveMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Swing_1_Montage.knife_arms_Swing_1_Montage'"));
 	if (TempShoveMontage.Succeeded())
 	{
 		ShoveMontage = TempShoveMontage.Object;
@@ -531,8 +532,6 @@ void ASurvivor::NoneAttack()
 {
  	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
-		AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
-		AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
 		AnimInstance->Montage_Play(ShoveMontage);
 	}
 }
@@ -795,31 +794,10 @@ void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
 {
     if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
     {
-        AnimInstance->OnMontageStarted.AddDynamic(this, &ASurvivor::TempMontageStarted);
-        AnimInstance->OnMontageEnded.AddDynamic(this, &ASurvivor::TempMontageEnded);
         AnimInstance->Montage_Play(ShoveMontage);
     }
 }
 
-void ASurvivor::TempMontageStarted(UAnimMontage* Montage)
-{
-    spawnShoveCylinder(); // 몽타주 시작 시 실린더 생성
-
-    UAnimInstance* AnimInstance = Arms->GetAnimInstance();
-    AnimInstance->OnMontageStarted.RemoveDynamic(this, &ASurvivor::TempMontageStarted);
-}
-
-void ASurvivor::TempMontageEnded(UAnimMontage* Montage, bool bInterrupted)
-{
-    if (ShoveCollisionCylinder)
-    {
-        ShoveCollisionCylinder->DestroyComponent();
-        ShoveCollisionCylinder = nullptr; // 포인터 초기화
-    }
-
-    UAnimInstance* AnimInstance = Arms->GetAnimInstance();
-    AnimInstance->OnMontageEnded.RemoveDynamic(this, &ASurvivor::TempMontageEnded);
-}
 
 void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
@@ -829,6 +807,7 @@ void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	//조건1: 좀비가 맞았는지?
     if (CommonZombie)
     {
+    	UE_LOG(LogTemp, Warning, TEXT("오버랩발생"));
         //조건2: 좀비가 플레이어 전방 기준 좌우 45도 안에 있는가?
         FVector ZombieLocation = (CommonZombie->GetActorLocation() - GetActorLocation()).GetSafeNormal();
         FVector SurvivorForwardVector = GetActorForwardVector();
@@ -841,6 +820,15 @@ void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
             UGameplayStatics::ApplyDamage(CommonZombie, 10, GetController(), this, UShoveDamageType::StaticClass());
         }
     }
+}
+
+void ASurvivor::DestroyShoveCylinder()
+{
+	if (ShoveCollisionCylinder)
+	{
+		ShoveCollisionCylinder->DestroyComponent();
+		ShoveCollisionCylinder = nullptr;
+	}
 }
 
 void ASurvivor::spawnShoveCylinder()
@@ -881,6 +869,7 @@ void ASurvivor::spawnShoveCylinder()
 	ShoveCollisionCylinder->SetWorldRotation(CameraRotation);
 
 	ShoveCollisionCylinder->SetVisibility(false);
+	GetWorld()->GetTimerManager().SetTimer(CylinderTimerHandle, this, &ASurvivor::DestroyShoveCylinder, 0.1f, false);
 }
 
 

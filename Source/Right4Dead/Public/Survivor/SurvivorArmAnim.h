@@ -18,6 +18,8 @@ public:
 	//Notify Event
 	UFUNCTION()
 	void AnimNotify_AxeCameraShake();
+	UFUNCTION()
+	void AnimNotify_SpawnCylinder();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon")
 	EWeaponType CurrentWeapon;
