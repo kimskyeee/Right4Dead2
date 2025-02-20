@@ -5,13 +5,35 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 
+void USurvivorArmAnim::AnimNotify_AxeCameraShake()
+{
+	//카메라 쉐이크 재생?
+	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	auto pc = GetWorld()->GetFirstPlayerController();
+	if (pc)
+	{
+		pc->PlayerCameraManager->StartCameraShake(player->SweepCameraShake);
+	}
+}
+
+void USurvivorArmAnim::AnimNotify_SpawnCylinder()
+{
+	// 실린더 스윕 발생
+	UE_LOG(LogTemp,Warning,TEXT("스윕"))
+	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	if (player)
+	{
+		player->spawnShoveCylinder();
+	}
+}
+
 void USurvivorArmAnim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
 	//ABP소유하고 있는 pawn 얻어오기
 	auto ownerPawn = TryGetPawnOwner();
-	//TPS player로 cast후 speed값설정
+	//player로 cast후 speed값설정
 	auto player = Cast<ASurvivor>(ownerPawn);
 	if (player)
 	{

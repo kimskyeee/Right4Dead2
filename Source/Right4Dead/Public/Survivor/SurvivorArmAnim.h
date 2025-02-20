@@ -15,6 +15,12 @@ class RIGHT4DEAD_API USurvivorArmAnim : public UAnimInstance
 {
 	GENERATED_BODY()
 public:
+	//Notify Event
+	UFUNCTION()
+	void AnimNotify_AxeCameraShake();
+	UFUNCTION()
+	void AnimNotify_SpawnCylinder();
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon")
 	EWeaponType CurrentWeapon;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")

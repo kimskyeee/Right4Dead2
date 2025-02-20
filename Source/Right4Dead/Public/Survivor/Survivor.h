@@ -158,6 +158,7 @@ public:
 	void NoneAttack();
 	//좌클릭 함수 추가
 	void Sweep();
+	FTimerHandle CylinderTimerHandle;
 	UFUNCTION()
 	void OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse,
 	                      const FHitResult& Hit);
@@ -181,14 +182,7 @@ public:
 	virtual void OnDie() override;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	bool bIsDead=false;
-
-	//일단 시험용 빠루 소환
-	UFUNCTION()
-	void TempMontageStarted(UAnimMontage* Montage);
-	UFUNCTION()
-	void TempMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-	//void CrowLinetrace();
-
+	
 	//콜리전박스 생성 테스트
 	UPROPERTY(EditAnywhere, Category = "Shove Attack")
 	UStaticMesh* CylinderMesh;
@@ -198,6 +192,7 @@ public:
 	void OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 	                    const FHitResult& SweepResult);
 	void spawnShoveCylinder();
+	void DestroyShoveCylinder();
 
 	//몽타주 재생 테스트
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
