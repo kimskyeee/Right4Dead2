@@ -673,12 +673,12 @@ void ASurvivor::Sweep()
         	AttackZombieUI->PlayAnimationByName(this);
         }
    }
-	//카메라 쉐이크
+	/*//카메라 쉐이크
 	auto pc = GetWorld()->GetFirstPlayerController();
 	if (pc)
 	{
 		pc->PlayerCameraManager->StartCameraShake(SweepCameraShake);
-	}
+	}*/
 }
 
 

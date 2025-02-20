@@ -5,6 +5,17 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 
+void USurvivorArmAnim::AnimNotify_AxeCameraShake()
+{
+	//카메라 쉐이크 재생?
+	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	auto pc = GetWorld()->GetFirstPlayerController();
+	if (pc)
+	{
+		pc->PlayerCameraManager->StartCameraShake(player->SweepCameraShake);
+	}
+}
+
 void USurvivorArmAnim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
