@@ -49,6 +49,8 @@ public:
 	// 타겟 탐색 간격
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	float SearchInterval = 1.0f;
+	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
+	bool bEnableSearch = true;
 
 	// 추격 관련 디버깅 여부
 	UPROPERTY(EditInstanceOnly, Category="Debugging|Chase")

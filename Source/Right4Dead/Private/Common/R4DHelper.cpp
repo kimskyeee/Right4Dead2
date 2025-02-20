@@ -3,6 +3,10 @@
 
 #include "R4DHelper.h"
 
+/// Bone이 속한 부위를 대표하는 Bone의 이름을 반환하는 함수
+/// @param SkeletalMeshComp Bone이 포함된 Skeletal Mesh Component
+/// @param BoneName 
+/// @return Bone이 속한 부위를 대표하는 Bone의 이름
 FName UR4DHelper::GetParentBone(const USkeletalMeshComponent* SkeletalMeshComp, const FName& BoneName)
 {
 	if (BoneName.IsNone())
@@ -37,6 +41,11 @@ FName UR4DHelper::GetParentBone(const USkeletalMeshComponent* SkeletalMeshComp, 
 	return FName(NAME_None);
 }
 
+/// Bone이 특정 Bone의 자식인지 여부를 반환하는 함수
+/// @param SkeletalMeshComp Bone이 포함된 Skeletal Mesh Component
+/// @param BoneName 특정 Bone의 자식인지 여부를 알고싶은 Bone의 이름
+/// @param TargetBoneName 부모인지 확인하고 싶은 Bone의 이름
+/// @return A는 B의 자식 Bone인가?
 bool UR4DHelper::IsChildBone(const USkeletalMeshComponent* SkeletalMeshComp, const FName& BoneName,
                              const FName& TargetBoneName)
 {

@@ -105,34 +105,36 @@ void UZombieFSM::TickIdle()
 	CurrentIdleTime += GetWorld()->GetDeltaSeconds();
 	if (CurrentIdleTime > SearchInterval)
 	{
-		TArray<AActor*> ActorsToIgnore;
-        ActorsToIgnore.Add(Owner); // 자기 자신은 검사에서 제외
-		TArray<FHitResult> OutHits;
-		const bool bHit = UKismetSystemLibrary::SphereTraceMulti(
-			GetWorld(),
-			Owner->GetActorLocation(),
-			Owner->GetActorLocation(),
-			Awareness,
-			UEngineTypes::ConvertToTraceType(ECC_Pawn),
-			false,
-			ActorsToIgnore,
-			(bVerboseChase) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
-			OutHits,
-			true
-		);
-		if (bHit && OutHits.Num() > 0)
+		CurrentIdleTime = 0;
+		if (bEnableSearch)
 		{
-			for (auto HitResult : OutHits)
+			TArray<AActor*> ActorsToIgnore;
+			ActorsToIgnore.Add(Owner); // 자기 자신은 검사에서 제외
+			TArray<FHitResult> OutHits;
+			const bool bHit = UKismetSystemLibrary::SphereTraceMulti(
+				GetWorld(),
+				Owner->GetActorLocation(),
+				Owner->GetActorLocation(),
+				Awareness,
+				UEngineTypes::ConvertToTraceType(ECC_Pawn),
+				false,
+				ActorsToIgnore,
+				(bVerboseChase) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+				OutHits,
+				true
+			);
+			if (bHit && OutHits.Num() > 0)
 			{
-				// TODO: Collision Channel이 정리되면 PipeBomb, 담즙 등에도 반응하도록 수정
-				if (ASurvivor* Survivor = Cast<ASurvivor>(HitResult.GetActor()))
+				for (auto HitResult : OutHits)
 				{
-					ChaseTarget = Survivor;
+					// TODO: Collision Channel이 정리되면 PipeBomb, 담즙 등에도 반응하도록 수정
+					if (ASurvivor* Survivor = Cast<ASurvivor>(HitResult.GetActor()))
+					{
+						ChaseTarget = Survivor;
+					}
 				}
 			}
 		}
-		CurrentIdleTime = 0;
-		return;
 	}
 }
 
@@ -208,21 +210,31 @@ void UZombieFSM::HandleShove(const FVector& FromLocation)
 {
 	if (ZombieAnimInstance)
 	{
-		const FVector Location = Owner->GetActorLocation();
-		const FVector ForwardVector = Owner->GetActorForwardVector();
-		// 상대 액터의 Z축 좌표는 무시한다.
-		const FVector FromLocationWithoutZ = FVector(FromLocation.X, FromLocation.Y, Location.Z);
-		// 상대 액터가 어느 방향(상대 기준)으로 밀쳤는지 방향 벡터를 구한다.
-		const FVector DirVector = (FromLocationWithoutZ - Location).GetSafeNormal();
-		// 내적으로 위아래를 구분하고
-		double Theta = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ForwardVector, DirVector)));
-		// 외적으로 좌우를 구분
-		const FVector CrossProduct = FVector::CrossProduct(ForwardVector, DirVector);
+		
+		const FVector LocationA = Owner->GetActorLocation();
+		const FVector ForwardVectorA = Owner->GetActorForwardVector();
+		
+		// 상대 액터의 Z축 좌표는 좀비와 동일하게 맞춘다.
+		const FVector LocationB =  FVector(FromLocation.X, FromLocation.Y, LocationA.Z);
+		
+		// 플레이어와 좀비의 위치 벡터를 뺄셈 계산하여 플레이어 기준에서 좀비쪽으로 가리키는 방향 벡터를 구한다.
+		const FVector DirVector = (LocationB - LocationA).GetSafeNormal();
+		
+		// 내적으로 위아래를 구분할 수 있게 하고
+		double Theta = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ForwardVectorA, DirVector)));
+		
+		// 외적으로 좌우를 구분할 수 있게 한다. (Z값이 0 미만이면 Theta의 부호를 반대로 하기만 하면 된다)
+		const FVector CrossProduct = FVector::CrossProduct(ForwardVectorA, DirVector);
 		if (CrossProduct.Z < 0)
 		{
 			Theta *= -1.f;
 		}
 		// AnimBlueprint에서 Theta값에 따른 밀치기 피격 애니메이션을 재생하자.
+		// -45 ~ 45 : 좀비가 정면에서 밀치기를 맞았다 (뒤로 밀리는 애니메이션)
+		//  45 ~ 135 : 좀비가 오른쪽에서 밀치기를 맞았다 (왼쪽으로 밀리는 애니메이션)
+		// -180 ~ -135 / 135 ~ 180 : 좀비가 뒤에서 밀치기를 맞았다 (앞으로 밀리는 애니메이션)
+		// -135 ~ -45 : 좀비가 왼쪽에서 밀치기를 맞았다 (오른쪽으로 밀리는 애니메이션)
+		// 추후 C++에서 분기를 나눌 예정
 		ZombieAnimInstance->PlayKnockBack(Theta);
 	}
 

@@ -26,6 +26,7 @@ private:
 	float FinalDamage;
 	
 protected:
+	UPROPERTY(EditInstanceOnly, Category=Debugging)
 	float Hp;
 	float Speed;
 	float TakeDamageMultiplier;
