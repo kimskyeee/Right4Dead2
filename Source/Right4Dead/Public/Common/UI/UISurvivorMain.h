@@ -19,4 +19,6 @@ public:
 	class UUISurvivorHP* PlayerHP;
 	UPROPERTY(meta = (BindWidget))
 	class UUISurvivorCrosshair* Crosshair;
+	UPROPERTY(meta = (BindWidget))
+	class UUIWeaponSlot* WeaponSlot;
 };

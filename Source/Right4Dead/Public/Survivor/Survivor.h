@@ -36,6 +36,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// 디버그모드 온오프
+	UPROPERTY(EditAnywhere, Category=DEBUG)
+	bool bDebugPlay = false;
+	
 	//UI붙이기 (Widget)
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class UUserWidget> MainUIFactory;
@@ -44,6 +48,15 @@ public:
 	//캐싱
 	UPROPERTY()
 	class UUISurvivorCrosshair* CrosshairUI;
+	//애니메이션 재생 시에 add to viewport
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUITakeDamage> TakeDamageUIClass;
+	UPROPERTY()
+	class UUITakeDamage* TakeDamageUI;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUIAttackZombie> AttackZombieUIClass;
+	UPROPERTY()
+	class UUIAttackZombie* AttackZombieUI;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -56,6 +69,14 @@ public:
 	class USpringArmComponent* SpringArmComp;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class UCameraComponent* FirstCameraComp;
+
+	//카메라 쉐이크 추가
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
+	TSubclassOf<class UCameraShakeBase> GunCameraShake;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
+	TSubclassOf<class UCameraShakeBase> DamagedCameraShake;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
+	TSubclassOf<class UCameraShakeBase> SweepCameraShake;
 
 	//카메라 전환 (1<->3)
 	void SwitchCamera();
@@ -71,6 +92,13 @@ public:
 	float MaxHP=100.f;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	bool bIsDamaged=false;
+	
+	//지금 애니메이션 실행중인지 체크하고
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	bool bIsAttacked=false;
+	//몇번 공격했는지 체크하자
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	int32 AttackCount;
 	
 	//이동
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
@@ -119,8 +147,6 @@ public:
 	bool bIsReloading;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings",meta=(ClampMin="0"));
 	float FireDamage = 10.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Debug");
-	bool bDrawLine = true;
 
 	//좌클릭, R키(장전) 바인딩
 	void LeftClickAttack(const struct FInputActionValue& InputValue);

@@ -17,6 +17,8 @@ public:
 	
 	void PlayAnimationByName();
 
+	UPROPERTY(meta = (BindWidget))
+	class UImage* DamageScreen;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidgetAnim), Transient)
 	class UWidgetAnimation* TakeDamage;
 };
