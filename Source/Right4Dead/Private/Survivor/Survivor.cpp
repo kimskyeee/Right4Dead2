@@ -666,7 +666,7 @@ void ASurvivor::Sweep()
        		// 좀비는 포인트 데미지 주자
 	        FHitResult HR;
 	        HR.BoneName = HighPriorityBoneName;
-	        UGameplayStatics::ApplyPointDamage(Actor, 0.1, GetActorLocation(), HR, nullptr, nullptr, nullptr);
+	        UGameplayStatics::ApplyPointDamage(Actor, 9999, GetActorLocation(), HR, nullptr, nullptr, nullptr);
 
         	//공격을 맞췄다는 변수 true
 	        bIsAttacked = true;
