@@ -32,16 +32,6 @@ protected:
 	float TakeDamageMultiplier;
 	FPartDamageMultipliers PartDamageMultipliers;
 	bool bTakeDamaged;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UStaticMesh> HeadMesh = nullptr;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UStaticMesh> ArmLeftMesh = nullptr;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UStaticMesh> ArmRightMesh = nullptr;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UStaticMesh> LegLeftMesh = nullptr;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UStaticMesh> LegRightMesh = nullptr;
 	virtual void BeginPlay() override;
 	virtual void InitDifficulty() PURE_VIRTUAL(AZombieBase::InitDifficulty, );
 	
@@ -60,7 +50,6 @@ public:
 								   class AController* InstigatedBy, AActor* DamageCauser);
 	
 	virtual void HandleShove(const FVector& FromLocation);
-	virtual void HandleDismemberment(const FPointDamageEvent* PointDamageEvent);
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
 };

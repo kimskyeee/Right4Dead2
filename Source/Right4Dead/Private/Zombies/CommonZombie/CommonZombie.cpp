@@ -3,12 +3,15 @@
 
 #include "CommonZombie.h"
 
+#include "R4DHelper.h"
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
 #include "ZombieAIController.h"
 #include "ZombieAnimInstance.h"
 #include "ZombieFSM.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/DamageEvents.h"
+#include "Engine/StaticMeshActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -188,6 +191,56 @@ void ACommonZombie::HandleShove(const FVector& FromLocation)
 	ZombieFSM->HandleShove(FromLocation);
 }
 
+void SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStaticMesh* SpawnMesh, FVector ImpulseDirection, float Power)
+{
+	// 이미 Bone이 숨겨진 상태라면 다시 스폰시키지 않는다
+	if (SkeletalMesh->IsBoneHiddenByName(BoneName))
+	{
+		return;
+	}
+	// Bone을 숨겨라
+	SkeletalMesh->HideBoneByName(BoneName, PBO_None);
+
+	// Bone의 위치
+	const FTransform Transform = SkeletalMesh->GetBoneTransform(BoneName);
+	// 가짜 Static Mesh를 원래 Bone 위치에 스폰
+	auto* StaticMeshActor = SkeletalMesh->GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), Transform);
+	// 이동 가능하게
+	StaticMeshActor->SetMobility(EComponentMobility::Type::Movable);
+	// 물리 시뮬레이트 활성화
+	StaticMeshActor->GetStaticMeshComponent()->SetSimulatePhysics(true);
+	StaticMeshActor->GetStaticMeshComponent()->SetStaticMesh(SpawnMesh);
+	// 적절한 방향으로 적절한 세기로 날린다
+	ImpulseDirection *= Power;
+	StaticMeshActor->GetStaticMeshComponent()->AddImpulse(ImpulseDirection);
+}
+
+void ACommonZombie::HandleDismemberment(const FPointDamageEvent* PointDamageEvent)
+{
+	PRINT_CALLINFO();
+	const FName ParentBoneName = UR4DHelper::GetParentBone(GetMesh(), PointDamageEvent->HitInfo.BoneName);
+	if (ParentBoneName == TEXT("neck_01"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("neck_01"), HeadMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("lowerarm_l"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("lowerarm_l"), ArmLeftMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("lowerarm_r"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("lowerarm_r"), ArmRightMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("thigh_l"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("thigh_l"), LegLeftMesh, FVector(1, 0, 0), 1000);
+	}
+	else if (ParentBoneName == TEXT("thigh_r"))
+	{
+		SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, FVector(1, 0, 0), 1000);
+	}
+}
+
 void ACommonZombie::OnDamaged(float Damage)
 {
 	Super::OnDamaged(Damage);
@@ -205,4 +258,21 @@ void ACommonZombie::OnDie()
 void ACommonZombie::ForceDie()
 {
 	OnDie();
+}
+
+float ACommonZombie::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	const float Ret = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// 죽었고, 죽은 원인이 PointDamage일 때만 해당 부위 사지분해 실시
+	if (Hp <= 0)
+	{
+		if (const FPointDamageEvent* PointDamageEvent = (FPointDamageEvent*)&DamageEvent)
+		{
+			HandleDismemberment(PointDamageEvent);
+		}
+	}
+
+	return Ret;
 }
