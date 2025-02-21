@@ -4,18 +4,30 @@
 #include "Smoker.h"
 
 #include "Right4DeadGameInstance.h"
+#include "SmokerFSM.h"
 #include "Kismet/GameplayStatics.h"
 
-// Sets default values
 ASmoker::ASmoker()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Hp = 250.0f;
-	Speed = 210.0f;
+	
+	// TODO: 모델 및 애님블루프린트 변경
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
+	if (SkeletalMeshObj.Succeeded())
+	{
+		GetMesh()->SetSkeletalMeshAsset(SkeletalMeshObj.Object);
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
+		GetMesh()->SetRelativeRotation(FRotator(0, 270, 0));
+		ConstructorHelpers::FClassFinder<UAnimInstance> AnimBlueprintClass(TEXT("/Script/Engine.AnimBlueprint'/Game/Blueprints/Zombies/CommonZombie/ABP_CommonZombie.ABP_CommonZombie_C'"));
+		if (AnimBlueprintClass.Succeeded())
+		{
+			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
+		}
+	}
+
+	ZombieFSM = CreateDefaultSubobject<USmokerFSM>(TEXT("ZombieFSM"));
 }
 
-// Called when the game starts or when spawned
 void ASmoker::BeginPlay()
 {
 	Super::BeginPlay();
@@ -23,7 +35,10 @@ void ASmoker::BeginPlay()
 
 void ASmoker::InitData()
 {
-	// GameInstance 가져오기
+	// TODO: Smoker 데이터
+	Hp = 250.0f;
+	Speed = 210.0f;
+	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
 	{
 		switch (GameInstance->GetDifficulty())
@@ -40,7 +55,6 @@ void ASmoker::InitData()
 	}
 }
 
-// Called every frame
 void ASmoker::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

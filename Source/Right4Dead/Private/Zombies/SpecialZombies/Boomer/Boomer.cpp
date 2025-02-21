@@ -3,15 +3,12 @@
 
 #include "Boomer.h"
 
-#include "BoomerFSM.h"
 #include "Right4DeadGameInstance.h"
-#include "ZombieBaseFSM.h"
+#include "BoomerFSM.h"
 #include "Kismet/GameplayStatics.h"
 
-// Sets default values
 ABoomer::ABoomer()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// TODO: 모델 및 애님블루프린트 변경
@@ -31,7 +28,6 @@ ABoomer::ABoomer()
 	ZombieFSM = CreateDefaultSubobject<UBoomerFSM>(TEXT("ZombieFSM"));
 }
 
-// Called when the game starts or when spawned
 void ABoomer::BeginPlay()
 {
 	Super::BeginPlay();
@@ -67,7 +63,6 @@ void ABoomer::InitData()
 	}
 }
 
-// Called every frame
 void ABoomer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
