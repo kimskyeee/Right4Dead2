@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieAIController.h"
 #include "Components/ActorComponent.h"
 #include "ZombieFSM.generated.h"
 
+class AAIController;
 class UZombieAnimInstance;
 class UCharacterMovementComponent;
 class ACommonZombie;
@@ -35,7 +35,7 @@ public:
 	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> Movement = nullptr;
 	UPROPERTY()
-	TObjectPtr<AZombieAIController> ZombieAI = nullptr;
+	TObjectPtr<AAIController> ZombieAI = nullptr;
 	UPROPERTY()
 	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
 	UPROPERTY(EditAnywhere, Category="Debugging")

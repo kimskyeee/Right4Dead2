@@ -4,9 +4,9 @@
 #include "ZombieBase.h"
 #include "CommonZombie.generated.h"
 
+class AAIController;
 class UZombieAnimInstance;
 class UZombieFSM;
-class AZombieAIController;
 
 UCLASS()
 class RIGHT4DEAD_API ACommonZombie : public AZombieBase
@@ -31,7 +31,7 @@ protected:
 
 public:
 	UPROPERTY()
-	TObjectPtr<AZombieAIController> AIController = nullptr;
+	TObjectPtr<AAIController> AIController = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
 	UPROPERTY()

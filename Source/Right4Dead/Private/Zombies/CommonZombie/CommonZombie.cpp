@@ -3,10 +3,10 @@
 
 #include "CommonZombie.h"
 
+#include "AIController.h"
 #include "R4DHelper.h"
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
-#include "ZombieAIController.h"
 #include "ZombieAnimInstance.h"
 #include "ZombieFSM.h"
 #include "Components/CapsuleComponent.h"
@@ -37,7 +37,7 @@ ACommonZombie::ACommonZombie()
 		}
 	}
 	ZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
-	AIControllerClass = AZombieAIController::StaticClass();
+	AIControllerClass = AAIController::StaticClass();
 
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	Movement->GravityScale = 1.75f;
@@ -82,10 +82,10 @@ void ACommonZombie::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	AIController = Cast<AZombieAIController>(GetController());
+	AIController = Cast<AAIController>(GetController());
 	if (nullptr == AIController)
 	{
-		if (nullptr == (AIController = Cast<AZombieAIController>(GetWorld()->SpawnActor(AIControllerClass))))
+		if (nullptr == (AIController = Cast<AAIController>(GetWorld()->SpawnActor(AIControllerClass))))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
 		}

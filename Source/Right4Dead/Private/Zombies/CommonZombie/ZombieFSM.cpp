@@ -1,5 +1,6 @@
 ﻿#include "ZombieFSM.h"
 
+#include "AIController.h"
 #include "CommonZombie.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
@@ -17,8 +18,8 @@ void UZombieFSM::BeginPlay()
 	Owner = Cast<ACommonZombie>(GetOwner());
 	Movement = Owner->GetCharacterMovement();
 	
-	// ZombieAIController와 ZombieAnimInstance는 Owner에서 주입
-	// ZombieAI = Cast<AZombieAIController>(Owner->GetController());
+	// AIController와 ZombieAnimInstance는 Owner에서 주입
+	// ZombieAI = Cast<AAIController>(Owner->GetController());
 	// ZombieAnimInstance = (Owner->ZombieAnimInstance);
 	
 	// Verbose 세팅은 인스턴스에서만 껏다 켯다 할 수 있도록 함

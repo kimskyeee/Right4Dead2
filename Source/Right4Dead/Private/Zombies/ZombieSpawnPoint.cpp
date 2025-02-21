@@ -4,7 +4,6 @@
 #include "ZombieSpawnPoint.h"
 
 #include "Survivor.h"
-#include "ZombieAIController.h"
 #include "ZombieAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Right4Dead/Right4Dead.h"
