@@ -3,19 +3,18 @@
 
 #include "ZombieAnimInstance.h"
 
-#include "CommonZombie.h"
+#include "ZombieBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 void UZombieAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-	Zombie = Cast<ACommonZombie>(GetOwningActor());
-	if (Zombie)
+	Owner = Cast<AZombieBase>(GetOwningActor());
+	if (Owner)
 	{
-		ZombieFSM = Zombie->ZombieFSM;
-		MovementComponent = Zombie->GetCharacterMovement();
-		SkeletalMeshComponent = Zombie->GetMesh();
+		MovementComponent = Owner->GetCharacterMovement();
+		SkeletalMeshComponent = Owner->GetMesh();
 	}
 	AnimSeed = UKismetMathLibrary::RandomIntegerInRange(MIN_uint8, MAX_uint8);
 }
@@ -23,12 +22,9 @@ void UZombieAnimInstance::NativeInitializeAnimation()
 void UZombieAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-	if (Zombie)
+	if (Owner)
 	{
-		if (ZombieFSM)
-		{
-			ZombieState = ZombieFSM->State;
-		}
+		ZombieState = Owner->GetState();
 		
 		if (MovementComponent)
 		{
@@ -36,7 +32,7 @@ void UZombieAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			GroundSpeed = UKismetMathLibrary::VSizeXY(Velocity);
 			ShouldMove = GroundSpeed > 3.0f && UKismetMathLibrary::NotEqual_VectorVector(MovementComponent->GetCurrentAcceleration(), FVector::ZeroVector, 0.0f);
 			IsFalling = MovementComponent->IsFalling();
-			IsClimbing = Zombie->bClimbing;
+			IsClimbing = Owner->bClimbing;
 		}
 	}
 }

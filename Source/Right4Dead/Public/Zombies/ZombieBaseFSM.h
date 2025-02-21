@@ -74,6 +74,8 @@ public:
 	virtual void StartChase() PURE_VIRTUAL(UZombieBaseFSM::StartChase, );
 	virtual void TickChase() PURE_VIRTUAL(UZombieBaseFSM::TickChase, );
 	virtual void EndChase() PURE_VIRTUAL(UZombieBaseFSM::EndChase, );
+	virtual void TriggerStartChase(const TObjectPtr<AActor>& Target);
+	virtual void TriggerStopChase();
 
 	/*
 	 *Attack

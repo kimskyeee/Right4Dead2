@@ -24,10 +24,6 @@ protected:
 public:
 	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> Movement = nullptr;
-	UPROPERTY()
-	TObjectPtr<AAIController> ZombieAI = nullptr;
-	UPROPERTY()
-	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
 	
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,

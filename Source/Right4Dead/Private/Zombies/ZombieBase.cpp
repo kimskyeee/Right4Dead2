@@ -1,14 +1,18 @@
 ﻿#include "ZombieBase.h"
 
+#include "AIController.h"
 #include "R4DHelper.h"
 #include "ShoveDamageType.h"
+#include "ZombieAnimInstance.h"
 #include "Engine/DamageEvents.h"
-#include "Engine/StaticMeshActor.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
 AZombieBase::AZombieBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	AIControllerClass = AAIController::StaticClass();
 	FinalDamage = 0;
 	Hp = 0;
 	Speed = 0;
@@ -23,6 +27,20 @@ AZombieBase::AZombieBase()
 void AZombieBase::BeginPlay()
 {
 	Super::BeginPlay();
+	AIController = Cast<AAIController>(GetController());
+	if (nullptr == AIController)
+	{
+		if (nullptr == (AIController = Cast<AAIController>(GetWorld()->SpawnActor(AIControllerClass))))
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
+		}
+		else
+		{
+			AIController->Possess(this);
+		}
+	}
+
+	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
 	InitDifficulty();
 }
 
@@ -104,6 +122,48 @@ void AZombieBase::HandleSpecialAttack()
 
 void AZombieBase::HandleShove(const FVector& FromLocation)
 {
+	if (ZombieAnimInstance)
+	{
+		
+		const FVector LocationA = Owner->GetActorLocation();
+		const FVector ForwardVectorA = Owner->GetActorForwardVector();
+		
+		// 상대 액터의 Z축 좌표는 좀비와 동일하게 맞춘다.
+		const FVector LocationB =  FVector(FromLocation.X, FromLocation.Y, LocationA.Z);
+		
+		// 플레이어와 좀비의 위치 벡터를 뺄셈 계산하여 플레이어 기준에서 좀비쪽으로 가리키는 방향 벡터를 구한다.
+		const FVector DirVector = (LocationB - LocationA).GetSafeNormal();
+		
+		// 내적으로 위아래를 구분할 수 있게 하고
+		double Theta = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ForwardVectorA, DirVector)));
+		
+		// 외적으로 좌우를 구분할 수 있게 한다. (Z값이 0 미만이면 Theta의 부호를 반대로 하기만 하면 된다)
+		const FVector CrossProduct = FVector::CrossProduct(ForwardVectorA, DirVector);
+		if (CrossProduct.Z < 0)
+		{
+			Theta *= -1.f;
+		}
+		// AnimBlueprint에서 Theta값에 따른 밀치기 피격 애니메이션을 재생하자.
+		// -45 ~ 45 : 좀비가 정면에서 밀치기를 맞았다 (뒤로 밀리는 애니메이션)
+		//  45 ~ 135 : 좀비가 오른쪽에서 밀치기를 맞았다 (왼쪽으로 밀리는 애니메이션)
+		// -180 ~ -135 / 135 ~ 180 : 좀비가 뒤에서 밀치기를 맞았다 (앞으로 밀리는 애니메이션)
+		// -135 ~ -45 : 좀비가 왼쪽에서 밀치기를 맞았다 (오른쪽으로 밀리는 애니메이션)
+		// 추후 C++에서 분기를 나눌 예정
+		ZombieAnimInstance->PlayKnockBack(Theta);
+	}
+}
+
+void AZombieBase::HandleStartChase(const TObjectPtr<AActor>& Target) const
+{
+	if (AIController->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
+	{
+		AIController->MoveToActor(Target);
+	}
+}
+
+void AZombieBase::HandleStopChase() const
+{
+	AIController->StopMovement();
 }
 
 
@@ -121,4 +181,30 @@ void AZombieBase::OnDamaged(const float Damage)
 void AZombieBase::OnDie()
 {
 	PRINT_CALLINFO();
+}
+
+void AZombieBase::StartClimbing(const FTransform& Destination)
+{
+	AIController->GetPathFollowingComponent()->PauseMove();
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	bClimbing = true;
+	ClimbDestination = Destination;
+	SetActorRotation(Destination.Rotator());
+}
+
+void AZombieBase::EndClimbing()
+{
+	if (false == bClimbing)
+	{
+		return;
+	}
+	bClimbing = false;
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	AIController->GetPathFollowingComponent()->ResumeMove();
+	ClimbDestination = FTransform::Identity;
+}
+
+EZombieState AZombieBase::GetState() const
+{
+	return ZombieFSM->State;
 }

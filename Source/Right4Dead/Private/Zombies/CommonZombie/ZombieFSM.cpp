@@ -99,7 +99,7 @@ void UZombieFSM::TickChase()
 	CurrentChaseTime += GetWorld()->GetDeltaSeconds();
 	if (CurrentChaseTime > StopChaseTime)
 	{
-		ZombieAI->StopMovement();
+		TriggerStopChase();
 		SetState(EZombieState::EZS_Idle);
 		return;
 	}
@@ -112,13 +112,7 @@ void UZombieFSM::TickChase()
 	}
 	else
 	{
-		if (ZombieAI)
-		{
-			if (ZombieAI->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
-			{
-				ZombieAI->MoveToActor(ChaseTarget);
-			}
-		}
+		TriggerStartChase(ChaseTarget);
 	}
 	
 	// 타겟이 인지 거리 내에 있으면 추적 지속 시간을 초기화 한다.
@@ -183,36 +177,6 @@ void UZombieFSM::EndDead()
 
 void UZombieFSM::HandleShove(const FVector& FromLocation)
 {
-	if (ZombieAnimInstance)
-	{
-		
-		const FVector LocationA = Owner->GetActorLocation();
-		const FVector ForwardVectorA = Owner->GetActorForwardVector();
-		
-		// 상대 액터의 Z축 좌표는 좀비와 동일하게 맞춘다.
-		const FVector LocationB =  FVector(FromLocation.X, FromLocation.Y, LocationA.Z);
-		
-		// 플레이어와 좀비의 위치 벡터를 뺄셈 계산하여 플레이어 기준에서 좀비쪽으로 가리키는 방향 벡터를 구한다.
-		const FVector DirVector = (LocationB - LocationA).GetSafeNormal();
-		
-		// 내적으로 위아래를 구분할 수 있게 하고
-		double Theta = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ForwardVectorA, DirVector)));
-		
-		// 외적으로 좌우를 구분할 수 있게 한다. (Z값이 0 미만이면 Theta의 부호를 반대로 하기만 하면 된다)
-		const FVector CrossProduct = FVector::CrossProduct(ForwardVectorA, DirVector);
-		if (CrossProduct.Z < 0)
-		{
-			Theta *= -1.f;
-		}
-		// AnimBlueprint에서 Theta값에 따른 밀치기 피격 애니메이션을 재생하자.
-		// -45 ~ 45 : 좀비가 정면에서 밀치기를 맞았다 (뒤로 밀리는 애니메이션)
-		//  45 ~ 135 : 좀비가 오른쪽에서 밀치기를 맞았다 (왼쪽으로 밀리는 애니메이션)
-		// -180 ~ -135 / 135 ~ 180 : 좀비가 뒤에서 밀치기를 맞았다 (앞으로 밀리는 애니메이션)
-		// -135 ~ -45 : 좀비가 왼쪽에서 밀치기를 맞았다 (오른쪽으로 밀리는 애니메이션)
-		// 추후 C++에서 분기를 나눌 예정
-		ZombieAnimInstance->PlayKnockBack(Theta);
-	}
-
 	// 상태 관련 처리
 }
 void UZombieFSM::HandleDamage()

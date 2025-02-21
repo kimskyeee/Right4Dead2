@@ -7,6 +7,11 @@
 #include "GameFramework/Character.h"
 #include "ZombieBase.generated.h"
 
+enum class EZombieState : uint8;
+class UZombieAnimInstance;
+class AAIController;
+class UZombieBaseFSM;
+
 USTRUCT()
 struct FPartDamageMultipliers
 {
@@ -22,10 +27,20 @@ class RIGHT4DEAD_API AZombieBase : public ACharacter, public IActorBase
 {
 	GENERATED_BODY()
 
+public:
+	AZombieBase();
+
 private:
 	float FinalDamage;
 	
-protected:
+public:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UZombieBaseFSM> ZombieFSM = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<AAIController> AIController = nullptr;
+	UPROPERTY()
+	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
+	
 	UPROPERTY(EditInstanceOnly, Category=Debugging)
 	float Hp;
 	float Speed;
@@ -33,11 +48,7 @@ protected:
 	FPartDamageMultipliers PartDamageMultipliers;
 	bool bTakeDamaged;
 	virtual void BeginPlay() override;
-	virtual void InitDifficulty() PURE_VIRTUAL(AZombieBase::InitDifficulty, );
-	
-public:
-	AZombieBase();
-
+	virtual void InitDifficulty() PURE_VIRTUAL(AZombieBase::InitDifficulty, )
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION()
@@ -52,6 +63,15 @@ public:
 	virtual void HandleNormalAttack();
 	virtual void HandleSpecialAttack();
 	virtual void HandleShove(const FVector& FromLocation);
+	void HandleStartChase(const TObjectPtr<AActor>& Target) const;
+	void HandleStopChase() const;
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
+
+	FTransform ClimbDestination = FTransform::Identity;
+	bool bClimbing = false;
+	void StartClimbing(const FTransform& Destination);
+	void EndClimbing();
+
+	EZombieState GetState() const;
 };

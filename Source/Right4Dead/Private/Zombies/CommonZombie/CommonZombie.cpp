@@ -3,7 +3,6 @@
 
 #include "CommonZombie.h"
 
-#include "AIController.h"
 #include "R4DHelper.h"
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
@@ -31,13 +30,13 @@ ACommonZombie::ACommonZombie()
 		GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
 		GetMesh()->SetRelativeRotation(FRotator(0, 270, 0));
 		ConstructorHelpers::FClassFinder<UAnimInstance> AnimBlueprintClass(TEXT("/Script/Engine.AnimBlueprint'/Game/Blueprints/Zombies/CommonZombie/ABP_CommonZombie.ABP_CommonZombie_C'"));
-		if (AnimBlueprintClass.Succeeded())
-		{
-			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
-		}
+        if (AnimBlueprintClass.Succeeded())
+        {
+        	GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
+        }
 	}
+	
 	ZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
-	AIControllerClass = AAIController::StaticClass();
 
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	Movement->GravityScale = 1.75f;
@@ -81,27 +80,6 @@ ACommonZombie::ACommonZombie()
 void ACommonZombie::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	AIController = Cast<AAIController>(GetController());
-	if (nullptr == AIController)
-	{
-		if (nullptr == (AIController = Cast<AAIController>(GetWorld()->SpawnActor(AIControllerClass))))
-		{
-			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
-		}
-		else
-		{
-			AIController->Possess(this);
-		}
-	}
-	ZombieFSM->ZombieAI = AIController;
-	
-	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
-	ZombieFSM->ZombieAnimInstance = ZombieAnimInstance;
-	if (nullptr == ZombieAnimInstance)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed Set ZombieAnimInstance"));
-	}
 }
 
 void ACommonZombie::InitDifficulty()
@@ -152,27 +130,6 @@ void ACommonZombie::Tick(float DeltaTime)
 			SetActorLocation(P);
 		}
 	}
-}
-
-void ACommonZombie::StartClimbing(const FTransform& Destination)
-{
-	AIController->GetPathFollowingComponent()->PauseMove();
-	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	bClimbing = true;
-	ClimbDestination = Destination;
-	SetActorRotation(Destination.Rotator());
-}
-
-void ACommonZombie::EndClimbing()
-{
-	if (false == bClimbing)
-	{
-		return;
-	}
-	bClimbing = false;
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	AIController->GetPathFollowingComponent()->ResumeMove();
-	ClimbDestination = FTransform::Identity;
 }
 
 void ACommonZombie::HandleNormalAttack()

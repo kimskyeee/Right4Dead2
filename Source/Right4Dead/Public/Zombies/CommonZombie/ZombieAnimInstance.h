@@ -22,13 +22,11 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "References")
-	TObjectPtr<ACommonZombie> Zombie = nullptr;
+	TObjectPtr<AZombieBase> Owner = nullptr;
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 	TObjectPtr<UCharacterMovementComponent> MovementComponent = nullptr;
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent = nullptr;
-	UPROPERTY(BlueprintReadOnly, Category = "References")
-	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
 	UPROPERTY(BlueprintReadOnly)
 	uint8 AnimSeed = 0;
 	UPROPERTY(BlueprintReadOnly)

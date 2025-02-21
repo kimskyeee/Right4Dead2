@@ -23,32 +23,18 @@ private:
 protected:
 	float HitDamageRatio = 2;
 	float AttackDamage = 1;
-	FTransform ClimbDestination = FTransform::Identity;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void InitDifficulty() override;
 
 public:
-	UPROPERTY()
-	TObjectPtr<AAIController> AIController = nullptr;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
-	UPROPERTY()
-	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
-	
-	bool bClimbing = false;
-	void StartClimbing(const FTransform& Destination);
-	void EndClimbing();
-	
-	
 	virtual void HandleNormalAttack() override;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
-	
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMesh> HeadMesh = nullptr;

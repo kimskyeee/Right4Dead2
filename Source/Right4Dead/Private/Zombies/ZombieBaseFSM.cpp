@@ -96,6 +96,16 @@ void UZombieBaseFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	}
 }
 
+void UZombieBaseFSM::TriggerStartChase(const TObjectPtr<AActor>& Target)
+{
+	Owner->HandleStartChase(Target);
+}
+
+void UZombieBaseFSM::TriggerStopChase()
+{
+	Owner->HandleStopChase();
+}
+
 void UZombieBaseFSM::TriggerNormalAttack()
 {
 	Owner->HandleNormalAttack();
