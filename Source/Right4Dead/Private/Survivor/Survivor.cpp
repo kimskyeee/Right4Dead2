@@ -1095,7 +1095,7 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		
 		// WeaponName enum을 int로 변환하여 슬롯 인덱스로 사용
 		int32 SlotIndex = static_cast<int32>(CurrentWeapon->WeaponData.WeaponName);
-		SurvivorMainUI->WeaponSlot->UpdateSlot(SlotIndex-1, WeaponSlots);
+		SurvivorMainUI->WeaponSlot->UpdateSlot(SlotIndex-1, WeaponInstances);
 	}
 	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();

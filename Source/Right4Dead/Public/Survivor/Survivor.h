@@ -38,8 +38,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// 보유중인 모든 무기 인스턴스
 	UPROPERTY()
-	TArray<AWeaponBase*> WeaponSlots; // 보유중인 모든 무기 인스턴스
+	TArray<AWeaponBase*> WeaponInstances; 
 	
 	// 디버그모드 온오프
 	UPROPERTY(EditAnywhere, Category=DEBUG)

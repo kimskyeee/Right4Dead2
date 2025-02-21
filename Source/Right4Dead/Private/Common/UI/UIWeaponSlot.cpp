@@ -27,6 +27,12 @@ void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<AWeaponBase*>& W
 		{
 			// 있으면 무기 데이터 가져오자
 			const FWeaponData& WeaponData = WeaponInstances[i]->WeaponData;
+			
+			// 디버깅 로그 추가
+			UE_LOG(LogTemp, Warning, TEXT("Slot %d - Equip Texture: %s, Unequip Texture: %s"), 
+				i,
+				WeaponData.WeaponEquipSlotUI ? TEXT("Valid") : TEXT("Invalid"),
+				WeaponData.WeaponUnEquipSlotUI ? TEXT("Valid") : TEXT("Invalid"));
 
 			// 이미지 업데이트 할거임
 			// 장착한 슬롯이면 EquipTexture, 아닐 경우 UnequipTexture 사용
