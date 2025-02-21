@@ -3,6 +3,7 @@
 #include "AIController.h"
 #include "R4DHelper.h"
 #include "ShoveDamageType.h"
+#include "Survivor.h"
 #include "ZombieAnimInstance.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -24,6 +25,11 @@ AZombieBase::AZombieBase()
 	OnTakeRadialDamage.AddDynamic(this, &AZombieBase::OnTakeRadialDamageHandler);
 }
 
+void AZombieBase::ForceDie()
+{
+	OnDie();
+}
+
 void AZombieBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -42,6 +48,28 @@ void AZombieBase::BeginPlay()
 
 	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
 	InitDifficulty();
+}
+
+void AZombieBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (bClimbing)
+	{
+		const FVector P0 = GetActorLocation();
+		const bool bIsNearZ = GetCharacterMovement()->GetFeetLocation().Z >= ClimbDestination.GetLocation().Z;
+		if (false == bIsNearZ) // 아직 덜 올라왔다면
+		{
+			// Z축으로만 오른다
+			const FVector P = P0 + FVector(0, 0, 1) * Speed * DeltaSeconds;
+			SetActorLocation(P);
+		}
+		else
+		{
+			const FVector P = P0 + GetActorForwardVector() * Speed * DeltaSeconds;
+			SetActorLocation(P);
+		}
+	}
 }
 
 float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -114,6 +142,11 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 
 void AZombieBase::HandleNormalAttack()
 {
+	ZombieAnimInstance->PlayAttack();
+	if (ASurvivor* Survivor = Cast<ASurvivor>(ZombieFSM->ChaseTarget))
+	{
+		Survivor->OnDamaged(NormalAttackDamage);
+	}
 }
 
 void AZombieBase::HandleSpecialAttack()
@@ -122,6 +155,8 @@ void AZombieBase::HandleSpecialAttack()
 
 void AZombieBase::HandleShove(const FVector& FromLocation)
 {
+	ZombieFSM->HandleShove(FromLocation);
+	
 	if (ZombieAnimInstance)
 	{
 		

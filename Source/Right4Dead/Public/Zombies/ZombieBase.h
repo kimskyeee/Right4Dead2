@@ -31,6 +31,8 @@ public:
 	AZombieBase();
 
 private:
+	UFUNCTION(CallInEditor, Category="Debugging")
+	void ForceDie();
 	float FinalDamage;
 	
 public:
@@ -49,6 +51,7 @@ public:
 	bool bTakeDamaged;
 	virtual void BeginPlay() override;
 	virtual void InitDifficulty() PURE_VIRTUAL(AZombieBase::InitDifficulty, )
+	virtual void Tick(float DeltaSeconds) override;
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION()
@@ -60,6 +63,7 @@ public:
 	void OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, FVector Origin, const FHitResult& HitInfo,
 								   class AController* InstigatedBy, AActor* DamageCauser);
 	
+	float NormalAttackDamage = 1;
 	virtual void HandleNormalAttack();
 	virtual void HandleSpecialAttack();
 	virtual void HandleShove(const FVector& FromLocation);

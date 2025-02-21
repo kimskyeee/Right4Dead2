@@ -6,7 +6,6 @@
 #include "R4DHelper.h"
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
-#include "ZombieAnimInstance.h"
 #include "ZombieFSM.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
@@ -76,12 +75,6 @@ ACommonZombie::ACommonZombie()
 		LegRightMesh = LegRightObj.Object;
 }
 
-// Called when the game starts or when spawned
-void ACommonZombie::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void ACommonZombie::InitDifficulty()
 {
 	// GameInstance 가져오기
@@ -91,61 +84,22 @@ void ACommonZombie::InitDifficulty()
 		{
 		case EDifficulty::Easy:
 			TakeDamageMultiplier = 2; // 200%
-			AttackDamage = 1;
+			NormalAttackDamage = 1;
 			break;
 		case EDifficulty::Normal:
 			TakeDamageMultiplier = 1; // 100%
-			AttackDamage = 2;
+			NormalAttackDamage = 2;
 			break;
 		case EDifficulty::Advanced:
 			TakeDamageMultiplier = 0.75f; // 75%
-			AttackDamage = 5;
+			NormalAttackDamage = 5;
 			break;
 		case EDifficulty::Expert:
 			TakeDamageMultiplier = 0.5f; // 50%
-			AttackDamage = 20;
+			NormalAttackDamage = 20;
 			break;
 		}
 	}
-}
-
-// Called every frame
-void ACommonZombie::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (bClimbing)
-	{
-		const FVector P0 = GetActorLocation();
-		const bool bIsNearZ = GetCharacterMovement()->GetFeetLocation().Z >= ClimbDestination.GetLocation().Z;
-		if (false == bIsNearZ) // 아직 덜 올라왔다면
-		{
-			// Z축으로만 오른다
-			const FVector P = P0 + FVector(0, 0, 1) * Speed * DeltaTime;
-			SetActorLocation(P);
-		}
-		else
-		{
-			const FVector P = P0 + GetActorForwardVector() * Speed * DeltaTime;
-			SetActorLocation(P);
-		}
-	}
-}
-
-void ACommonZombie::HandleNormalAttack()
-{
-	PRINT_CALLINFO();
-	ZombieAnimInstance->PlayAttack();
-	if (ASurvivor* Survivor = Cast<ASurvivor>(ZombieFSM->ChaseTarget))
-	{
-		Survivor->OnDamaged(AttackDamage);
-	}
-}
-
-void ACommonZombie::HandleShove(const FVector& FromLocation)
-{
-	Super::HandleShove(FromLocation);
-	ZombieFSM->HandleShove(FromLocation);
 }
 
 void SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStaticMesh* SpawnMesh, FVector ImpulseDirection, float Power)
@@ -172,7 +126,7 @@ void SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStatic
 	StaticMeshActor->GetStaticMeshComponent()->AddImpulse(ImpulseDirection);
 }
 
-void ACommonZombie::HandleDismemberment(const FPointDamageEvent* PointDamageEvent)
+void ACommonZombie::TriggerDismemberment(const FPointDamageEvent* PointDamageEvent) const
 {
 	PRINT_CALLINFO();
 	const FName ParentBoneName = UR4DHelper::GetParentBone(GetMesh(), PointDamageEvent->HitInfo.BoneName);
@@ -198,11 +152,6 @@ void ACommonZombie::HandleDismemberment(const FPointDamageEvent* PointDamageEven
 	}
 }
 
-void ACommonZombie::OnDamaged(float Damage)
-{
-	Super::OnDamaged(Damage);
-}
-
 void ACommonZombie::OnDie()
 {
 	Super::OnDie();
@@ -210,11 +159,6 @@ void ACommonZombie::OnDie()
 	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
 	GetMesh()->SetCollisionProfileName("NoCollision");
 	ZombieFSM->HandleDie();
-}
-
-void ACommonZombie::ForceDie()
-{
-	OnDie();
 }
 
 float ACommonZombie::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -227,7 +171,7 @@ float ACommonZombie::TakeDamage(float DamageAmount, struct FDamageEvent const& D
 	{
 		if (const FPointDamageEvent* PointDamageEvent = (FPointDamageEvent*)&DamageEvent)
 		{
-			HandleDismemberment(PointDamageEvent);
+			TriggerDismemberment(PointDamageEvent);
 		}
 	}
 

@@ -22,10 +22,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY()
-	TObjectPtr<UCharacterMovementComponent> Movement = nullptr;
-	
-	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 	

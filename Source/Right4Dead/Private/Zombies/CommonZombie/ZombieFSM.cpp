@@ -16,7 +16,6 @@ void UZombieFSM::BeginPlay()
 {
 	Super::BeginPlay();
 	Owner = Cast<ACommonZombie>(GetOwner());
-	Movement = Owner->GetCharacterMovement();
 	
 	// AIController와 ZombieAnimInstance는 Owner에서 주입
 	// ZombieAI = Cast<AAIController>(Owner->GetController());
