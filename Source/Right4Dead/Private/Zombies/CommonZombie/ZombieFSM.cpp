@@ -6,12 +6,12 @@
 #include "ZombieAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Right4Dead/Right4Dead.h"
 
 UZombieFSM::UZombieFSM()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
-
 void UZombieFSM::BeginPlay()
 {
 	Super::BeginPlay();
@@ -23,48 +23,8 @@ void UZombieFSM::BeginPlay()
 	// ZombieAnimInstance = (Owner->ZombieAnimInstance);
 	
 	// Verbose 세팅은 인스턴스에서만 껏다 켯다 할 수 있도록 함
-	bVerboseChase = false;
+	bVerboseSearch = false;
 }
-
-void UZombieFSM::SetState(const EZombieState NewState)
-{
-	// 기존 상태에 따라 정리 작업
-	switch (State)
-	{
-	case EZombieState::EZS_Idle:
-		CurrentIdleTime = 0.0f;
-		break;
-	case EZombieState::EZS_Chase:
-		CurrentChaseTime = 0.0f;
-		break;
-	case EZombieState::EZS_Attack:
-		CurrentAttackTime = 0.0f;
-		break;
-	case EZombieState::EZS_Dead:
-		break;
-	}
-
-	// 새로운 상태에 따른 초기화 작업
-	switch (NewState)
-	{
-	case EZombieState::EZS_Idle:
-		ChaseTarget = nullptr;
-		CurrentIdleTime = 0.0f;
-		break;
-	case EZombieState::EZS_Chase:
-		CurrentChaseTime = 0.0f;
-		break;
-	case EZombieState::EZS_Attack:
-		CurrentAttackTime = AttackInterval;
-		break;
-	case EZombieState::EZS_Dead:
-		ChaseTarget = nullptr;
-		break;
-	}
-	Distance = 0.0f;
-	State = NewState;
-}
-
 void UZombieFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -95,6 +55,12 @@ void UZombieFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 	}
 }
 
+#pragma region Idle
+void UZombieFSM::StartIdle()
+{
+	PRINT_CALLINFO();
+	ChaseTarget = nullptr;
+}
 void UZombieFSM::TickIdle()
 {
 	if (ChaseTarget)
@@ -120,7 +86,7 @@ void UZombieFSM::TickIdle()
 				UEngineTypes::ConvertToTraceType(ECC_Pawn),
 				false,
 				ActorsToIgnore,
-				(bVerboseChase) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+				(bVerboseSearch) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
 				OutHits,
 				true
 			);
@@ -138,7 +104,16 @@ void UZombieFSM::TickIdle()
 		}
 	}
 }
+void UZombieFSM::EndIdle()
+{
+	CurrentIdleTime = 0.0f;
+}
+#pragma endregion Idle
 
+#pragma region Chase
+void UZombieFSM::StartChase()
+{
+}
 void UZombieFSM::TickChase()
 {
 	if (nullptr == ChaseTarget)
@@ -178,7 +153,17 @@ void UZombieFSM::TickChase()
 		CurrentChaseTime = 0.0f;
 	}
 }
+void UZombieFSM::EndChase()
+{
+	CurrentChaseTime = 0.0f;
+}
+#pragma endregion Chase
 
+#pragma region Attack
+void UZombieFSM::StartAttack()
+{
+	CurrentAttackTime = AttackInterval;
+}
 void UZombieFSM::TickAttack()
 {
 	if (nullptr == ChaseTarget)
@@ -202,10 +187,24 @@ void UZombieFSM::TickAttack()
 		return;
 	}
 }
+void UZombieFSM::EndAttack()
+{
+	CurrentAttackTime = 0.0f;
+}
+#pragma endregion Attack
 
+#pragma region Dead
+void UZombieFSM::StartDead()
+{
+	ChaseTarget = nullptr;
+}
 void UZombieFSM::TickDead()
 {
 }
+void UZombieFSM::EndDead()
+{
+}
+#pragma endregion Dead
 
 void UZombieFSM::HandleShove(const FVector& FromLocation)
 {
@@ -241,13 +240,11 @@ void UZombieFSM::HandleShove(const FVector& FromLocation)
 
 	// 상태 관련 처리
 }
-
 void UZombieFSM::HandleDamage()
 {
 	// TODO: 방향, 종류에 따라 맞는 애니메이션 분기
 	// ZombieAnimInstance->PlayDamage();
 }
-
 void UZombieFSM::HandleDie()
 {
 	// TODO: 방향에 따라 죽는 애니메이션 분기

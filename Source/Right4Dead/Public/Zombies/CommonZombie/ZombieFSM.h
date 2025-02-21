@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "ZombieBaseFSM.h"
 #include "Components/ActorComponent.h"
 #include "ZombieFSM.generated.h"
 
@@ -9,17 +10,8 @@ class UZombieAnimInstance;
 class UCharacterMovementComponent;
 class ACommonZombie;
 
-UENUM(BlueprintType)
-enum class EZombieState : uint8
-{
-	EZS_Idle,
-	EZS_Chase,
-	EZS_Attack,
-	EZS_Dead
-};
-
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class RIGHT4DEAD_API UZombieFSM : public UActorComponent
+class RIGHT4DEAD_API UZombieFSM : public UZombieBaseFSM
 {
 	GENERATED_BODY()
 
@@ -38,54 +30,62 @@ public:
 	TObjectPtr<AAIController> ZombieAI = nullptr;
 	UPROPERTY()
 	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
-	UPROPERTY(EditAnywhere, Category="Debugging")
-	EZombieState State = EZombieState::EZS_Idle;
+
 	UPROPERTY(EditAnywhere, Category="Debugging")
 	TObjectPtr<AActor> ChaseTarget = nullptr;
 	
-	// Idle 상태 지속 시간
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+	                           FActorComponentTickFunction* ThisTickFunction) override;
+	
+	/*
+	 *Idle
+	 */
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Idle")
 	float CurrentIdleTime = 0.0f;
-	// 타겟 탐색 간격
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	float SearchInterval = 1.0f;
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	bool bEnableSearch = true;
-
-	// 추격 관련 디버깅 여부
-	UPROPERTY(EditInstanceOnly, Category="Debugging|Chase")
-	bool bVerboseChase = false;
-	// 인식 거리
-	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
+	UPROPERTY(EditInstanceOnly, Category="Debugging|Idle")
+	bool bVerboseSearch = false;
+	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	float Awareness = 1500.0f;
-	// 추격 대상과의 거리
+	virtual void StartIdle() override;
+	virtual void TickIdle() override;
+	virtual void EndIdle() override;
+
+	/*
+	 *Chase
+	 */
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
 	float Distance = 0.0f;
-	// 추격 지속 시간
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
 	float CurrentChaseTime = 0.0f;
-	// 추격 중단 시간
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
 	float StopChaseTime = 20.0f;
+	virtual void StartChase() override;
+	virtual void TickChase() override;
+	virtual void EndChase() override;
 
-	// 공격 범위
+	/*
+	 *Attack
+	 */
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float AttackRange = 150.0f;
-	// 공격 지속 시간
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Attack")
 	float CurrentAttackTime = 0.0f;
-	// 공격 간격
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float AttackInterval = 2.0f;
+	virtual void StartAttack() override;
+	virtual void TickAttack() override;
+	virtual void EndAttack() override;
 
-	void SetState(const EZombieState NewState);
-	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
-	void TickIdle();
-	void TickChase();
-	void TickAttack();
-	void TickDead();
+	/*
+	 *Dead
+	 */
+	virtual void StartDead() override;
+	virtual void TickDead() override;
+	virtual void EndDead() override;
 
 	void HandleShove(const FVector& FromLocation);
 	void HandleDamage();
