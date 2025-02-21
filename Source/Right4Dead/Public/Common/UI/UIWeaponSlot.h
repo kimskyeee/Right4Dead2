@@ -29,7 +29,7 @@ class RIGHT4DEAD_API UUIWeaponSlot : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void UpdateSlot(int32 SelectedSlot, const TArray<AWeaponBase*>& WeaponInstances);
+	void UpdateSlot(int32 SelectedSlot, const TArray<FWeaponData>& WeaponInstances);
 
 	// Image
 	UPROPERTY(meta = (BindWidget))

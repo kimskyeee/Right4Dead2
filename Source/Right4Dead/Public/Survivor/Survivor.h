@@ -40,7 +40,7 @@ public:
 
 	// 보유중인 모든 무기 인스턴스
 	UPROPERTY()
-	TArray<AWeaponBase*> WeaponInstances; 
+	TArray<FWeaponData> WeaponInstances; 
 	
 	// 디버그모드 온오프
 	UPROPERTY(EditAnywhere, Category=DEBUG)
