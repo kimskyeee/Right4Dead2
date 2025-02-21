@@ -20,8 +20,6 @@ ACommonZombie::ACommonZombie()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Hp = 50.0f;
-	Speed = 250.0f;
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
 	if (SkeletalMeshObj.Succeeded())
 	{
@@ -36,27 +34,6 @@ ACommonZombie::ACommonZombie()
 	}
 	
 	ZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
-
-	UCharacterMovementComponent* Movement = GetCharacterMovement();
-	Movement->GravityScale = 1.75f;
-	Movement->MaxAcceleration = 1500.0f;
-	Movement->BrakingFrictionFactor = 1.0f;
-	Movement->bUseSeparateBrakingFriction = true;
-	Movement->MaxWalkSpeed = 500.0f;
-	Movement->MinAnalogWalkSpeed = 20.0f;
-	Movement->BrakingDecelerationWalking = 2000.0f;
-	Movement->JumpZVelocity = 700.0f;
-	Movement->BrakingDecelerationFalling = 1500.0f;
-	Movement->AirControl = 0.35f;
-	Movement->RotationRate = FRotator(0, 500, 0);
-	Movement->bOrientRotationToMovement = true;
-	Movement->bUseRVOAvoidance = true;
-	Movement->AvoidanceConsiderationRadius = 160;
-	Movement->SetFixedBrakingDistance(200.0f);
-	Movement->GetNavMovementProperties()->bUseAccelerationForPaths = true;
-	Movement->GetNavMovementProperties()->bUseFixedBrakingDistanceForPaths = true;
-	Movement->GetNavAgentPropertiesRef().AgentRadius = 42.0f;
-	Movement->GetNavAgentPropertiesRef().AgentHeight = 192.0f;
 
 	const ConstructorHelpers::FObjectFinder<UStaticMesh> HeadObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Head.SK_Mannequin_Head'"));
 	const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Left.SK_Mannequin_Arm_Left'"));
@@ -75,9 +52,11 @@ ACommonZombie::ACommonZombie()
 		LegRightMesh = LegRightObj.Object;
 }
 
-void ACommonZombie::InitDifficulty()
+void ACommonZombie::InitData()
 {
-	// GameInstance 가져오기
+	Hp = 50.0f;
+	Speed = 250.0f;
+	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
 	{
 		switch (GameInstance->GetDifficulty())

@@ -58,9 +58,9 @@ public:
 	bool bVerboseSearch = false;
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	float Awareness = 1500.0f;
-	virtual void StartIdle() PURE_VIRTUAL(UZombieBaseFSM::StartIdle, );
-	virtual void TickIdle() PURE_VIRTUAL(UZombieBaseFSM::TickIdle, );
-	virtual void EndIdle() PURE_VIRTUAL(UZombieBaseFSM::EndIdle, );
+	virtual void StartIdle();
+	virtual void TickIdle();
+	virtual void EndIdle();
 
 	/*
 	 *Chase
@@ -71,9 +71,9 @@ public:
 	float CurrentChaseTime = 0.0f;
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
 	float StopChaseTime = 20.0f;
-	virtual void StartChase() PURE_VIRTUAL(UZombieBaseFSM::StartChase, );
-	virtual void TickChase() PURE_VIRTUAL(UZombieBaseFSM::TickChase, );
-	virtual void EndChase() PURE_VIRTUAL(UZombieBaseFSM::EndChase, );
+	virtual void StartChase();
+	virtual void TickChase();
+	virtual void EndChase();
 	virtual void TriggerStartChase(const TObjectPtr<AActor>& Target);
 	virtual void TriggerStopChase();
 
@@ -92,18 +92,18 @@ public:
 	float SpecialAttackInterval = 99999.0f;
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Attack")
 	float CurrentAttackTime = 0.0f;
-	virtual void StartAttack() PURE_VIRTUAL(UZombieBaseFSM::StartAttack, );
-	virtual void TickAttack() PURE_VIRTUAL(UZombieBaseFSM::TickAttack, );
-	virtual void EndAttack() PURE_VIRTUAL(UZombieBaseFSM::EndAttack, );
+	virtual void StartAttack();
+	virtual void TickAttack();
+	virtual void EndAttack();
 	virtual void TriggerNormalAttack();
 	virtual void TriggerSpecialAttack();
 	
 	/*
 	 *Dead
 	 */
-	virtual void StartDead() PURE_VIRTUAL(UZombieBaseFSM::StartDead, );
-	virtual void TickDead() PURE_VIRTUAL(UZombieBaseFSM::TickDead, );
-	virtual void EndDead() PURE_VIRTUAL(UZombieBaseFSM::EndDead, );
+	virtual void StartDead();
+	virtual void TickDead();
+	virtual void EndDead();
 
 	/*
 	 * Owner 측에서 상태 관련 처리만 위임

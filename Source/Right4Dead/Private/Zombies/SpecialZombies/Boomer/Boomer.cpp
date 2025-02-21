@@ -3,7 +3,9 @@
 
 #include "Boomer.h"
 
+#include "BoomerFSM.h"
 #include "Right4DeadGameInstance.h"
+#include "ZombieBaseFSM.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -11,8 +13,22 @@ ABoomer::ABoomer()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Hp = 50.0f;
-	Speed = 175.0f;
+
+	// TODO: 모델 및 애님블루프린트 변경
+	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
+	if (SkeletalMeshObj.Succeeded())
+	{
+		GetMesh()->SetSkeletalMeshAsset(SkeletalMeshObj.Object);
+		GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
+		GetMesh()->SetRelativeRotation(FRotator(0, 270, 0));
+		ConstructorHelpers::FClassFinder<UAnimInstance> AnimBlueprintClass(TEXT("/Script/Engine.AnimBlueprint'/Game/Blueprints/Zombies/CommonZombie/ABP_CommonZombie.ABP_CommonZombie_C'"));
+		if (AnimBlueprintClass.Succeeded())
+		{
+			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
+		}
+	}
+
+	ZombieFSM = CreateDefaultSubobject<UBoomerFSM>(TEXT("ZombieFSM"));
 }
 
 // Called when the game starts or when spawned
@@ -21,20 +37,31 @@ void ABoomer::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ABoomer::InitDifficulty()
+void ABoomer::InitData()
 {
-	// GameInstance 가져오기
+	Hp = 50.0f;
+	Speed = 175.0f;
+	ZombieFSM->NormalAttackInterval = 1.0f;
+	ZombieFSM->SpecialAttackRange = 350.0f;
+	ZombieFSM->SpecialAttackInterval = 30.0f;
+	// TODO: 담즙 지속 시간 (5초, 지속 중에 또 맞으면 1.5초 추가)
+	// TODO: 죽을 때 담즙 폭파 반경 (2.5 ~ 4m)
+	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
 	{
 		switch (GameInstance->GetDifficulty())
 		{
 		case EDifficulty::Easy:
+			NormalAttackDamage = 1;
 			break;
 		case EDifficulty::Normal:
+			NormalAttackDamage = 2;
 			break;
 		case EDifficulty::Advanced:
+			NormalAttackDamage = 5;
 			break;
 		case EDifficulty::Expert:
+			NormalAttackDamage = 20;
 			break;
 		}
 	}

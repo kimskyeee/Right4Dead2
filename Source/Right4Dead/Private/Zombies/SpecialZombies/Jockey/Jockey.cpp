@@ -21,7 +21,7 @@ void AJockey::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AJockey::InitDifficulty()
+void AJockey::InitData()
 {
 	// GameInstance 가져오기
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))

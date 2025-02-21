@@ -21,7 +21,7 @@ void AHunter::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AHunter::InitDifficulty()
+void AHunter::InitData()
 {
 	// GameInstance 가져오기
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))

@@ -37,7 +37,7 @@ void ATank::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ATank::InitDifficulty()
+void ATank::InitData()
 {
 	// GameInstance 가져오기
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))

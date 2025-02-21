@@ -24,7 +24,7 @@ void AWitch::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AWitch::InitDifficulty()
+void AWitch::InitData()
 {
 	// GameInstance 가져오기
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))

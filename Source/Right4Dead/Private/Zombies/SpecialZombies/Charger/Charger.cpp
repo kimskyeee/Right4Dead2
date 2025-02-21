@@ -21,7 +21,7 @@ void ACharger::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ACharger::InitDifficulty()
+void ACharger::InitData()
 {
 	// GameInstance 가져오기
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))

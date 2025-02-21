@@ -17,7 +17,7 @@ public:
 	ACommonZombie();
 
 protected:
-	virtual void InitDifficulty() override;
+	virtual void InitData() override;
 
 public:
 	virtual void OnDie() override;

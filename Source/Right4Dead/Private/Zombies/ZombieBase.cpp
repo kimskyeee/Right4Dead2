@@ -23,6 +23,28 @@ AZombieBase::AZombieBase()
 	OnTakeAnyDamage.AddDynamic(this, &AZombieBase::OnTakeAnyDamageHandler);
 	OnTakePointDamage.AddDynamic(this, &AZombieBase::OnTakePointDamageHandler);
 	OnTakeRadialDamage.AddDynamic(this, &AZombieBase::OnTakeRadialDamageHandler);
+
+	// TPS Character 기본 설정값
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	Movement->GravityScale = 1.75f;
+	Movement->MaxAcceleration = 1500.0f;
+	Movement->BrakingFrictionFactor = 1.0f;
+	Movement->bUseSeparateBrakingFriction = true;
+	Movement->MaxWalkSpeed = 500.0f;
+	Movement->MinAnalogWalkSpeed = 20.0f;
+	Movement->BrakingDecelerationWalking = 2000.0f;
+	Movement->JumpZVelocity = 700.0f;
+	Movement->BrakingDecelerationFalling = 1500.0f;
+	Movement->AirControl = 0.35f;
+	Movement->RotationRate = FRotator(0, 500, 0);
+	Movement->bOrientRotationToMovement = true;
+	Movement->bUseRVOAvoidance = true;
+	Movement->AvoidanceConsiderationRadius = 160;
+	Movement->SetFixedBrakingDistance(200.0f);
+	Movement->GetNavMovementProperties()->bUseAccelerationForPaths = true;
+	Movement->GetNavMovementProperties()->bUseFixedBrakingDistanceForPaths = true;
+	Movement->GetNavAgentPropertiesRef().AgentRadius = 42.0f;
+	Movement->GetNavAgentPropertiesRef().AgentHeight = 192.0f;
 }
 
 void AZombieBase::ForceDie()
@@ -47,7 +69,7 @@ void AZombieBase::BeginPlay()
 	}
 
 	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
-	InitDifficulty();
+	InitData();
 }
 
 void AZombieBase::Tick(float DeltaSeconds)

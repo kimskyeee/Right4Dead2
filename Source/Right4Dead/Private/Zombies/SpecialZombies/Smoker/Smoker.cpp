@@ -21,7 +21,7 @@ void ASmoker::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ASmoker::InitDifficulty()
+void ASmoker::InitData()
 {
 	// GameInstance 가져오기
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
