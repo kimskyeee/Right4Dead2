@@ -315,6 +315,7 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurvivorCrouch);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::LeftClickAttack);
 		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::RightClickAttack);
+		pi->BindAction(IA_SurReload, ETriggerEvent::Started, this, &ASurvivor::WeaponReload);
 		pi->BindAction(IA_PrimaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipPrimaryWeapon);
 		pi->BindAction(IA_SecondaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipSecondaryWeapon);
 		pi->BindAction(IA_MeleeWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipMeleeWeapon);
@@ -439,64 +440,71 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 
 void ASurvivor::PrimaryWeaponAttack()
 {
-	//총무기 라인트레이스
-	//TODO: 나중에 따발총 추가되면 변수추가해서 바꿔야함
-	FHitResult Hit;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	APlayerCameraManager* FirstCam = UGameplayStatics::GetPlayerCameraManager(GetWorld(),0);
-	if (!FirstCam)
+	// 총알이 있어야....
+	if (CurrentWeapon->WeaponData.CurrentAmmo > 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("카메라 매니저가 없음"));
-		return;
-	}
-	FVector Start = FirstCam->GetCameraLocation();
-	FVector End = Start + (FirstCam->GetActorForwardVector() * 30000);
-	    
-	const float DebugLineLifetime = 2.0f;
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera, Params);
+		//총무기 라인트레이스
+		//TODO: 나중에 따발총 추가되면 변수추가해서 바꿔야함
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
 		
-	// 디버그 라인 그리기
-	if (bDebugPlay)
-	{
-		if (bHit)
+		APlayerCameraManager* FirstCam = UGameplayStatics::GetPlayerCameraManager(GetWorld(),0);
+		if (!FirstCam)
 		{
-			// 히트가 발생한 경우 빨간색으로 표시
-			DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
-			FString BoneNameStr = FString::Printf(TEXT("Hit Bone: %s"), *Hit.BoneName.ToString());
-			UE_LOG(LogTemp, Warning, TEXT("%s %s"), *Hit.GetActor()->GetName(), *BoneNameStr);
+			UE_LOG(LogTemp, Error, TEXT("카메라 매니저가 없음"));
+			return;
+		}
+		FVector Start = FirstCam->GetCameraLocation();
+		FVector End = Start + (FirstCam->GetActorForwardVector() * 30000);
+		    
+		const float DebugLineLifetime = 2.0f;
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera, Params);
+			
+		// 디버그 라인 그리기
+		if (bDebugPlay)
+		{
+			if (bHit)
+			{
+				// 히트가 발생한 경우 빨간색으로 표시
+				DrawDebugLine(GetWorld(), Start, Hit.Location, FColor::Red, false, DebugLineLifetime, 0, 0.5f);
+				FString BoneNameStr = FString::Printf(TEXT("Hit Bone: %s"), *Hit.BoneName.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("%s %s"), *Hit.GetActor()->GetName(), *BoneNameStr);
+			}
+			else
+			{
+				// 히트가 없는 경우 초록색으로 표시
+				DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
+			}
+		}
+		    
+		if (bHit && Hit.GetActor())
+		{
+			if (false == Hit.BoneName.IsNone())
+			{
+				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
+			}
+		}
+
+		//총알 개수 줄이자
+		DecreaseAmmoCount();
+
+		//몽타주 플레이
+		if (CurrentWeapon->WeaponData.WeaponFireMontage)
+		{
+			Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
 		}
 		else
 		{
-			// 히트가 없는 경우 초록색으로 표시
-			DrawDebugLine(GetWorld(),Start,End,FColor::Green,false,DebugLineLifetime, 0,0.5f);
+			UE_LOG(LogTemp, Warning, TEXT("무기가 없습니다"));
 		}
-	}
-	    
-	if (bHit && Hit.GetActor())
-	{
-		if (false == Hit.BoneName.IsNone())
+
+		//카메라 쉐이크
+		auto pc = GetWorld()->GetFirstPlayerController();
+		if (pc)
 		{
-			UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
+			pc->PlayerCameraManager->StartCameraShake(GunCameraShake);
 		}
-	}
-
-	//몽타주 플레이
-		if (CurrentWeapon->WeaponData.WeaponFireMontage)
-	{
-		Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("무기가 없습니다"));
-	}
-
-	//카메라 쉐이크
-	auto pc = GetWorld()->GetFirstPlayerController();
-	if (pc)
-	{
-		pc->PlayerCameraManager->StartCameraShake(GunCameraShake);
 	}
 }
 
@@ -789,9 +797,35 @@ void ASurvivor::ExplodeWeapon()
 }
 
 
-//장전 (SKYE: 추가해야할것)
+//장전
 void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 {
+	//총일때만 가능합니다
+	if (CurrentWeapon && CurrentWeapon->Name == EWeaponType::Primary)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ASurvivor::WeaponReload"));
+
+		// 총알이 아직 부족하고, 남은 탄약이 존재하는 경우에만 장전 가능
+		if (CurrentWeapon->WeaponData.CurrentAmmo < CurrentWeapon->WeaponData.MaxAmmo &&
+			CurrentWeapon->WeaponData.MaxAmmoAmount > 0)
+		{
+			// 현재 총기에 남아있는 탄약과 필요한 탄약 계산
+			int32 NeededAmmo = CurrentWeapon->WeaponData.MaxAmmo - CurrentWeapon->WeaponData.CurrentAmmo;
+			int32 AmmoToLoad = FMath::Min(NeededAmmo, CurrentWeapon->WeaponData.MaxAmmoAmount);
+
+			// 장전된 탄 수 반영
+			CurrentWeapon->WeaponData.CurrentAmmo += AmmoToLoad;
+			CurrentWeapon->WeaponData.MaxAmmoAmount -= AmmoToLoad;
+		}
+	}
+}
+
+void ASurvivor::DecreaseAmmoCount()
+{
+	if (CurrentWeapon->WeaponData.CurrentAmmo > 0)
+	{
+		CurrentWeapon->WeaponData.CurrentAmmo--;
+	}
 }
 
 

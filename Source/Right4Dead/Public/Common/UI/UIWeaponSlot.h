@@ -85,5 +85,7 @@ public:
 	// 슬롯 UI 데이터 배열
 	TArray<FWeaponSlotUI> WeaponSlots;
 
+	void SetAmmoText();
 	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 };

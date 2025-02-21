@@ -157,6 +157,7 @@ public:
 	//좌클릭, R키(장전) 바인딩
 	void LeftClickAttack(const struct FInputActionValue& InputValue);
 	void WeaponReload(const struct FInputActionValue& InputValue);
+	void DecreaseAmmoCount();
 	//좌클릭시 무기별 실행될 공격을 따로 함수로 구현하기
 	void PrimaryWeaponAttack();
 	void SecondaryWeaponAttack();

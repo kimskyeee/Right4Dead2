@@ -39,6 +39,8 @@ AWeaponBase::AWeaponBase()
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
+	// 시작하면 총알수를 세팅해주고
+	WeaponData.CurrentAmmo = WeaponData.MaxAmmo;
 }
 
 // Called every frame
@@ -48,6 +50,8 @@ void AWeaponBase::Tick(float DeltaTime)
 
 	PrimaryActorTick.bCanEverTick = false;
 	IsEquipped = false;
+
+	// 여기서 총알 개수 카운트 하면 되지 않으려나?
 }
 
 //공격함수 추가
