@@ -52,14 +52,6 @@ public:
 	//Weapon 변수
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	EWeaponType Name;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	float ReloadTime;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	float BulletSpread;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	float AmmoCount;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
-	float MaxAmmo;
 
 	//SKYE: 월드에 소환된 무기(장착X)와 내가 장착하고 있는 무기를 구분하기 위한 설정 추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")

@@ -59,7 +59,7 @@ ASurvivor::ASurvivor()
 	bFirstPerson = true;
 
 	//몽타주 연동
-	ConstructorHelpers::FObjectFinder<UAnimMontage> TempShoveMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms_Montages/knife_arms_Swing_1_Montage.knife_arms_Swing_1_Montage'"));
+	ConstructorHelpers::FObjectFinder<UAnimMontage> TempShoveMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Arms/swingmontage_new.swingmontage_new'"));
 	if (TempShoveMontage.Succeeded())
 	{
 		ShoveMontage = TempShoveMontage.Object;
@@ -130,6 +130,11 @@ ASurvivor::ASurvivor()
 	if (TempIAMelee.Succeeded())
 	{
 		IA_MeleeWeapon=TempIAMelee.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAHandle(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Weapon4.IA_Weapon4'"));
+	if (TempIAHandle.Succeeded())
+	{
+		IA_HandleObject=TempIAHandle.Object;
 	}
 
 	//무기줍기
@@ -313,6 +318,7 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_PrimaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipPrimaryWeapon);
 		pi->BindAction(IA_SecondaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipSecondaryWeapon);
 		pi->BindAction(IA_MeleeWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipMeleeWeapon);
+		pi->BindAction(IA_HandleObject, ETriggerEvent::Started, this, &ASurvivor::EquipHandleObject);
 		pi->BindAction(IA_PickUp,ETriggerEvent::Started,this,&ASurvivor::PickUpWeapon_Input);
 	}
 }
@@ -898,6 +904,14 @@ void ASurvivor::EquipMeleeWeapon(const struct FInputActionValue& InputValue)
 	}
 }
 
+void ASurvivor::EquipHandleObject(const struct FInputActionValue& InputValue)
+{
+	if (HandleObjectSlot.WeaponFactory)
+	{
+		EquipWeapon(&HandleObjectSlot);
+	}
+}
+
 //무기 슬롯값 애니메이션 구분하기
 int32 ASurvivor::GetCurrentWeaponSlotIndex() const
 {
@@ -937,7 +951,6 @@ void ASurvivor::TraceForWeapon()
 	
 	if (CurrentWeapon)
 	{
-		//FString Message = FString::Printf(TEXT("Current Weapon: %s"), *CurrentWeapon->GetName());GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
 		Params.AddIgnoredActor(CurrentWeapon);
 	}
 
@@ -974,8 +987,6 @@ void ASurvivor::TraceForWeapon()
 		else
 		{
 			FocusedWeapon = nullptr; // 무기가 아니면 초기화
-			/*UE_LOG(LogTemp, Warning, TEXT("무기가 아님"));
-			DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);*/
 		}
 	}
 	else
@@ -1073,9 +1084,7 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
 		CurrentWeapon->SetEquipped(true);
 	}
-
-	// 현재 장착된 무기 슬롯 업데이트
-	CurrentWeaponSlot = *WeaponData;
+	
 
 	// 무기를 캐릭터의 소켓에 부착
 	if (CurrentWeapon && Arms)
@@ -1083,7 +1092,10 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
 		CurrentWeapon->SetActorRelativeRotation(FRotator(0, 0, 0));
 		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
-		SurvivorMainUI->WeaponSlot->UpdateSlot();
+		
+		// WeaponName enum을 int로 변환하여 슬롯 인덱스로 사용
+		int32 SlotIndex = static_cast<int32>(CurrentWeapon->WeaponData.WeaponName);
+		SurvivorMainUI->WeaponSlot->UpdateSlot(SlotIndex-1, WeaponSlots);
 	}
 	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();

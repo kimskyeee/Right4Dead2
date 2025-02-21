@@ -3,104 +3,61 @@
 
 #include "UIWeaponSlot.h"
 
-#include "Survivor.h"
-#include "Kismet/GameplayStatics.h"
+#include "Components/Overlay.h"
 
-void UUIWeaponSlot::UpdateSlot()
+//TArray는 동적배열
+//AWeaponBase 타입의 객체를 저장하는 배열이고
+//& WeaponInstances 참조를 통해 함수에서도 원본 배열을 직접 수정할 수 있다
+void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<AWeaponBase*>& WeaponInstances)
 {
-	auto player = Cast<ASurvivor>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
-
-	// 장착 무기별 슬롯 업데이트 하기
-	// 1. 장착한 무기가 없으면 -> 활성화된 이미지가 없음 (전부 회색)
-	if (player->CurrentWeaponSlot->WeaponName == EWeaponType::None)
-	{
-		if (UWidget* FirstOverlayWidget = GetWidgetFromName(TEXT("First_ON")))
-		{
-			FirstOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* SecondaryOverlayWidget = GetWidgetFromName(TEXT("Second_ON")))
-		{
-			SecondaryOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* ThirdOverlayWidget = GetWidgetFromName(TEXT("Third_ON")))
-		{
-			ThirdOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-	// 2. Primary 무기면 -> 1번 슬롯만 초록색 이미지 보이게
-	if (player->CurrentWeaponSlot->WeaponName == EWeaponType::Primary)
-	{
-		if (UWidget* FirstOverlayWidget = GetWidgetFromName(TEXT("First_ON")))
-		{
-			FirstOverlayWidget->SetVisibility(ESlateVisibility::Visible);
-		}
-		if (UWidget* SecondaryOverlayWidget = GetWidgetFromName(TEXT("Second_ON")))
-		{
-			SecondaryOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* ThirdOverlayWidget = GetWidgetFromName(TEXT("Third_ON")))
-		{
-			ThirdOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* FirstOverlayWidget = GetWidgetFromName(TEXT("GUN")))
-		{
-			FirstOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-	// 3. Secondary 무기면 -> 2번 슬롯만 초록색 이미지
-	if (player->CurrentWeaponSlot->WeaponName == EWeaponType::Secondary)
-	{
-		if (UWidget* FirstOverlayWidget = GetWidgetFromName(TEXT("First_ON")))
-		{
-			FirstOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* SecondaryOverlayWidget = GetWidgetFromName(TEXT("Second_ON")))
-		{
-			SecondaryOverlayWidget->SetVisibility(ESlateVisibility::Visible);
-		}
-		if (UWidget* ThirdOverlayWidget = GetWidgetFromName(TEXT("Third_ON")))
-		{
-			ThirdOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* FirstOverlayWidget = GetWidgetFromName(TEXT("GUN")))
-		{
-			FirstOverlayWidget->SetVisibility(ESlateVisibility::Visible);
-		}
-	}
-	// 4. Melee 무기면 -> 3번 슬롯만 초록색 이미지
-	if (player->CurrentWeaponSlot->WeaponName == EWeaponType::Melee)
-	{
-		if (UWidget* FirstOverlayWidget = GetWidgetFromName(TEXT("First_ON")))
-		{
-			FirstOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* SecondaryOverlayWidget = GetWidgetFromName(TEXT("Second_ON")))
-		{
-			SecondaryOverlayWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-		if (UWidget* ThirdOverlayWidget = GetWidgetFromName(TEXT("Third_ON")))
-		{
-			ThirdOverlayWidget->SetVisibility(ESlateVisibility::Visible);
-		}
-		if (UWidget* FirstOverlayWidget = GetWidgetFromName(TEXT("GUN")))
-		{
-			FirstOverlayWidget->SetVisibility(ESlateVisibility::Visible);
-		}
-	}
-
-
-	/*// 애니메이션 재생	
-	if (UWidget* FirstSlotBG = GetWidgetFromName(TEXT("FirstSlot")))
-	{
-		FirstSlotBG->SetVisibility(ESlateVisibility::Hidden);
-	}
+	// 각 슬롯의 기본 이미지 배열 (초기 UI 상태)
+	TArray<UImage*> DefaultImages = { FirstBGImage, SecondBGImage, ThirdBGImage, FourthBGImage, FifthBGImage };
 	
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [player]()
+	// 모든 슬롯의 정보를 돌아보면서 UI를 업데이트 해보자
+	for (int32 i=0; i<WeaponSlots.Num(); i++)
 	{
-		if (player)
+		// 선택된 슬롯이면 초록색 UI를 활성화 할 것이다
+		// 현재 슬롯이 선택된 슬롯인지 확인한다
+		bool bIsSelected = (i ==SelectedSlot);
+		// 초록색 UI를 설정한다 (선택된 슬롯이 아니면 hidden할거임)
+		WeaponSlots[i].GreenIndicator->SetVisibility(bIsSelected ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+
+		// 근데 해당 슬롯에 무기가 있나?
+		if (WeaponInstances.IsValidIndex(i) && WeaponInstances[i])
 		{
-			player->bIsDamaged = false;
+			// 있으면 무기 데이터 가져오자
+			const FWeaponData& WeaponData = WeaponInstances[i]->WeaponData;
+
+			// 이미지 업데이트 할거임
+			// 장착한 슬롯이면 EquipTexture, 아닐 경우 UnequipTexture 사용
+			UTexture2D* Texture = bIsSelected ? WeaponData.WeaponEquipSlotUI 
+											  : WeaponData.WeaponUnEquipSlotUI;
+
+			// 슬롯의 무기 이미지를 업데이트 (Brush를 Texture로 변경)
+			WeaponSlots[i].WeaponImage->SetBrushFromTexture(Texture);
 		}
-	}, 3.5f, false); */
+
+		else
+		{
+			if (UTexture2D* DefaultTexture = Cast<UTexture2D>(DefaultImages[i]->Brush.GetResourceObject()))
+			{
+				WeaponSlots[i].WeaponImage->SetBrushFromTexture(DefaultTexture);
+			}
+		}		
+	}
 }
+
+void UUIWeaponSlot::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	// 슬롯 정보 배열로 저장하자
+	WeaponSlots = {
+		{First_ON, FirstBGImage},
+		{Second_ON, SecondBGImage},
+		{Third_ON, ThirdBGImage},
+		{Fourth_ON, FourthBGImage},
+		{Fifth_ON, FifthBGImage}
+	};
+}
+

@@ -15,6 +15,8 @@ UCLASS()
 class RIGHT4DEAD_API ASurvivor : public ACharacter, public IActorBase
 {
 	GENERATED_BODY()
+	
+	
 
 public:
 	// Sets default values for this character's properties
@@ -36,6 +38,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY()
+	TArray<AWeaponBase*> WeaponSlots; // 보유중인 모든 무기 인스턴스
+	
 	// 디버그모드 온오프
 	UPROPERTY(EditAnywhere, Category=DEBUG)
 	bool bDebugPlay = false;
@@ -209,6 +214,9 @@ public:
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_MeleeWeapon;
 	void EquipMeleeWeapon(const struct FInputActionValue& InputValue);
+	UPROPERTY(EditAnywhere,Category="Input")
+	class UInputAction* IA_HandleObject;
+	void EquipHandleObject(const struct FInputActionValue& InputValue);
 	
 	//무기 슬롯
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
@@ -217,6 +225,8 @@ public:
 	FWeaponData SecondaryWeaponSlot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
 	FWeaponData MeleeWeaponSlot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	FWeaponData HandleObjectSlot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
 	TOptional<FWeaponData> CurrentWeaponSlot;
 

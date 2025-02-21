@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "EWeaponType.h"
+#include "Components/Image.h"
 #include "FWeaponData.generated.h"
 
 class AWeaponBase;
@@ -31,4 +32,9 @@ struct FWeaponData
 	float ReloadTime = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	float BulletSpread = 0;
+	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
+	UTexture2D* WeaponEquipSlotUI = nullptr;
+	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
+	UTexture2D* WeaponUnEquipSlotUI = nullptr;
+
 };
