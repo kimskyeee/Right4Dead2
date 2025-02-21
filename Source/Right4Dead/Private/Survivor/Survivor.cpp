@@ -1084,8 +1084,10 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
 		CurrentWeapon->SetEquipped(true);
 	}
-	
 
+	// 현재 장착한 무기 데이터 업데이트
+	CurrentWeaponSlot = *WeaponData;
+	
 	// 무기를 캐릭터의 소켓에 부착
 	if (CurrentWeapon && Arms)
 	{
@@ -1094,8 +1096,17 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
 		
 		// WeaponName enum을 int로 변환하여 슬롯 인덱스로 사용
-		int32 SlotIndex = static_cast<int32>(CurrentWeapon->WeaponData.WeaponName);
-		SurvivorMainUI->WeaponSlot->UpdateSlot(SlotIndex-1, WeaponSlots);
+		int32 SlotIndex = static_cast<int32>(CurrentWeapon->WeaponData.WeaponName)-1;
+
+		// WeaponInstance (weapon data인거죵) 를 배열에 저장
+		if (WeaponInstances.Num() <= SlotIndex)
+		{
+			WeaponInstances.SetNum(SlotIndex + 1);
+		}
+		WeaponInstances[SlotIndex] = CurrentWeapon->WeaponData;
+    
+		// 수정된 WeaponInstance 배열을 전달
+		SurvivorMainUI->WeaponSlot->UpdateSlot(SlotIndex, WeaponInstances);
 	}
 	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();

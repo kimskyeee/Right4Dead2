@@ -8,7 +8,7 @@
 //TArray는 동적배열
 //AWeaponBase 타입의 객체를 저장하는 배열이고
 //& WeaponInstances 참조를 통해 함수에서도 원본 배열을 직접 수정할 수 있다
-void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<AWeaponBase*>& WeaponInstances)
+void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<FWeaponData>& WeaponInstances)
 {
 	// 각 슬롯의 기본 이미지 배열 (초기 UI 상태)
 	TArray<UImage*> DefaultImages = { FirstBGImage, SecondBGImage, ThirdBGImage, FourthBGImage, FifthBGImage };
@@ -23,11 +23,11 @@ void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<AWeaponBase*>& W
 		WeaponSlots[i].GreenIndicator->SetVisibility(bIsSelected ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 
 		// 근데 해당 슬롯에 무기가 있나?
-		if (WeaponInstances.IsValidIndex(i) && WeaponInstances[i])
+		if (WeaponInstances.IsValidIndex(i))
 		{
 			// 있으면 무기 데이터 가져오자
-			const FWeaponData& WeaponData = WeaponInstances[i]->WeaponData;
-
+			const FWeaponData& WeaponData = WeaponInstances[i];
+			
 			// 이미지 업데이트 할거임
 			// 장착한 슬롯이면 EquipTexture, 아닐 경우 UnequipTexture 사용
 			UTexture2D* Texture = bIsSelected ? WeaponData.WeaponEquipSlotUI 
@@ -39,7 +39,7 @@ void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<AWeaponBase*>& W
 
 		else
 		{
-			if (UTexture2D* DefaultTexture = Cast<UTexture2D>(DefaultImages[i]->Brush.GetResourceObject()))
+			if (UTexture2D* DefaultTexture = Cast<UTexture2D>(DefaultImages[i]->GetBrush().GetResourceObject()))
 			{
 				WeaponSlots[i].WeaponImage->SetBrushFromTexture(DefaultTexture);
 			}
