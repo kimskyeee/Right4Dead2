@@ -23,16 +23,12 @@ protected:
 
 public:
 	UPROPERTY()
-	TObjectPtr<ACommonZombie> Owner = nullptr;
-	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> Movement = nullptr;
 	UPROPERTY()
 	TObjectPtr<AAIController> ZombieAI = nullptr;
 	UPROPERTY()
 	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
-
-	UPROPERTY(EditAnywhere, Category="Debugging")
-	TObjectPtr<AActor> ChaseTarget = nullptr;
+	
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
@@ -40,16 +36,6 @@ public:
 	/*
 	 *Idle
 	 */
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Idle")
-	float CurrentIdleTime = 0.0f;
-	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
-	float SearchInterval = 1.0f;
-	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
-	bool bEnableSearch = true;
-	UPROPERTY(EditInstanceOnly, Category="Debugging|Idle")
-	bool bVerboseSearch = false;
-	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
-	float Awareness = 1500.0f;
 	virtual void StartIdle() override;
 	virtual void TickIdle() override;
 	virtual void EndIdle() override;
@@ -57,12 +43,6 @@ public:
 	/*
 	 *Chase
 	 */
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
-	float Distance = 0.0f;
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
-	float CurrentChaseTime = 0.0f;
-	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
-	float StopChaseTime = 20.0f;
 	virtual void StartChase() override;
 	virtual void TickChase() override;
 	virtual void EndChase() override;
@@ -70,12 +50,6 @@ public:
 	/*
 	 *Attack
 	 */
-	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
-	float AttackRange = 150.0f;
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Attack")
-	float CurrentAttackTime = 0.0f;
-	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
-	float AttackInterval = 2.0f;
 	virtual void StartAttack() override;
 	virtual void TickAttack() override;
 	virtual void EndAttack() override;
@@ -87,7 +61,10 @@ public:
 	virtual void TickDead() override;
 	virtual void EndDead() override;
 
-	void HandleShove(const FVector& FromLocation);
-	void HandleDamage();
-	void HandleDie();
+	/*
+	 * Owner 측에서 상태 관련 처리만 위임
+	 */
+	virtual void HandleShove(const FVector& FromLocation) override;
+	virtual void HandleDamage() override;
+	virtual void HandleDie() override;
 };

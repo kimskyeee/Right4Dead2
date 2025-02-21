@@ -175,7 +175,7 @@ void ACommonZombie::EndClimbing()
 	ClimbDestination = FTransform::Identity;
 }
 
-void ACommonZombie::TriggerAttack()
+void ACommonZombie::HandleNormalAttack()
 {
 	PRINT_CALLINFO();
 	ZombieAnimInstance->PlayAttack();

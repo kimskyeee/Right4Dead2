@@ -6,12 +6,12 @@
 #include "ZombieAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "Right4Dead/Right4Dead.h"
 
 UZombieFSM::UZombieFSM()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
+
 void UZombieFSM::BeginPlay()
 {
 	Super::BeginPlay();
@@ -28,37 +28,11 @@ void UZombieFSM::BeginPlay()
 void UZombieFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (nullptr == Owner)
-	{
-		return;
-	}
-	
-	if (ChaseTarget)
-	{
-		Distance = FVector::Dist(Owner->GetActorLocation(), ChaseTarget->GetActorLocation());	
-	}
-	
-	switch (State)
-	{
-	case EZombieState::EZS_Idle:
-		TickIdle();
-		break;
-	case EZombieState::EZS_Chase:
-		TickChase();
-		break;
-	case EZombieState::EZS_Attack:
-		TickAttack();
-		break;
-	case EZombieState::EZS_Dead:
-		TickDead();
-		break;
-	}
 }
 
 #pragma region Idle
 void UZombieFSM::StartIdle()
 {
-	PRINT_CALLINFO();
 	ChaseTarget = nullptr;
 }
 void UZombieFSM::TickIdle()
@@ -131,7 +105,7 @@ void UZombieFSM::TickChase()
 	}
 
 	// 공격 범위 내에 있으면 공격한다.
-	if (Distance < AttackRange)
+	if (Distance < NormalAttackRange)
 	{
 		SetState(EZombieState::EZS_Attack);
 		return;
@@ -162,7 +136,7 @@ void UZombieFSM::EndChase()
 #pragma region Attack
 void UZombieFSM::StartAttack()
 {
-	CurrentAttackTime = AttackInterval;
+	CurrentAttackTime = NormalAttackInterval;
 }
 void UZombieFSM::TickAttack()
 {
@@ -173,16 +147,16 @@ void UZombieFSM::TickAttack()
 	}
 
 	// 공격 범위 안에 타겟이 없으면 추격 상태로 전환한다.
-	if (Distance > AttackRange)
+	if (Distance > NormalAttackRange)
 	{
 		SetState(EZombieState::EZS_Chase);
 		return;
 	}
 	
 	CurrentAttackTime += GetWorld()->GetDeltaSeconds();
-	if (CurrentAttackTime > AttackInterval)
+	if (CurrentAttackTime > NormalAttackInterval)
 	{
-		Owner->TriggerAttack();
+		TriggerNormalAttack();
 		CurrentAttackTime = 0.0f;
 		return;
 	}
@@ -204,6 +178,7 @@ void UZombieFSM::TickDead()
 void UZombieFSM::EndDead()
 {
 }
+
 #pragma endregion Dead
 
 void UZombieFSM::HandleShove(const FVector& FromLocation)
@@ -242,12 +217,9 @@ void UZombieFSM::HandleShove(const FVector& FromLocation)
 }
 void UZombieFSM::HandleDamage()
 {
-	// TODO: 방향, 종류에 따라 맞는 애니메이션 분기
-	// ZombieAnimInstance->PlayDamage();
+	// ..
 }
 void UZombieFSM::HandleDie()
 {
-	// TODO: 방향에 따라 죽는 애니메이션 분기
-	// ZombieAnimInstance->PlayDie();
 	SetState(EZombieState::EZS_Dead);
 }

@@ -94,9 +94,16 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 	FinalDamage = Damage;
 }
 
+void AZombieBase::HandleNormalAttack()
+{
+}
+
+void AZombieBase::HandleSpecialAttack()
+{
+}
+
 void AZombieBase::HandleShove(const FVector& FromLocation)
 {
-	PRINT_CALLINFO();
 }
 
 

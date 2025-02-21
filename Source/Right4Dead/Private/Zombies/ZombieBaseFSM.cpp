@@ -3,6 +3,7 @@
 
 #include "ZombieBaseFSM.h"
 
+#include "ZombieBase.h"
 
 // Sets default values for this component's properties
 UZombieBaseFSM::UZombieBaseFSM()
@@ -67,7 +68,56 @@ void UZombieBaseFSM::SetState(const EZombieState NewState)
 void UZombieBaseFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	if (nullptr == Owner)
+	{
+		return;
+	}
+	
+	if (ChaseTarget)
+	{
+		Distance = FVector::Dist(Owner->GetActorLocation(), ChaseTarget->GetActorLocation());	
+	}
+	
+	switch (State)
+	{
+	case EZombieState::EZS_Idle:
+		TickIdle();
+		break;
+	case EZombieState::EZS_Chase:
+		TickChase();
+		break;
+	case EZombieState::EZS_Attack:
+		TickAttack();
+		break;
+	case EZombieState::EZS_Dead:
+		TickDead();
+		break;
+	}
+}
 
+void UZombieBaseFSM::TriggerNormalAttack()
+{
+	Owner->HandleNormalAttack();
+}
+
+void UZombieBaseFSM::TriggerSpecialAttack()
+{
+	Owner->HandleSpecialAttack();
+}
+
+void UZombieBaseFSM::HandleShove(const FVector& FromLocation)
+{
+	// ...
+}
+
+void UZombieBaseFSM::HandleDamage()
+{
+	// ...
+}
+
+void UZombieBaseFSM::HandleDie()
+{
 	// ...
 }
 

@@ -42,7 +42,7 @@ public:
 	void EndClimbing();
 	
 	
-	void TriggerAttack();
+	virtual void HandleNormalAttack() override;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
