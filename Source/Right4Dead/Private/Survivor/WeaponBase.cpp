@@ -68,7 +68,7 @@ void AWeaponBase::LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator
 		CameraFVector = target->FirstCameraComp->GetForwardVector();
 	}
 
-	float End = UKismetMathLibrary::RandomFloatInRange(BulletSpread*(-1),BulletSpread);
+	float End = UKismetMathLibrary::RandomFloatInRange(WeaponData.BulletSpread*(-1),WeaponData.BulletSpread);
 	FVector SpreadEnd = (CameraFVector*20000) + FVector(End,End,End);
 	
 	GetWorld()->LineTraceSingleByChannel(HitResult,SpreadStart,SpreadEnd,ECC_Visibility,Params);
