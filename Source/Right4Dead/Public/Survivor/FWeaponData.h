@@ -23,9 +23,11 @@ struct FWeaponData
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	UAnimMontage* WeaponReloadMontage = nullptr;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	uint8 AmmoCount = 0;
+	int32 CurrentAmmo = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
-	uint8 MaxAmmoCount = 0;
+	int32 MaxAmmo = 0;
+	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
+	int32 MaxAmmoAmount = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")
 	float Damage = 0;
 	UPROPERTY(editanywhere, BlueprintReadWrite, Category="WeaponData")

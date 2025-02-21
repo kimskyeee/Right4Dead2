@@ -3,7 +3,10 @@
 
 #include "UIWeaponSlot.h"
 
+#include "Survivor.h"
 #include "Components/Overlay.h"
+#include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
 
 //TArray는 동적배열
 //AWeaponBase 타입의 객체를 저장하는 배열이고
@@ -47,6 +50,23 @@ void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<FWeaponData>& We
 	}
 }
 
+void UUIWeaponSlot::SetAmmoText()
+{
+	auto player = Cast<ASurvivor>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
+	if (player && player->CurrentWeapon)
+	{
+		FText CurrentAmmoCount = FText::AsNumber(player->CurrentWeapon->WeaponData.CurrentAmmo);
+		FText MaxAmmoAmount = FText::AsNumber(player->CurrentWeapon->WeaponData.MaxAmmoAmount);
+
+		// null체크를 합시다
+		if (CurrentAmmo && MaxAmmo)
+		{
+			CurrentAmmo->SetText(CurrentAmmoCount);
+			MaxAmmo->SetText(MaxAmmoAmount);
+		}
+	}
+}
+
 void UUIWeaponSlot::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -59,5 +79,12 @@ void UUIWeaponSlot::NativeConstruct()
 		{Fourth_ON, FourthBGImage},
 		{Fifth_ON, FifthBGImage}
 	};
+}
+
+void UUIWeaponSlot::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	SetAmmoText();
 }
 
