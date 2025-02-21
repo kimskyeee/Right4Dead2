@@ -16,7 +16,14 @@ public class Right4Dead : ModuleRules
 			"Right4Dead/Public/Survivor",
 			"Right4Dead/Public/Zombies",
 			"Right4Dead/Public/Zombies/CommonZombie",
-			"Right4Dead/Public/Zombies/Tank",
+			"Right4Dead/Public/Zombies/SpecialZombies/Boomer",
+			"Right4Dead/Public/Zombies/SpecialZombies/Charger",
+			"Right4Dead/Public/Zombies/SpecialZombies/Hunter",
+			"Right4Dead/Public/Zombies/SpecialZombies/Jockey",
+			"Right4Dead/Public/Zombies/SpecialZombies/Smoker",
+			"Right4Dead/Public/Zombies/SpecialZombies/Spitter",
+			"Right4Dead/Public/Zombies/SpecialZombies/Tank",
+			"Right4Dead/Public/Zombies/SpecialZombies/Witch",
 			"Right4Dead/Public/Common",
 			"Right4Dead/Public/Common/UI"
 		});

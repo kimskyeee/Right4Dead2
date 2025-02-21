@@ -1,27 +1,27 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Zombies/Smoker.h"
+#include "Hunter.h"
 
 #include "Right4DeadGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
-ASmoker::ASmoker()
+AHunter::AHunter()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	Hp = 250.0f;
-	Speed = 210.0f;
+	Speed = 250.0f;
 }
 
 // Called when the game starts or when spawned
-void ASmoker::BeginPlay()
+void AHunter::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void ASmoker::InitDifficulty()
+void AHunter::InitDifficulty()
 {
 	// GameInstance 가져오기
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
@@ -41,7 +41,7 @@ void ASmoker::InitDifficulty()
 }
 
 // Called every frame
-void ASmoker::Tick(float DeltaTime)
+void AHunter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
