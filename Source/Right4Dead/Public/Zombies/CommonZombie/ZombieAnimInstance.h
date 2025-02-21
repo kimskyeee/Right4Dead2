@@ -7,6 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "ZombieAnimInstance.generated.h"
 
+class UCommonZombieFSM;
 enum class EZombieState : uint8;
 class UCharacterMovementComponent;
 /**
@@ -23,12 +24,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 	TObjectPtr<ACommonZombie> Zombie = nullptr;
-	UPROPERTY(BlueprintReadOnly, Category = "References")
-	TObjectPtr<UCharacterMovementComponent> MovementComponent = nullptr;
-	UPROPERTY(BlueprintReadOnly, Category = "References")
-	TObjectPtr<USkeletalMeshComponent> SkeletalMeshComponent = nullptr;
-	UPROPERTY(BlueprintReadOnly, Category = "References")
-	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
 	UPROPERTY(BlueprintReadOnly)
 	uint8 AnimSeed = 0;
 	UPROPERTY(BlueprintReadOnly)

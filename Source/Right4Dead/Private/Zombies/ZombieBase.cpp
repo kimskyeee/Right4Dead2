@@ -2,13 +2,29 @@
 
 #include "R4DHelper.h"
 #include "ShoveDamageType.h"
+#include "ZombieFSM.h"
 #include "Engine/DamageEvents.h"
-#include "Engine/StaticMeshActor.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
+
+void AZombieBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	if (AAIController* NewAIController = Cast<AAIController>(NewController))
+	{
+		AIController = NewAIController;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Possessed By Controller. but, not a AI Controller"));
+	}
+}
 
 AZombieBase::AZombieBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	AIControllerClass = AAIController::StaticClass();
 	FinalDamage = 0;
 	Hp = 0;
 	Speed = 0;
@@ -20,10 +36,26 @@ AZombieBase::AZombieBase()
 	OnTakeRadialDamage.AddDynamic(this, &AZombieBase::OnTakeRadialDamageHandler);
 }
 
+UAnimInstance* AZombieBase::GetAnimInstance() const
+{
+	return GetMesh()->GetAnimInstance();
+}
+
+AAIController* AZombieBase::GetAIController() const
+{
+	return AIController;
+}
+
+AActor* AZombieBase::GetChaseTarget() const
+{
+	return GetZombieFsm()->GetChaseTarget();
+}
+
 void AZombieBase::BeginPlay()
 {
 	Super::BeginPlay();
 	InitDifficulty();
+	AnimInstance = GetMesh()->GetAnimInstance();
 }
 
 float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -94,6 +126,11 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 	FinalDamage = Damage;
 }
 
+UZombieFSM* AZombieBase::GetZombieFsm() const
+{
+	return ASDASDASD;
+}
+
 void AZombieBase::HandleShove(const FVector& FromLocation)
 {
 	PRINT_CALLINFO();
@@ -114,4 +151,47 @@ void AZombieBase::OnDamaged(const float Damage)
 void AZombieBase::OnDie()
 {
 	PRINT_CALLINFO();
+}
+
+void AZombieBase::StartClimbing(const FTransform& Destination)
+{
+	AIController->GetPathFollowingComponent()->PauseMove();
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	bClimbing = true;
+	ClimbDestination = Destination;
+	SetActorRotation(Destination.Rotator());
+}
+
+void AZombieBase::EndClimbing()
+{
+	if (false == bClimbing)
+	{
+		return;
+	}
+	bClimbing = false;
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	AIController->GetPathFollowingComponent()->ResumeMove();
+	ClimbDestination = FTransform::Identity;
+}
+
+void AZombieBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if (bClimbing)
+	{
+		const FVector P0 = GetActorLocation();
+		const bool bIsNearZ = GetCharacterMovement()->GetFeetLocation().Z >= ClimbDestination.GetLocation().Z;
+		if (false == bIsNearZ) // 아직 덜 올라왔다면
+		{
+			// Z축으로만 오른다
+			const FVector P = P0 + FVector(0, 0, 1) * Speed * DeltaSeconds;
+			SetActorLocation(P);
+		}
+		else
+		{
+			const FVector P = P0 + GetActorForwardVector() * Speed * DeltaSeconds;
+			SetActorLocation(P);
+		}
+	}
 }

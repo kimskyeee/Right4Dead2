@@ -5,6 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "ZombieFSM.generated.h"
 
+class AZombieBase;
 class UZombieAnimInstance;
 class UCharacterMovementComponent;
 class ACommonZombie;
@@ -18,7 +19,7 @@ enum class EZombieState : uint8
 	EZS_Dead
 };
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(Abstract)
 class RIGHT4DEAD_API UZombieFSM : public UActorComponent
 {
 	GENERATED_BODY()
@@ -28,66 +29,95 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+							   FActorComponentTickFunction* ThisTickFunction) override;
+	void SetState(const EZombieState NewState);
 
-public:
+	/*
+	 * Owner References
+	*/
 	UPROPERTY()
-	TObjectPtr<ACommonZombie> Owner = nullptr;
+	TObjectPtr<AZombieBase> Owner = nullptr;
 	UPROPERTY()
 	TObjectPtr<UCharacterMovementComponent> Movement = nullptr;
 	UPROPERTY()
-	TObjectPtr<AZombieAIController> ZombieAI = nullptr;
+	TObjectPtr<AAIController> AIController = nullptr;
 	UPROPERTY()
-	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
+	TObjectPtr<UAnimInstance> AnimInstance = nullptr;
+
+	/*
+	 * Data
+	*/
+	// 인식 거리
+	UPROPERTY(EditAnywhere, Category="Debugging|Data")
+	float Awareness = 1500.0f;
+
+	/*
+	 * Variables
+	*/
 	UPROPERTY(EditAnywhere, Category="Debugging")
 	EZombieState State = EZombieState::EZS_Idle;
 	UPROPERTY(EditAnywhere, Category="Debugging")
 	TObjectPtr<AActor> ChaseTarget = nullptr;
-	
-	// Idle 상태 지속 시간
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Idle")
-	float CurrentIdleTime = 0.0f;
-	// 타겟 탐색 간격
-	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
-	float SearchInterval = 1.0f;
+	// 추격 대상과의 거리
+    UPROPERTY(VisibleInstanceOnly, Category="Debugging")
+    float Distance = 0.0f;
+
+	/*
+	 * State : Idle
+	*/
+	UPROPERTY(EditInstanceOnly, Category="Debugging|Idle")
+	bool bVerboseSearch = false;
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	bool bEnableSearch = true;
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Idle")
+	float CurrentIdleTime = 0.0f;
+	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
+	float SearchInterval = 1.0f;
+	virtual void StartIdle();
+	virtual void TickIdle();
+	virtual void EndIdle();
 
-	// 추격 관련 디버깅 여부
-	UPROPERTY(EditInstanceOnly, Category="Debugging|Chase")
-	bool bVerboseChase = false;
-	// 인식 거리
-	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
-	float Awareness = 1500.0f;
-	// 추격 대상과의 거리
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
-	float Distance = 0.0f;
-	// 추격 지속 시간
+	/*
+	 * State : Chase
+	*/
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Chase")
 	float CurrentChaseTime = 0.0f;
-	// 추격 중단 시간
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
 	float StopChaseTime = 20.0f;
+	virtual void StartChase();
+	virtual void TickChase();
+	virtual void EndChase();
 
-	// 공격 범위
+	/*
+	 * State : Attack
+	*/
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float AttackRange = 150.0f;
-	// 공격 지속 시간
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Attack")
 	float CurrentAttackTime = 0.0f;
-	// 공격 간격
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float AttackInterval = 2.0f;
+	virtual void StartAttack();
+	virtual void TickAttack();
+	virtual void EndAttack();
 
-	void SetState(const EZombieState NewState);
-	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
-	void TickIdle();
-	void TickChase();
-	void TickAttack();
-	void TickDead();
+	/*
+	 * State : Dead
+	*/
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Dead")
+	float CurrentDeadTime = 0.0f;
+	virtual void StartDead();
+	virtual void TickDead();
+	virtual void EndDead();
 
-	void HandleShove(const FVector& FromLocation);
-	void HandleDamage();
-	void HandleDie();
+public:
+	void Init();
+	AActor* GetChaseTarget() const;
+	EZombieState GetState() const;
+	void SetAIController(AAIController* InAIController);
+	virtual void HandleShove(const FVector& FromLocation);
+	virtual void HandleDamage();
+	virtual void HandleDie();
+	void SetChaseTarget(class AActor* Actor);
 };

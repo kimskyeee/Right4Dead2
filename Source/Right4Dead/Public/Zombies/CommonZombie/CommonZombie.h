@@ -1,9 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ZombieAnimInstance.h"
 #include "ZombieBase.h"
 #include "CommonZombie.generated.h"
 
+class UCommonZombieFSM;
 class UZombieAnimInstance;
 class UZombieFSM;
 class AZombieAIController;
@@ -23,33 +25,24 @@ private:
 protected:
 	float HitDamageRatio = 2;
 	float AttackDamage = 1;
-	FTransform ClimbDestination = FTransform::Identity;
 	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void InitDifficulty() override;
+	virtual void CreateZombieFsm() override;
 
 public:
-	UPROPERTY()
-	TObjectPtr<AZombieAIController> AIController = nullptr;
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UZombieFSM> ZombieFSM = nullptr;
-	UPROPERTY()
-	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
-	
-	bool bClimbing = false;
-	void StartClimbing(const FTransform& Destination);
-	void EndClimbing();
-	
-	
-	void TriggerAttack();
+	UPROPERTY(VisibleAnywhere, Category="Debugging|References")
+	TObjectPtr<UZombieAnimInstance> AnimInstance = nullptr;
+	UPROPERTY(VisibleAnywhere, Category="Debugging|References")
+	TObjectPtr<UCommonZombieFSM> ZombieFSM = nullptr;
 
-	// Called every frame
+	virtual void TriggerAttack() override;
+
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnDamaged(float Damage) override;
 	virtual void OnDie() override;
-	
-	
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMesh> HeadMesh = nullptr;
 	UPROPERTY(VisibleAnywhere)

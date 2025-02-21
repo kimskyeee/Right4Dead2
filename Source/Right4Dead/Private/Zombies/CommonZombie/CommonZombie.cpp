@@ -3,6 +3,7 @@
 
 #include "CommonZombie.h"
 
+#include "CommonZombieFSM.h"
 #include "R4DHelper.h"
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
@@ -24,6 +25,8 @@ ACommonZombie::ACommonZombie()
 	PrimaryActorTick.bCanEverTick = true;
 	Hp = 50.0f;
 	Speed = 250.0f;
+	
+	ACommonZombie::CreateZombieFsm();
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
 	if (SkeletalMeshObj.Succeeded())
 	{
@@ -36,9 +39,7 @@ ACommonZombie::ACommonZombie()
 			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
 		}
 	}
-	ZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
-	AIControllerClass = AZombieAIController::StaticClass();
-
+	
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	Movement->GravityScale = 1.75f;
 	Movement->MaxAcceleration = 1500.0f;
@@ -82,10 +83,10 @@ void ACommonZombie::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	AIController = Cast<AZombieAIController>(GetController());
+	AIController = Cast<AAIController>(GetController());
 	if (nullptr == AIController)
 	{
-		if (nullptr == (AIController = Cast<AZombieAIController>(GetWorld()->SpawnActor(AIControllerClass))))
+		if (nullptr == (AIController = Cast<AAIController>(GetWorld()->SpawnActor(AIControllerClass))))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
 		}
@@ -94,13 +95,11 @@ void ACommonZombie::BeginPlay()
 			AIController->Possess(this);
 		}
 	}
-	ZombieFSM->ZombieAI = AIController;
 	
-	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
-	ZombieFSM->ZombieAnimInstance = ZombieAnimInstance;
-	if (nullptr == ZombieAnimInstance)
+	AnimInstance = Cast<UZombieAnimInstance>(GetAnimInstance());
+	if (nullptr == AnimInstance)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed Set ZombieAnimInstance"));
+		UE_LOG(LogTemp, Error, TEXT("Failed Set CommonZombieAnimInstance"));
 	}
 }
 
@@ -135,51 +134,13 @@ void ACommonZombie::InitDifficulty()
 void ACommonZombie::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (bClimbing)
-	{
-		const FVector P0 = GetActorLocation();
-		const bool bIsNearZ = GetCharacterMovement()->GetFeetLocation().Z >= ClimbDestination.GetLocation().Z;
-		if (false == bIsNearZ) // 아직 덜 올라왔다면
-		{
-			// Z축으로만 오른다
-			const FVector P = P0 + FVector(0, 0, 1) * Speed * DeltaTime;
-			SetActorLocation(P);
-		}
-		else
-		{
-			const FVector P = P0 + GetActorForwardVector() * Speed * DeltaTime;
-			SetActorLocation(P);
-		}
-	}
-}
-
-void ACommonZombie::StartClimbing(const FTransform& Destination)
-{
-	AIController->GetPathFollowingComponent()->PauseMove();
-	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-	bClimbing = true;
-	ClimbDestination = Destination;
-	SetActorRotation(Destination.Rotator());
-}
-
-void ACommonZombie::EndClimbing()
-{
-	if (false == bClimbing)
-	{
-		return;
-	}
-	bClimbing = false;
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-	AIController->GetPathFollowingComponent()->ResumeMove();
-	ClimbDestination = FTransform::Identity;
 }
 
 void ACommonZombie::TriggerAttack()
 {
 	PRINT_CALLINFO();
-	ZombieAnimInstance->PlayAttack();
-	if (ASurvivor* Survivor = Cast<ASurvivor>(ZombieFSM->ChaseTarget))
+	AnimInstance->PlayAttack();
+	if (ASurvivor* Survivor = Cast<ASurvivor>(ZombieFSM->GetChaseTarget()))
 	{
 		Survivor->OnDamaged(AttackDamage);
 	}
@@ -252,7 +213,12 @@ void ACommonZombie::OnDie()
 	GetCharacterMovement()->bUseRVOAvoidance = false;
 	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
 	GetMesh()->SetCollisionProfileName("NoCollision");
-	ZombieFSM->HandleDie();
+}
+
+void ACommonZombie::CreateZombieFsm()
+{
+	ZombieFSM = CreateDefaultSubobject<UCommonZombieFSM>(TEXT("CommonZombieFSM"));
+	UE_LOG(LogTemp, Warning, TEXT("CreateZombieFsm : %hs"), (ZombieFSM) ? "Valid" : "Nullptr");
 }
 
 void ACommonZombie::ForceDie()

@@ -19,7 +19,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	TSubclassOf<ACommonZombie> ZombieFactory;
+	TSubclassOf<AZombieBase> ZombieFactory;
 	virtual void Tick(float DeltaTime) override;
 	UFUNCTION(CallInEditor, Category = "Debugging")
 	void SpawnCommonZombie() const;

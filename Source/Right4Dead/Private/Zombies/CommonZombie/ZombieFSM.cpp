@@ -2,7 +2,6 @@
 
 #include "CommonZombie.h"
 #include "Survivor.h"
-#include "ZombieAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 
@@ -11,59 +10,24 @@ UZombieFSM::UZombieFSM()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+/*
+ * Protected
+*/
 void UZombieFSM::BeginPlay()
 {
 	Super::BeginPlay();
 	Owner = Cast<ACommonZombie>(GetOwner());
 	Movement = Owner->GetCharacterMovement();
-	
-	// ZombieAIController와 ZombieAnimInstance는 Owner에서 주입
-	// ZombieAI = Cast<AZombieAIController>(Owner->GetController());
-	// ZombieAnimInstance = (Owner->ZombieAnimInstance);
+	AnimInstance = Owner->GetAnimInstance();
+	AIController = Owner->GetAIController();
+	if (Owner == nullptr) UE_LOG(LogTemp, Warning, TEXT("Owner nullptr"));
+	if (Movement == nullptr) UE_LOG(LogTemp, Warning, TEXT("Movement nullptr"));
+	if (AnimInstance == nullptr) UE_LOG(LogTemp, Warning, TEXT("AnimInstance nullptr"));
+	if (AIController == nullptr) UE_LOG(LogTemp, Warning, TEXT("AIController nullptr"));
 	
 	// Verbose 세팅은 인스턴스에서만 껏다 켯다 할 수 있도록 함
-	bVerboseChase = false;
+	bVerboseSearch = false;
 }
-
-void UZombieFSM::SetState(const EZombieState NewState)
-{
-	// 기존 상태에 따라 정리 작업
-	switch (State)
-	{
-	case EZombieState::EZS_Idle:
-		CurrentIdleTime = 0.0f;
-		break;
-	case EZombieState::EZS_Chase:
-		CurrentChaseTime = 0.0f;
-		break;
-	case EZombieState::EZS_Attack:
-		CurrentAttackTime = 0.0f;
-		break;
-	case EZombieState::EZS_Dead:
-		break;
-	}
-
-	// 새로운 상태에 따른 초기화 작업
-	switch (NewState)
-	{
-	case EZombieState::EZS_Idle:
-		ChaseTarget = nullptr;
-		CurrentIdleTime = 0.0f;
-		break;
-	case EZombieState::EZS_Chase:
-		CurrentChaseTime = 0.0f;
-		break;
-	case EZombieState::EZS_Attack:
-		CurrentAttackTime = AttackInterval;
-		break;
-	case EZombieState::EZS_Dead:
-		ChaseTarget = nullptr;
-		break;
-	}
-	Distance = 0.0f;
-	State = NewState;
-}
-
 void UZombieFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -93,7 +57,52 @@ void UZombieFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 		break;
 	}
 }
+void UZombieFSM::SetState(const EZombieState NewState)
+{
+	// 기존 상태에 따라 정리 작업
+	switch (State)
+	{
+	case EZombieState::EZS_Idle:
+		EndIdle();
+		break;
+	case EZombieState::EZS_Chase:
+		EndChase();
+		break;
+	case EZombieState::EZS_Attack:
+		EndAttack();
+		break;
+	case EZombieState::EZS_Dead:
+		EndDead();
+		break;
+	}
 
+	// 새로운 상태에 따른 초기화 작업
+	switch (NewState)
+	{
+	case EZombieState::EZS_Idle:
+		StartIdle();
+		break;
+	case EZombieState::EZS_Chase:
+		StartChase();
+		break;
+	case EZombieState::EZS_Attack:
+		StartAttack();
+		break;
+	case EZombieState::EZS_Dead:
+		StartDead();
+		break;
+	}
+	Distance = 0.0f;
+	State = NewState;
+}
+
+#pragma region Idle
+void UZombieFSM::StartIdle()
+{
+	ChaseTarget = nullptr;
+	CurrentIdleTime = 0.0f;
+	AIController->StopMovement();
+}
 void UZombieFSM::TickIdle()
 {
 	if (ChaseTarget)
@@ -119,7 +128,7 @@ void UZombieFSM::TickIdle()
 				UEngineTypes::ConvertToTraceType(ECC_Pawn),
 				false,
 				ActorsToIgnore,
-				(bVerboseChase) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+				(bVerboseSearch) ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
 				OutHits,
 				true
 			);
@@ -137,7 +146,17 @@ void UZombieFSM::TickIdle()
 		}
 	}
 }
+void UZombieFSM::EndIdle()
+{
+	CurrentIdleTime = 0.0f;
+}
+#pragma endregion Idle
 
+#pragma region Chase
+void UZombieFSM::StartChase()
+{
+	CurrentChaseTime = 0.0f;
+}
 void UZombieFSM::TickChase()
 {
 	if (nullptr == ChaseTarget)
@@ -149,7 +168,6 @@ void UZombieFSM::TickChase()
 	CurrentChaseTime += GetWorld()->GetDeltaSeconds();
 	if (CurrentChaseTime > StopChaseTime)
 	{
-		ZombieAI->StopMovement();
 		SetState(EZombieState::EZS_Idle);
 		return;
 	}
@@ -162,11 +180,11 @@ void UZombieFSM::TickChase()
 	}
 	else
 	{
-		if (ZombieAI)
+		if (AIController)
 		{
-			if (ZombieAI->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
+			if (AIController->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
 			{
-				ZombieAI->MoveToActor(ChaseTarget);
+				AIController->MoveToActor(ChaseTarget);
 			}
 		}
 	}
@@ -177,7 +195,17 @@ void UZombieFSM::TickChase()
 		CurrentChaseTime = 0.0f;
 	}
 }
+void UZombieFSM::EndChase()
+{
+	CurrentChaseTime = 0.0f;
+}
+#pragma endregion Chase
 
+#pragma region Attack
+void UZombieFSM::StartAttack()
+{
+	CurrentAttackTime = AttackInterval;
+}
 void UZombieFSM::TickAttack()
 {
 	if (nullptr == ChaseTarget)
@@ -201,14 +229,56 @@ void UZombieFSM::TickAttack()
 		return;
 	}
 }
+void UZombieFSM::EndAttack()
+{
+	CurrentAttackTime = 0.0f;
+}
+#pragma endregion Attack
 
+#pragma region Dead
+void UZombieFSM::StartDead()
+{
+	ChaseTarget = nullptr;
+	CurrentDeadTime = 0.0f;
+	AIController->StopMovement();
+}
 void UZombieFSM::TickDead()
 {
 }
+void UZombieFSM::EndDead()
+{
+}
+#pragma endregion Dead
 
+/*
+ * Public
+*/
+void UZombieFSM::Init()
+{
+	Owner = Cast<AZombieBase>(GetOwner());
+	if (Owner)
+	{
+		Movement = Owner->GetCharacterMovement();
+	}
+}
+
+AActor* UZombieFSM::GetChaseTarget() const
+{
+	return ChaseTarget;
+}
+
+EZombieState UZombieFSM::GetState() const
+{
+	return State;
+}
+
+void UZombieFSM::SetAIController(AAIController* InAIController)
+{
+	AIController = InAIController;
+}
 void UZombieFSM::HandleShove(const FVector& FromLocation)
 {
-	if (ZombieAnimInstance)
+	if (AnimInstance)
 	{
 		
 		const FVector LocationA = Owner->GetActorLocation();
@@ -235,21 +305,25 @@ void UZombieFSM::HandleShove(const FVector& FromLocation)
 		// -180 ~ -135 / 135 ~ 180 : 좀비가 뒤에서 밀치기를 맞았다 (앞으로 밀리는 애니메이션)
 		// -135 ~ -45 : 좀비가 왼쪽에서 밀치기를 맞았다 (오른쪽으로 밀리는 애니메이션)
 		// 추후 C++에서 분기를 나눌 예정
-		ZombieAnimInstance->PlayKnockBack(Theta);
+		// TODO:
+		// CommonZombieAnimInstance->PlayKnockBack(Theta);
 	}
 
 	// 상태 관련 처리
 }
-
 void UZombieFSM::HandleDamage()
 {
 	// TODO: 방향, 종류에 따라 맞는 애니메이션 분기
-	// ZombieAnimInstance->PlayDamage();
+	// CommonZombieAnimInstance->PlayDamage();
 }
-
 void UZombieFSM::HandleDie()
 {
 	// TODO: 방향에 따라 죽는 애니메이션 분기
-	// ZombieAnimInstance->PlayDie();
+	// CommonZombieAnimInstance->PlayDie();
 	SetState(EZombieState::EZS_Dead);
+}
+
+void UZombieFSM::SetChaseTarget(class AActor* Actor)
+{
+	ChaseTarget = Actor;
 }

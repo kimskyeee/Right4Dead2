@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "ZombieAIController.generated.h"
 
+class AZombieBase;
 class ACommonZombie;
 
 UCLASS()
@@ -20,7 +21,7 @@ public:
 protected:
 	
 public:
-	TObjectPtr<ACommonZombie> Zombie = nullptr;
+	TObjectPtr<AZombieBase> Zombie = nullptr;
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 };

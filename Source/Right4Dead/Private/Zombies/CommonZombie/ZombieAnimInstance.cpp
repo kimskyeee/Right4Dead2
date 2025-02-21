@@ -6,17 +6,13 @@
 #include "CommonZombie.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Right4Dead/Right4Dead.h"
 
 void UZombieAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
+	PRINT_CALLINFO();
 	Zombie = Cast<ACommonZombie>(GetOwningActor());
-	if (Zombie)
-	{
-		ZombieFSM = Zombie->ZombieFSM;
-		MovementComponent = Zombie->GetCharacterMovement();
-		SkeletalMeshComponent = Zombie->GetMesh();
-	}
 	AnimSeed = UKismetMathLibrary::RandomIntegerInRange(MIN_uint8, MAX_uint8);
 }
 
@@ -25,10 +21,7 @@ void UZombieAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	if (Zombie)
 	{
-		if (ZombieFSM)
-		{
-			ZombieState = ZombieFSM->State;
-		}
+		ZombieState = Zombie->GetState();
 		
 		if (MovementComponent)
 		{
