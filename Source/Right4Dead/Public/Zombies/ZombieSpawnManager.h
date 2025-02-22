@@ -28,6 +28,8 @@ public:
 	int NumOfHorde = 30;
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
 	TArray<AZombieSpawnPoint*> SpawnPoints;
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
+    TArray<ACommonZombie*> CommonZombies;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

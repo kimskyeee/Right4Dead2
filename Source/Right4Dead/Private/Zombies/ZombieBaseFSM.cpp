@@ -100,7 +100,7 @@ void UZombieBaseFSM::TickIdle()
 	if (CurrentIdleTime > SearchInterval)
 	{
 		CurrentIdleTime = 0;
-		if (bEnableSearch)
+		if (bEnableIdleSearch)
 		{
 			TArray<AActor*> ActorsToIgnore;
 			ActorsToIgnore.Add(Owner); // 자기 자신은 검사에서 제외

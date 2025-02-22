@@ -25,6 +25,12 @@ void AZombieSpawnManager::BeginPlay()
 	{
 		SpawnPoints.Add(Cast<AZombieSpawnPoint>(Actor));
 	}
+
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACommonZombie::StaticClass(), Actors);
+	for (auto* Actor : Actors)
+	{
+		CommonZombies.Add(Cast<ACommonZombie>(Actor));
+	}
 }
 
 // Called every frame

@@ -13,8 +13,8 @@ class RIGHT4DEAD_API USpecialZombieBaseFSM : public UZombieBaseFSM
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
 	USpecialZombieBaseFSM();
+	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float SpecialAttackRange = 850.0f;

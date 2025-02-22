@@ -53,7 +53,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	float SearchInterval = 1.0f;
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
-	bool bEnableSearch = true;
+	bool bEnableIdleSearch = true;
 	UPROPERTY(EditInstanceOnly, Category="Debugging|Idle")
 	bool bVerboseSearch = false;
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
