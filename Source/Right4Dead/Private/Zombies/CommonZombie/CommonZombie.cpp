@@ -33,7 +33,8 @@ ACommonZombie::ACommonZombie()
         }
 	}
 	
-	ZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
+	CommonZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
+	ZombieFSM = CommonZombieFSM;
 
 	const ConstructorHelpers::FObjectFinder<UStaticMesh> HeadObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Head.SK_Mannequin_Head'"));
 	const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Left.SK_Mannequin_Arm_Left'"));
@@ -155,4 +156,9 @@ float ACommonZombie::TakeDamage(float DamageAmount, struct FDamageEvent const& D
 	}
 
 	return Ret;
+}
+
+void ACommonZombie::HandlePipeBombBeep(AActor* PipeBombActor) const
+{
+	CommonZombieFSM->HandlePipeBombBeep(PipeBombActor);
 }

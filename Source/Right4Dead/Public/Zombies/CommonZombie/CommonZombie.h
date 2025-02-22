@@ -21,6 +21,9 @@ protected:
 
 public:
 	virtual void OnDie() override;
+
+	UPROPERTY()
+	UZombieFSM* CommonZombieFSM;
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMesh> HeadMesh = nullptr;
@@ -32,7 +35,10 @@ public:
 	TObjectPtr<UStaticMesh> LegLeftMesh = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMesh> LegRightMesh = nullptr;
+	
 	void TriggerDismemberment(const FPointDamageEvent* PointDamageEvent) const;
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	void HandlePipeBombBeep(AActor* PipeBombActor) const;
 };

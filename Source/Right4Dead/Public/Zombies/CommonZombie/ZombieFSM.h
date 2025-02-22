@@ -59,4 +59,7 @@ public:
 	virtual void HandleShove(const FVector& FromLocation) override;
 	virtual void HandleDamage() override;
 	virtual void HandleDie() override;
+	
+	
+	void HandlePipeBombBeep(AActor* PipeBombActor);
 };

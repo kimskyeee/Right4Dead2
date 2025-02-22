@@ -165,9 +165,9 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 void AZombieBase::HandleNormalAttack()
 {
 	ZombieAnimInstance->PlayAttack();
-	if (ASurvivor* Survivor = Cast<ASurvivor>(ZombieFSM->ChaseTarget))
+	if (IActorBase* Actor = Cast<IActorBase>(ZombieFSM->ChaseTarget))
 	{
-		Survivor->OnDamaged(NormalAttackDamage);
+		Actor->OnDamaged(NormalAttackDamage);
 	}
 }
 
