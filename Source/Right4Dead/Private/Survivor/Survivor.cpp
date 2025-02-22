@@ -459,7 +459,7 @@ void ASurvivor::PrimaryWeaponAttack()
 		FVector End = Start + (FirstCam->GetActorForwardVector() * 30000);
 		    
 		const float DebugLineLifetime = 2.0f;
-		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Camera, Params);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel6, Params);
 			
 		// 디버그 라인 그리기
 		if (bDebugPlay)
@@ -596,7 +596,7 @@ void ASurvivor::Sweep()
     Params.AddIgnoredActor(this);
 
     // SweepMultiByChannel 수행
-    const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, CameraRotation.Quaternion(), ECC_Camera, BoxShape, Params);
+    const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, CameraRotation.Quaternion(), ECC_GameTraceChannel6, BoxShape, Params);
 	// ->HitResults 배열에 충돌 결과들이 저장된다
 
 	if (bDebugPlay)
