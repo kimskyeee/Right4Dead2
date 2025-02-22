@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieBase.h"
+#include "SpecialZombieBase.h"
 #include "GameFramework/Actor.h"
 #include "Jockey.generated.h"
 
 UCLASS()
-class RIGHT4DEAD_API AJockey : public AZombieBase
+class RIGHT4DEAD_API AJockey : public ASpecialZombieBase
 {
 	GENERATED_BODY()
 	

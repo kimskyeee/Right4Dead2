@@ -11,11 +11,6 @@ ATank::ATank()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Hp = 3000.0f;
-	Speed = 210.0f;
-	PartDamageMultipliers.Legs = 1;
-	PartDamageMultipliers.Stomach = 1;
-	PartDamageMultipliers.Thorax = 1;
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/Zombie/Tank/Model/Tank.Tank'"));
 	if (SkeletalMeshObj.Succeeded())
@@ -29,6 +24,9 @@ ATank::ATank()
 			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
 		}
 	}
+
+	// SpecialZombieFSM = CreateDefaultSubobject<UTankFSM>(TEXT("SpecialZombieFSM"));
+    // ZombieFSM = SpecialZombieFSM;
 }
 
 // Called when the game starts or when spawned
@@ -39,7 +37,11 @@ void ATank::BeginPlay()
 
 void ATank::InitData()
 {
-	// GameInstance 가져오기
+	Speed = 210.0f;
+	PartDamageMultipliers.Legs = 1;
+	PartDamageMultipliers.Stomach = 1;
+	PartDamageMultipliers.Thorax = 1;
+	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
 	{
 		switch (GameInstance->GetDifficulty())

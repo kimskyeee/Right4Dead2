@@ -11,11 +11,9 @@ AWitch::AWitch()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Hp = 1000.0f;
-	Speed = 300.0f;
-	PartDamageMultipliers.Legs = 1;
-	PartDamageMultipliers.Stomach = 1;
-	PartDamageMultipliers.Thorax = 1;
+
+	// SpecialZombieFSM = CreateDefaultSubobject<UWitchFSM>(TEXT("SpecialZombieFSM"));
+	// ZombieFSM = SpecialZombieFSM;
 }
 
 // Called when the game starts or when spawned
@@ -26,7 +24,12 @@ void AWitch::BeginPlay()
 
 void AWitch::InitData()
 {
-	// GameInstance 가져오기
+	Hp = 1000.0f;
+	Speed = 300.0f;
+	PartDamageMultipliers.Legs = 1;
+	PartDamageMultipliers.Stomach = 1;
+	PartDamageMultipliers.Thorax = 1;
+	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
 	{
 		switch (GameInstance->GetDifficulty())

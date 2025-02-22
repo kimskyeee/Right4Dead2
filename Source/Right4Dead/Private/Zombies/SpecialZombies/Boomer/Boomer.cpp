@@ -25,7 +25,8 @@ ABoomer::ABoomer()
 		}
 	}
 
-	ZombieFSM = CreateDefaultSubobject<UBoomerFSM>(TEXT("ZombieFSM"));
+	SpecialZombieFSM = CreateDefaultSubobject<UBoomerFSM>(TEXT("SpecialZombieFSM"));
+	ZombieFSM = SpecialZombieFSM;
 }
 
 void ABoomer::BeginPlay()
@@ -38,8 +39,8 @@ void ABoomer::InitData()
 	Hp = 50.0f;
 	Speed = 175.0f;
 	ZombieFSM->NormalAttackInterval = 1.0f;
-	ZombieFSM->SpecialAttackRange = 350.0f;
-	ZombieFSM->SpecialAttackInterval = 30.0f;
+	SpecialZombieFSM->SpecialAttackRange = 350.0f;
+	SpecialZombieFSM->SpecialAttackInterval = 30.0f;
 	// TODO: 담즙 지속 시간 (5초, 지속 중에 또 맞으면 1.5초 추가)
 	// TODO: 죽을 때 담즙 폭파 반경 (2.5 ~ 4m)
 	

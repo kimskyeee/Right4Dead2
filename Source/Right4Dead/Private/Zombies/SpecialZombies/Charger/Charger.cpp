@@ -11,14 +11,18 @@ ACharger::ACharger()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Hp = 600.0f;
-	Speed = 250.0f;
+	
+	// SpecialZombieFSM = CreateDefaultSubobject<UChargerFSM>(TEXT("SpecialZombieFSM"));
+	// ZombieFSM = SpecialZombieFSM;
 }
 
 // Called when the game starts or when spawned
 void ACharger::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	Hp = 600.0f;
+	Speed = 250.0f;
 }
 
 void ACharger::InitData()

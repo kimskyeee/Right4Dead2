@@ -148,31 +148,6 @@ void UZombieBaseFSM::TickChase()
 		SetState(EZombieState::EZS_Idle);
 		return;
 	}
-	
-	CurrentChaseTime += GetWorld()->GetDeltaSeconds();
-	if (CurrentChaseTime > StopChaseTime)
-	{
-		TriggerStopChase();
-		SetState(EZombieState::EZS_Idle);
-		return;
-	}
-
-	// 공격 범위 내에 있으면 공격한다.
-	if (Distance < NormalAttackRange)
-	{
-		SetState(EZombieState::EZS_Attack);
-		return;
-	}
-	else
-	{
-		TriggerStartChase(ChaseTarget);
-	}
-	
-	// 타겟이 인지 거리 내에 있으면 추적 지속 시간을 초기화 한다.
-	if (Distance < Awareness)
-	{
-		CurrentChaseTime = 0.0f;
-	}
 }
 void UZombieBaseFSM::EndChase()
 {
@@ -191,7 +166,7 @@ void UZombieBaseFSM::TriggerStopChase()
 #pragma region Attack
 void UZombieBaseFSM::StartAttack()
 {
-	CurrentAttackTime = NormalAttackInterval;	
+	CurrentAttackTime = NormalAttackInterval;
 }
 void UZombieBaseFSM::TickAttack()
 {

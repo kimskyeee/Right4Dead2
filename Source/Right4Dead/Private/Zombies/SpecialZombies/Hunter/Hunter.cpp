@@ -11,14 +11,18 @@ AHunter::AHunter()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Hp = 250.0f;
-	Speed = 250.0f;
+	
+	// SpecialZombieFSM = CreateDefaultSubobject<UHunterFSM>(TEXT("SpecialZombieFSM"));
+	// ZombieFSM = SpecialZombieFSM;
 }
 
 // Called when the game starts or when spawned
 void AHunter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	Hp = 250.0f;
+    	Speed = 250.0f;
 }
 
 void AHunter::InitData()

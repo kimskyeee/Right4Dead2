@@ -84,12 +84,6 @@ public:
 	float NormalAttackRange = 150.0f;
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
     float NormalAttackInterval = 2.0f;
-	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
-	bool bIsSpecial = false;
-	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
-	float SpecialAttackRange = 0.0f;
-	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
-	float SpecialAttackInterval = 99999.0f;
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Attack")
 	float CurrentAttackTime = 0.0f;
 	virtual void StartAttack();

@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieBaseFSM.h"
+#include "SpecialZombieBaseFSM.h"
 #include "SmokerFSM.generated.h"
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class RIGHT4DEAD_API USmokerFSM : public UZombieBaseFSM
+class RIGHT4DEAD_API USmokerFSM : public USpecialZombieBaseFSM
 {
 	GENERATED_BODY()
 

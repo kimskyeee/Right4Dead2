@@ -24,8 +24,9 @@ ASmoker::ASmoker()
 			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
 		}
 	}
-
-	ZombieFSM = CreateDefaultSubobject<USmokerFSM>(TEXT("ZombieFSM"));
+	
+	SpecialZombieFSM = CreateDefaultSubobject<USmokerFSM>(TEXT("SpecialZombieFSM"));
+	ZombieFSM = SpecialZombieFSM;
 }
 
 void ASmoker::BeginPlay()

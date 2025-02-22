@@ -24,8 +24,9 @@ ASpitter::ASpitter()
 			GetMesh()->SetAnimInstanceClass(AnimBlueprintClass.Class);
 		}
 	}
-
-	ZombieFSM = CreateDefaultSubobject<USpitterFSM>(TEXT("ZombieFSM"));
+	
+	SpecialZombieFSM = CreateDefaultSubobject<USpitterFSM>(TEXT("SpecialZombieFSM"));
+	ZombieFSM = SpecialZombieFSM;
 }
 
 void ASpitter::BeginPlay()

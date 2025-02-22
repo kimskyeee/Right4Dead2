@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieBase.h"
+#include "SpecialZombieBase.h"
 #include "GameFramework/Actor.h"
 #include "Spitter.generated.h"
 
 UCLASS()
-class RIGHT4DEAD_API ASpitter : public AZombieBase
+class RIGHT4DEAD_API ASpitter : public ASpecialZombieBase
 {
 	GENERATED_BODY()
 	

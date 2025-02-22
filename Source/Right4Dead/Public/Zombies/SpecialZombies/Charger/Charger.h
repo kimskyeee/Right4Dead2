@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieBase.h"
+#include "SpecialZombieBase.h"
 #include "GameFramework/Actor.h"
 #include "Charger.generated.h"
 
 UCLASS()
-class RIGHT4DEAD_API ACharger : public AZombieBase
+class RIGHT4DEAD_API ACharger : public ASpecialZombieBase
 {
 	GENERATED_BODY()
 	

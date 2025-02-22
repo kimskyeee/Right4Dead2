@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieBaseFSM.h"
+#include "SpecialZombieBaseFSM.h"
 #include "BoomerFSM.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class RIGHT4DEAD_API UBoomerFSM : public UZombieBaseFSM
+class RIGHT4DEAD_API UBoomerFSM : public USpecialZombieBaseFSM
 {
 	GENERATED_BODY()
 
