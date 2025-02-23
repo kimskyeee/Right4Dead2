@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZombieSpawnPoint.h"
 #include "GameFramework/Actor.h"
 #include "ZombieSpawnManager.generated.h"
 
+class ACommonZombie;
 class AZombieSpawnPoint;
 class ASurvivor;
 
@@ -36,4 +36,7 @@ public:
 
 	UFUNCTION(CallInEditor, Category="Debugging")
 	void CallHorde();
+	
+	UFUNCTION(CallInEditor, Category="Debugging")
+	void DisableTick();
 };

@@ -5,6 +5,7 @@
 
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
+#include "ZombieSpawnManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Right4Dead/Right4Dead.h"
 
@@ -35,7 +36,7 @@ void AZombieSpawnPoint::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AZombieSpawnPoint::SpawnCommonZombie() const
+void AZombieSpawnPoint::SpawnCommonZombie(AZombieSpawnManager* SpawnManager) const
 {
 	PRINT_CALLINFO();
 	if (UWorld* World = GetWorld())
@@ -47,6 +48,7 @@ void AZombieSpawnPoint::SpawnCommonZombie() const
 			if (auto* SpawnedZombie = World->SpawnActor<ACommonZombie>(ZombieFactory, GetActorLocation(), GetActorRotation()))
 			{
 				SpawnedZombie->ZombieFSM->ChaseTarget = UGameplayStatics::GetActorOfClass(World, ASurvivor::StaticClass());
+				SpawnManager->CommonZombies.Add(SpawnedZombie);
 			}
 		}
 		else

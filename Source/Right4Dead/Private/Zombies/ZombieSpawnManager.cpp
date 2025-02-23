@@ -3,6 +3,7 @@
 
 #include "ZombieSpawnManager.h"
 
+#include "ZombieBaseFSM.h"
 #include "ZombieSpawnPoint.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -47,9 +48,18 @@ void AZombieSpawnManager::CallHorde()
 		for (const auto* SpawnPoint : SpawnPoints)
 		{
 			if (--Rem < 0) break;
-			SpawnPoint->SpawnCommonZombie();
+			SpawnPoint->SpawnCommonZombie(this);
 		}
 	}
 
 	// UGameplayStatics::PlaySound2D();
+}
+
+void AZombieSpawnManager::DisableTick()
+{
+	for (auto* Zombie : CommonZombies)
+	{
+		Zombie->SetActorTickEnabled(false);
+		Zombie->ZombieFSM->SetComponentTickEnabled(false);
+	}
 }

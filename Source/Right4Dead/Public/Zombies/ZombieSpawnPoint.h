@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "ZombieSpawnPoint.generated.h"
 
+class AZombieSpawnManager;
+
 UCLASS()
 class RIGHT4DEAD_API AZombieSpawnPoint : public AActor
 {
@@ -22,5 +24,5 @@ public:
 	TSubclassOf<ACommonZombie> ZombieFactory;
 	virtual void Tick(float DeltaTime) override;
 	UFUNCTION(CallInEditor, Category = "Debugging")
-	void SpawnCommonZombie() const;
+	void SpawnCommonZombie(AZombieSpawnManager* SpawnManager) const;
 };

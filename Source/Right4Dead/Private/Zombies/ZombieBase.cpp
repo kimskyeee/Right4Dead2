@@ -15,6 +15,8 @@
 AZombieBase::AZombieBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	SetActorTickInterval(0.1f);
+	
 	AIControllerClass = ACommonZombieAIController::StaticClass();
 	FinalDamage = 0;
 	Hp = 0;
@@ -77,7 +79,6 @@ void AZombieBase::BeginPlay()
 void AZombieBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
 	if (bClimbing)
 	{
 		const FVector P0 = GetActorLocation();
@@ -162,6 +163,14 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 {
 	PRINT_CALLINFO();
 	FinalDamage = Damage;
+}
+
+void AZombieBase::HandleDie()
+{
+	ZombieFSM->SetComponentTickEnabled(false);
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	SetActorTickEnabled(false);
 }
 
 void AZombieBase::HandleNormalAttack()

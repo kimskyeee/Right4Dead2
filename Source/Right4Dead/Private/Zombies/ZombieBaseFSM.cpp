@@ -3,10 +3,12 @@
 #include "Survivor.h"
 #include "ZombieBase.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Right4Dead/Right4Dead.h"
 
 UZombieBaseFSM::UZombieBaseFSM()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	SetComponentTickInterval(0.1f);
 }
 void UZombieBaseFSM::BeginPlay()
 {
@@ -228,5 +230,5 @@ void UZombieBaseFSM::HandleDamage()
 }
 void UZombieBaseFSM::HandleDie()
 {
-	// ...
+	Owner->HandleDie();
 }

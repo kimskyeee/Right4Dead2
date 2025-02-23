@@ -29,3 +29,8 @@ void ACommonZombieAIController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ACommonZombieAIController::OnUnPossess()
+{
+	Super::OnUnPossess();
+	Destroy();
+}

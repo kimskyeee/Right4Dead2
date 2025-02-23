@@ -62,7 +62,8 @@ public:
 	UFUNCTION()
 	void OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, FVector Origin, const FHitResult& HitInfo,
 								   class AController* InstigatedBy, AActor* DamageCauser);
-	
+	void HandleDie();
+
 	float NormalAttackDamage = 1;
 	virtual void HandleNormalAttack();
 	virtual void HandleSpecialAttack();
