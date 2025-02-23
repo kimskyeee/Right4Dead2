@@ -110,25 +110,27 @@ void ACommonZombie::TriggerDismemberment(const FPointDamageEvent* PointDamageEve
 {
 	PRINT_CALLINFO();
 	const FName ParentBoneName = UR4DHelper::GetParentBone(GetMesh(), PointDamageEvent->HitInfo.BoneName);
+	const FVector ShotDirection = PointDamageEvent->ShotDirection.GetSafeNormal();
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *ShotDirection.ToString());
 	if (ParentBoneName == TEXT("neck_01"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("neck_01"), HeadMesh, FVector(1, 0, 0), 1000);
+		SpawnPartMesh(GetMesh(), TEXT("neck_01"), HeadMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("lowerarm_l"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("lowerarm_l"), ArmLeftMesh, FVector(1, 0, 0), 1000);
+		SpawnPartMesh(GetMesh(), TEXT("lowerarm_l"), ArmLeftMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("lowerarm_r"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("lowerarm_r"), ArmRightMesh, FVector(1, 0, 0), 1000);
+		SpawnPartMesh(GetMesh(), TEXT("lowerarm_r"), ArmRightMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("thigh_l"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("thigh_l"), LegLeftMesh, FVector(1, 0, 0), 1000);
+		SpawnPartMesh(GetMesh(), TEXT("thigh_l"), LegLeftMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("thigh_r"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, FVector(1, 0, 0), 1000);
+		SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, ShotDirection, 1500);
 	}
 }
 

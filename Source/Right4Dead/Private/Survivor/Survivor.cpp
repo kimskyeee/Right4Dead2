@@ -482,7 +482,8 @@ void ASurvivor::PrimaryWeaponAttack()
 		{
 			if (false == Hit.BoneName.IsNone())
 			{
-				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, GetActorLocation(), Hit, nullptr, nullptr, UDamageType::StaticClass());
+				const FVector HitFromDirection = (GetActorForwardVector() + FVector(0, 0, 0.5f)).GetSafeNormal();
+				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, HitFromDirection, Hit, nullptr, nullptr, UDamageType::StaticClass());
 			}
 		}
 
@@ -679,7 +680,7 @@ void ASurvivor::Sweep()
        		// 좀비는 포인트 데미지 주자
 	        FHitResult HR;
 	        HR.BoneName = HighPriorityBoneName;
-	        UGameplayStatics::ApplyPointDamage(Actor, 9999, GetActorLocation(), HR, nullptr, nullptr, nullptr);
+	        UGameplayStatics::ApplyPointDamage(Actor, 9999, GetActorRightVector() * -1.0f, HR, nullptr, nullptr, nullptr);
 
         	//공격을 맞췄다는 변수 true
 	        bIsAttacked = true;
