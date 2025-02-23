@@ -1,10 +1,12 @@
 ﻿#include "ZombieBase.h"
 
 #include "AIController.h"
+#include "CommonZombieAIController.h"
 #include "R4DHelper.h"
 #include "ShoveDamageType.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -13,7 +15,7 @@
 AZombieBase::AZombieBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	AIControllerClass = AAIController::StaticClass();
+	AIControllerClass = ACommonZombieAIController::StaticClass();
 	FinalDamage = 0;
 	Hp = 0;
 	Speed = 0;
@@ -55,10 +57,10 @@ void AZombieBase::ForceDie()
 void AZombieBase::BeginPlay()
 {
 	Super::BeginPlay();
-	AIController = Cast<AAIController>(GetController());
+	AIController = Cast<ACommonZombieAIController>(GetController());
 	if (nullptr == AIController)
 	{
-		if (nullptr == (AIController = Cast<AAIController>(GetWorld()->SpawnActor(AIControllerClass))))
+		if (nullptr == (AIController = Cast<ACommonZombieAIController>(GetWorld()->SpawnActor(AIControllerClass))))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed Set AI Controller"));
 		}
@@ -238,6 +240,11 @@ void AZombieBase::OnDamaged(const float Damage)
 void AZombieBase::OnDie()
 {
 	PRINT_CALLINFO();
+	AIController->UnPossess();
+	GetCharacterMovement()->bUseRVOAvoidance = false;
+	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
+	GetMesh()->SetCollisionProfileName("NoCollision");
+	ZombieFSM->HandleDie();
 }
 
 void AZombieBase::StartClimbing(const FTransform& Destination)

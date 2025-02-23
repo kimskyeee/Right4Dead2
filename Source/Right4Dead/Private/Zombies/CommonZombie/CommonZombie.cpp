@@ -7,12 +7,9 @@
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
 #include "ZombieFSM.h"
-#include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/StaticMeshActor.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
 // Sets default values
@@ -137,10 +134,6 @@ void ACommonZombie::TriggerDismemberment(const FPointDamageEvent* PointDamageEve
 void ACommonZombie::OnDie()
 {
 	Super::OnDie();
-	GetCharacterMovement()->bUseRVOAvoidance = false;
-	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
-	GetMesh()->SetCollisionProfileName("NoCollision");
-	ZombieFSM->HandleDie();
 }
 
 float ACommonZombie::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
