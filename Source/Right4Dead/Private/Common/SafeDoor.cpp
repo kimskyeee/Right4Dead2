@@ -12,7 +12,8 @@ ASafeDoor::ASafeDoor()
 
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
-
+	Root->SetRelativeScale3D(FVector(0.8f));
+	
 	Frame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Frame"));
 	const ConstructorHelpers::FObjectFinder<UStaticMesh> FrameMesh(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Environments/SafeDoor/prison_door_2_2.prison_door_2_2'"));
 	if (FrameMesh.Succeeded())
@@ -24,6 +25,7 @@ ASafeDoor::ASafeDoor()
 	Hinge = CreateDefaultSubobject<USceneComponent>(TEXT("Hinge"));
 	Hinge->SetupAttachment(GetRootComponent());
 	Hinge->SetRelativeLocation(FVector(0, -70, 0));
+	Hinge->SetRelativeRotation(FRotator(0, 90, 0));
 
 	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	const ConstructorHelpers::FObjectFinder<UStaticMesh> DoorMesh(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Environments/SafeDoor/prison_door_2_3.prison_door_2_3'"));
