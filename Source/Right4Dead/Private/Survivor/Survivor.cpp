@@ -23,6 +23,7 @@
 #include "UITakeDamage.h"
 #include "UIWeaponSlot.h"
 #include "WeaponBase.h"
+#include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "BehaviorTree/Tasks/BTTask_PlayAnimation.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/BoxComponent.h"
@@ -1135,17 +1136,18 @@ void ASurvivor::TraceForWeapon()
 		}
 		else if (HitItem)
 		{
-			
+			FocusedItem = HitItem;
 		}
 		else
 		{
 			FocusedWeapon = nullptr; // 무기가 아니면 초기화
+			FocusedItem = nullptr;
 		}
 	}
 	else
 	{
-		FocusedWeapon = nullptr; //감지된게 없으면 초기화
-		//UE_LOG(LogTemp, Warning, TEXT("아무것도 없음")); 
+		FocusedWeapon = nullptr;
+		FocusedItem = nullptr; //감지된게 없으면 초기화
 	}
 }
 
@@ -1156,6 +1158,29 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("주울 무기 발견!"));
 		PickUpWeapon(FocusedWeapon->WeaponData);
+	}
+	if (FocusedItem)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("주울 아이템 발견!"));
+	
+		//벨이면 사운드 재생후 문열림
+		if (FocusedItem->ItemData.ItemName == EItemList::Bell)
+		{
+			PlayBellSound();
+			
+		}
+		//코크면 줍고
+		//문이면 열린다
+		if (FocusedItem->ItemData.ItemName == EItemList::Door)
+		{
+			
+		}
+		//총을 가지고 있는데 총알이면 충전된다
+		if (PrimaryWeaponSlot.WeaponFactory && FocusedItem->ItemData.ItemName == EItemList::Bullet)
+		{
+			CurrentWeapon->WeaponData.CurrentAmmo = CurrentWeapon->WeaponData.MaxAmmo;
+			//CurrentWeapon->WeaponData.MaxAmmoAmount = 초기화 .... 미리 저장해야하나여
+		}
 	}
 }
 
