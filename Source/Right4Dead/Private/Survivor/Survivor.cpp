@@ -839,7 +839,7 @@ void ASurvivor::PipeBombTraceZombies()
 		TraceStart,
 		TraceEnd,
 		FQuat::Identity,
-		ECC_Visibility,
+		ECC_GameTraceChannel6,
 		SphereShape
 	);
 
@@ -877,7 +877,7 @@ void ASurvivor::ExplodeWeapon()
 		this,
 		GetWorld()->GetFirstPlayerController(),
 		true,
-		ECC_Visibility);
+		ECC_GameTraceChannel6);
 
 	//폭발 반경을 빨간색 구체로 표시 (2초간 유지)
 	if (bDebugPlay)

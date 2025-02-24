@@ -119,6 +119,7 @@ void UZombieFSM::HandlePipeBombBeep(AActor* PipeBombActor)
 {
 	if (EZombieState::EZS_Attack != State)
 	{
-		ChaseTarget = PipeBombActor; 
+		TriggerStopChase();
+		ChaseTarget = PipeBombActor;
 	}
 }
