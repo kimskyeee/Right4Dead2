@@ -13,6 +13,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "ItemBase.h"
+#include "SafeDoor.h"
 #include "ShoveDamageType.h"
 #include "SurvivorArmAnim.h"
 #include "UIAttackZombie.h"
@@ -32,6 +33,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Logging/LogTrace.h"
 #include "Right4Dead/Right4Dead.h"
+#include "Tests/AutomationCommon.h"
 
 // Sets default values
 ASurvivor::ASurvivor()
@@ -448,6 +450,11 @@ void ASurvivor::OnDamaged(float Damage)
 	{
 		pc->PlayerCameraManager->StartCameraShake(DamagedCameraShake);
 	}
+	// 위젯 애니메이션 재생
+	if (TakeDamageUI)
+	{
+		TakeDamageUI->PlayAnimationByName();
+	}
 	//체력깎기
 	CurrentHP -= Damage;
 	//0되면 ondie호출하기
@@ -455,16 +462,13 @@ void ASurvivor::OnDamaged(float Damage)
 	{
 		OnDie();
 	}
-	// 위젯 애니메이션 재생
-	if (TakeDamageUI)
-	{
-		TakeDamageUI->PlayAnimationByName();
-	}
 }
 
 void ASurvivor::OnDie()
 {
 	bIsDead = true;
+	SwitchCamera();
+	
 }
 
 void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
@@ -1162,25 +1166,8 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 	if (FocusedItem)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("주울 아이템 발견!"));
-	
-		//벨이면 사운드 재생후 문열림
-		if (FocusedItem->ItemData.ItemName == EItemList::Bell)
-		{
-			PlayBellSound();
-			
-		}
-		//코크면 줍고
-		//문이면 열린다
-		if (FocusedItem->ItemData.ItemName == EItemList::Door)
-		{
-			
-		}
-		//총을 가지고 있는데 총알이면 충전된다
-		if (PrimaryWeaponSlot.WeaponFactory && FocusedItem->ItemData.ItemName == EItemList::Bullet)
-		{
-			CurrentWeapon->WeaponData.CurrentAmmo = CurrentWeapon->WeaponData.MaxAmmo;
-			//CurrentWeapon->WeaponData.MaxAmmoAmount = 초기화 .... 미리 저장해야하나여
-		}
+
+		FocusedItem->Interaction();
 	}
 }
 

@@ -3,8 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EItemList.h"
-#include "FItemData.h"
 #include "GameFramework/Actor.h"
 #include "ItemBase.generated.h"
 
@@ -24,23 +22,11 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	//외관
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USphereComponent* Root;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class UStaticMeshComponent* ItemMesh;
 	
-	//Item 변수
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Item")
-	EItemList Name;
-	// 아이템 데이터 구조체
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-	FItemData ItemData;
-
 	//트레이싱 됐을때 overlay 재질 설정해주는 함수
 	TArray<UMaterialInterface*> OriginalMaterials;
 	void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial);
 	void ClearOverlayMaterial();
-
+	
+	virtual void Interaction();
 };

@@ -4,6 +4,7 @@
 #include "ItemBase.h"
 
 #include "Components/SphereComponent.h"
+#include "Right4Dead/Right4Dead.h"
 
 
 // Sets default values
@@ -18,17 +19,6 @@ void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//외관
-	Root=CreateDefaultSubobject<USphereComponent>(TEXT("Root"));
-	SetRootComponent(Root);
-	ItemMesh=CreateDefaultSubobject<UStaticMeshComponent>("ItemMesh");
-	ItemMesh->SetupAttachment(RootComponent);
-
-	//충돌체 설정
-	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Root->SetGenerateOverlapEvents(true);
-	//SKYE: 무기 프리셋 변경3
-	Root->SetCollisionProfileName(TEXT("WorldWeapon"));
 }
 
 // Called every frame
@@ -39,11 +29,16 @@ void AItemBase::Tick(float DeltaTime)
 
 void AItemBase::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
 {
-	ItemMesh->SetOverlayMaterial(MyOverlayMaterial);
+	///ItemMesh->SetOverlayMaterial(MyOverlayMaterial);
 }
 
 void AItemBase::ClearOverlayMaterial()
 {
-	ItemMesh->SetOverlayMaterial(nullptr);
+	// ItemMesh->SetOverlayMaterial(nullptr);
+}
+
+void AItemBase::Interaction()
+{
+	PRINT_CALLINFO();
 }
 

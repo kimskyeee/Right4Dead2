@@ -49,3 +49,8 @@ void ASafeDoor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ASafeDoor::Interaction()
+{
+	Super::Interaction();
+	InteractionDoor();
+}
