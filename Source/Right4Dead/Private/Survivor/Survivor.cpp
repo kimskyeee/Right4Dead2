@@ -756,19 +756,7 @@ void ASurvivor::ExplodeWeapon()
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(this);
 
-	/*데미지 적용
-	UGameplayStatics::ApplyRadialDamage(
-		this,                   // WorldContextObject
-		ExplosionDamage,       // BaseDamage
-		ExplosionLocation,     // Origin
-		ExplosionRadius,       // DamageRadius
-		ExplosionDamageType,   // DamageTypeClass
-		IgnoreActors,          // IgnoreActors
-		this,                  // DamageCauser (수류탄 자체)
-		GetInstigatorController(), // InstigatedByController (수류탄을 던진 플레이어의 컨트롤러)
-		false,                 // bDoFullDamage (false면 거리에 따라 데미지가 감소)
-		ECC_Visibility        // DamagePreventionChannel*/
-	
+	// 데미지 적용
 	UGameplayStatics::ApplyRadialDamage(
 		this,500.f,
 		CurrentWeapon->GetActorLocation(),
@@ -812,12 +800,19 @@ void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 		{
 			// 현재 총기에 남아있는 탄약과 필요한 탄약 계산
 			int32 NeededAmmo = CurrentWeapon->WeaponData.MaxAmmo - CurrentWeapon->WeaponData.CurrentAmmo;
+			// gpt의 정리...
 			int32 AmmoToLoad = FMath::Min(NeededAmmo, CurrentWeapon->WeaponData.MaxAmmoAmount);
 
 			// 장전된 탄 수 반영
 			CurrentWeapon->WeaponData.CurrentAmmo += AmmoToLoad;
 			CurrentWeapon->WeaponData.MaxAmmoAmount -= AmmoToLoad;
 		}
+	}
+
+	// 몽타주 플레이
+	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+	{
+		AnimInstance->Montage_Play(CurrentWeapon->WeaponData.WeaponReloadMontage);
 	}
 }
 
@@ -1039,10 +1034,6 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("주울 무기 발견!"));
 		PickUpWeapon(FocusedWeapon->WeaponData);
 	}
-	/*else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("주울 무기가 없습니다!"));
-	}*/
 }
 
 void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
