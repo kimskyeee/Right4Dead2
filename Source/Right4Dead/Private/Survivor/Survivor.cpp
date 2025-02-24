@@ -208,7 +208,7 @@ ASurvivor::ASurvivor()
 
 }
 
-//무기와 박스가 오버랩 됐을때
+//무기, 아이템과 박스가 오버랩 됐을때
 void ASurvivor::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 	const FHitResult& SweepResult)
@@ -225,7 +225,7 @@ void ASurvivor::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	}
 }
 
-//무기와 박스가 오버랩 해제
+//무기, 아이템과 박스가 오버랩 해제
 void ASurvivor::OnWeaponEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -1027,7 +1027,7 @@ void ASurvivor::spawnShoveCylinder()
 }
 
 
-//무기 슬롯 설정 (1,2,3 키 바인딩)
+//무기 슬롯 설정 (1,2,3,4 키 바인딩)
 void ASurvivor::EquipPrimaryWeapon(const struct FInputActionValue& InputValue)
 {
 	if (PrimaryWeaponSlot.WeaponFactory)

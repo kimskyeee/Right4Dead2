@@ -1,5 +1,8 @@
 #pragma once
+
+#include "CoreMinimal.h"
 #include "EItemList.h"
+#include "FItemData.generated.h"
 
 class AItemBase;
 

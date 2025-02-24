@@ -9,6 +9,7 @@
 #include "GameFramework/Character.h"
 #include "Survivor.generated.h"
 
+class AItemBase;
 class UBoxComponent;
 
 UCLASS()
