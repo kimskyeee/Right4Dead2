@@ -17,6 +17,8 @@
 #include "UIAttackZombie.h"
 #include "UISurvivorCrosshair.h"
 #include "UISurvivorMain.h"
+#include "UISurvivorMedKit.h"
+
 #include "UITakeDamage.h"
 #include "UIWeaponSlot.h"
 #include "WeaponBase.h"
@@ -34,7 +36,7 @@ ASurvivor::ASurvivor()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
+
 	Head=CreateDefaultSubobject<USkeletalMeshComponent>("Head");
 	Head->SetupAttachment(GetMesh());
 
@@ -44,8 +46,12 @@ ASurvivor::ASurvivor()
 	FirstCameraComp->SetRelativeLocationAndRotation(FVector(0,0,160),FRotator(0,90,0));
 	FirstCameraComp->bUsePawnControlRotation = true;
 	
+	ThirdPerson=CreateDefaultSubobject<USkeletalMeshComponent>("ThirdPerson");
+	ThirdPerson->SetupAttachment(RootComponent);
+	ThirdPerson->SetVisibility(false);
+	
 	SpringArmComp=CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
-	SpringArmComp->SetupAttachment(RootComponent);
+	SpringArmComp->SetupAttachment(ThirdPerson);
 	SpringArmComp->SetRelativeLocation(FVector(0,0,70));
 	SpringArmComp->TargetArmLength = 300.f;
 	SpringArmComp->bUsePawnControlRotation = true;
@@ -264,6 +270,14 @@ void ASurvivor::BeginPlay()
 			AttackZombieUI->AddToViewport();
 		}
 	}
+	if (MedKitUIClass)
+	{
+		MedKitUI = CreateWidget<UUISurvivorMedKit>(GetWorld(), MedKitUIClass);
+		if (MedKitUI)
+		{
+			MedKitUI->AddToViewport();
+		}
+	}
 		
 	//카메라 설정
 	FirstCameraComp->SetActive(true);
@@ -297,7 +311,31 @@ void ASurvivor::Tick(float DeltaTime)
 		CrosshairUI->CrosshairSpread = UKismetMathLibrary::MapRangeClamped(Value,0,450,5,70);
 	}
 
-	//(LogTemp, Warning, TEXT("Crosshair Spread: %f"), CrosshairUI->CrosshairSpread);
+	// 좌클릭을 꾹 누르고 있으면 회복 (5초동안 꾹누르기)
+	if (bIsHoldingLeft)
+	{
+		HoldTime += GetWorld()->GetDeltaSeconds();
+		// HoldTime이 MaxHoldTime을 초과하면 회복 및 카메라 전환
+		if (HoldTime >= MaxHoldTime)
+		{
+			// 잃은 체력의 80% 회복
+			CurrentHP += 0.8f * (MaxHP - CurrentHP);
+			HoldTime = 0.0f;
+			bIsHoldingLeft = false;
+
+			// 카메라 전환
+			SwitchCamera();
+
+			// 응급도구 삭제
+			if (HandleObjectSlot.WeaponFactory) 
+			{
+				UnequipWeapon();
+				HandleObjectSlot = FWeaponData();
+			}
+			CurrentWeaponSlot.Reset();
+			CurrentWeapon=nullptr;
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -314,6 +352,8 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurvivorJump);
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurvivorCrouch);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::LeftClickAttack);
+		pi->BindAction(IA_SurFire, ETriggerEvent::Ongoing, this, &ASurvivor::HandleHoldAttack);
+		pi->BindAction(IA_SurFire, ETriggerEvent::Completed, this, &ASurvivor::HandleReleaseAttack);
 		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::RightClickAttack);
 		pi->BindAction(IA_SurReload, ETriggerEvent::Started, this, &ASurvivor::WeaponReload);
 		pi->BindAction(IA_PrimaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipPrimaryWeapon);
@@ -327,18 +367,25 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 //카메라 전환 함수 
 void ASurvivor::SwitchCamera()
 {
-	bFirstPerson=!bFirstPerson;
+	bFirstPerson = !bFirstPerson;
+	
 	if (bFirstPerson)
 	{
 		FirstCameraComp->SetActive(true);
 		ThirdPersonCameraComp->SetActive(false);
 		SpringArmComp->SetActive(false);
+		Arms->SetVisibility(true);
+		CurrentWeapon->SetHidden(false);
+		ThirdPerson->SetVisibility(false);
 	}
 	else
 	{
 		FirstCameraComp->SetActive(false);
 		ThirdPersonCameraComp->SetActive(true);
 		SpringArmComp->SetActive(true);
+		Arms->SetVisibility(false);
+		CurrentWeapon->SetHidden(true);
+		ThirdPerson->SetVisibility(true);
 	}
 }
 
@@ -427,6 +474,9 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 			break;
 		case EWeaponType::Melee:
 			MeleeWeaponAttack();
+			break;
+		case EWeaponType::HandleObject:
+			HandleHoldAttack();
 			break;
 		default:
 			NoneAttack();
@@ -531,16 +581,34 @@ void ASurvivor::MeleeWeaponAttack()
 	{
 		Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("무기가 없습니다"));
-	}
 	//SKYE: 프리셋 추가 설정
 	if (bIsThrown)
 	{
 		CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
 		ThrowWeapon();
 	}
+}
+
+void ASurvivor::HandleHoldAttack()
+{
+	// 좌클릭을 꾹 누르고 있으면 시작
+	bIsHoldingLeft = true;
+
+	// 카메라 전환
+	SwitchCamera();
+}
+
+void ASurvivor::HandleReleaseAttack()
+{
+	// 5초 되기전 놓기
+	if (bIsHoldingLeft && HoldTime<MaxHoldTime)
+	{
+		HoldTime=0.0f;
+		// 카메라 전환
+		SwitchCamera();
+		//프로그레스바 초기화
+	}
+	bIsHoldingLeft = false;
 }
 
 void ASurvivor::NoneAttack()
@@ -746,17 +814,58 @@ void ASurvivor::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* Othe
 	CurrentWeapon->Root->SetLinearDamping(5.0f); //이속 감소
 	CurrentWeapon->Root->SetAngularDamping(5.0f); //회전 감소
 
+	//6초동안 sphere trace로 좀비 감지하기 (범위 3000이상)
+	//0.2초마다 loop
+	GetWorld()->GetTimerManager().SetTimer(PipeBombTraceTimerHandle, this, &ASurvivor::PipeBombTraceZombies, 0.2f, true);
+
 	//6초후 폭발 타이머 설정 (폭발함수 구현하기)
 	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &ASurvivor::ExplodeWeapon, 6.0f, false);
 	
 }
 
+void ASurvivor::PipeBombTraceZombies()
+{
+	//Sphere Trace 실행
+	FVector TraceStart = CurrentWeapon->GetActorLocation();
+	FVector TraceEnd = TraceStart;
+	float TraceRadius = 3000.0f; //감지 범위
+
+	TArray<FHitResult> HitResults;
+	FCollisionShape SphereShape = FCollisionShape::MakeSphere(TraceRadius);
+
+	bool bHit = GetWorld()->SweepMultiByChannel(
+		HitResults,
+		TraceStart,
+		TraceEnd,
+		FQuat::Identity,
+		ECC_Visibility,
+		SphereShape
+	);
+
+	//감지된 액터들 중 ACommonZombie 타입인지 확인하고 이벤트 호출
+	for (const FHitResult& HitResult : HitResults)
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor && HitActor->IsA(ACommonZombie::StaticClass()))
+		{
+			ACommonZombie* Zombie = Cast<ACommonZombie>(HitActor);
+			if (Zombie)
+			{
+				Zombie->HandlePipeBombBeep(CurrentWeapon);
+			}
+		}
+	}
+}
+
 void ASurvivor::ExplodeWeapon()
 {
+	//좀비 감지 타이머 중지
+	GetWorld()->GetTimerManager().ClearTimer(PipeBombTraceTimerHandle);
+	
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(this);
 
-	// 데미지 적용
+	//데미지 적용
 	UGameplayStatics::ApplyRadialDamage(
 		this,500.f,
 		CurrentWeapon->GetActorLocation(),
@@ -768,7 +877,7 @@ void ASurvivor::ExplodeWeapon()
 		true,
 		ECC_Visibility);
 
-	// 폭발 반경을 빨간색 구체로 표시 (2초간 유지)
+	//폭발 반경을 빨간색 구체로 표시 (2초간 유지)
 	if (bDebugPlay)
 	{
 		DrawDebugSphere(
@@ -782,9 +891,8 @@ void ASurvivor::ExplodeWeapon()
 	}
 
 	CurrentWeapon->Destroy();
-	CurrentWeapon=nullptr;
+	CurrentWeapon==nullptr;
 }
-
 
 //장전
 void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
@@ -833,7 +941,6 @@ void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
         AnimInstance->Montage_Play(ShoveMontage);
     }
 }
-
 
 void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
@@ -964,6 +1071,10 @@ int32 ASurvivor::GetCurrentWeaponSlotIndex() const
 	{
 		return 2; // Melee 슬롯
 	}
+	else if (CurrentWeaponData.WeaponName == EWeaponType::HandleObject)
+	{
+		return 3; // Handle 슬롯
+	}
 
 	return -1; // 알 수 없는 슬롯
 }
@@ -1067,6 +1178,15 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		MeleeWeaponSlot = NewWeapon;
 		bIsThrown = false;
 		EquipWeapon(&MeleeWeaponSlot);
+		break;
+
+	case EWeaponType::HandleObject:
+		if (HandleObjectSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		{
+			UnequipWeapon();
+		}
+		HandleObjectSlot = NewWeapon;
+		EquipWeapon(&HandleObjectSlot);
 		break;
 
 	default:

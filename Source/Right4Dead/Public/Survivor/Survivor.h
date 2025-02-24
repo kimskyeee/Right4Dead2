@@ -63,12 +63,20 @@ public:
 	TSubclassOf<class UUIAttackZombie> AttackZombieUIClass;
 	UPROPERTY()
 	class UUIAttackZombie* AttackZombieUI;
+	//회복 UI 캐싱
+	UPROPERTY()
+	class UUISurvivorMedKit* MedKitUI;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUISurvivorMedKit> MedKitUIClass;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USkeletalMeshComponent* Head;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USkeletalMeshComponent* Arms;
+	//3인칭일때 메쉬
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class USkeletalMeshComponent* ThirdPerson;
 	
 	//카메라 추가
 	UPROPERTY(VisibleAnywhere)
@@ -99,7 +107,7 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	bool bIsDamaged=false;
 	
-	//지금 애니메이션 실행중인지 체크하고
+	//지금 화면에 피 애니메이션 실행중인지 체크하고
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	bool bIsAttacked=false;
 	//몇번 공격했는지 체크하자
@@ -162,6 +170,8 @@ public:
 	void PrimaryWeaponAttack();
 	void SecondaryWeaponAttack();
 	void MeleeWeaponAttack();
+	void HandleHoldAttack();
+	void HandleReleaseAttack();
 	void NoneAttack();
 	//좌클릭 함수 추가
 	void Sweep();
@@ -172,12 +182,25 @@ public:
 	void ThrowWeapon();
 	FTimerHandle ExplosionTimerHandle;
 	void ExplodeWeapon();
+	//좀비들이 6초동안 파이프폭탄을 인지하게
+	void PipeBombTraceZombies();
+	FTimerHandle PipeBombTraceTimerHandle;
+	
 	UPROPERTY()
 	bool bHasLanded=false;
+	UPROPERTY()
+	bool bIsHoldingLeft=false;
+	UPROPERTY()
+	float HoldTime;
+	UPROPERTY()
+	float MaxHoldTime = 5.0f;
 
-	//Tmap
+	//TMap
 	UPROPERTY(VisibleAnywhere)
 	TMap<FName, int> BoneMap;
+	//무기 TMap
+	UPROPERTY(VisibleAnywhere)
+	TMap<FName, int> WeaponMap;
 
 	//우클릭 (밀쳐내기)
 	UPROPERTY(EditAnywhere,Category="Input")
