@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "EWeaponType.h"
-#include "Components/Image.h"
 #include "FWeaponData.generated.h"
 
 class AWeaponBase;

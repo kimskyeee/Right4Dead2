@@ -12,6 +12,7 @@
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "ItemBase.h"
 #include "ShoveDamageType.h"
 #include "SurvivorArmAnim.h"
 #include "UIAttackZombie.h"
@@ -217,6 +218,11 @@ void ASurvivor::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	{
 		OverlapWeapon->SetOverlayMaterial(OverlayMaterial);
 	}
+	AItemBase* OverlapItem = Cast<AItemBase>(OtherActor);
+	if (OverlapItem)
+	{
+		OverlapItem->SetOverlayMaterial(OverlayMaterial);
+	}
 }
 
 //무기와 박스가 오버랩 해제
@@ -227,6 +233,11 @@ void ASurvivor::OnWeaponEndOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	if (OverlapWeapon)
 	{
 		OverlapWeapon->ClearOverlayMaterial();
+	}
+	AItemBase* OverlapItem = Cast<AItemBase>(OtherActor);
+	if (OverlapItem)
+	{
+		OverlapItem->ClearOverlayMaterial();
 	}
 }
 
@@ -829,7 +840,6 @@ void ASurvivor::PipeBombTraceZombies()
 	FVector TraceStart = CurrentWeapon->GetActorLocation();
 	FVector TraceEnd = TraceStart;
 	float TraceRadius = 3000.0f; //감지 범위
-	UE_LOG(LogTemp, Warning, TEXT("실행은 되고있음"));
 
 	TArray<FHitResult> HitResults;
 	FCollisionShape SphereShape = FCollisionShape::MakeSphere(TraceRadius);
@@ -853,7 +863,6 @@ void ASurvivor::PipeBombTraceZombies()
 			if (Zombie)
 			{
 				Zombie->HandlePipeBombBeep(CurrentWeapon);
-				
 			}
 		}
 	}
@@ -1117,15 +1126,16 @@ void ASurvivor::TraceForWeapon()
 		AActor* HitActor = HitResult.GetActor();
 		
 		AWeaponBase* HitWeapon = Cast<AWeaponBase>(HitResult.GetActor()); // 무기인지 확인
+		AItemBase* HitItem = Cast<AItemBase>(HitResult.GetActor()); // 아이템인지 확인
 
 		if (HitWeapon)
 		{
 			// 이전에 포커스된 무기가 있고, 현재 포커스된 무기와 다르다면 이전 무기의 머티리얼을 복원
 			FocusedWeapon = HitWeapon; // 감지한 무기를 저장
+		}
+		else if (HitItem)
+		{
 			
-			//FString Message = FString::Printf(TEXT("Hit Actor Class: %s"), *FocusedWeapon->GetName());
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, Message);
-			//DrawDebugCapsule(GetWorld(), HitResult.Location, CapsuleHalfHeight, CapsuleRadius, FQuat::Identity, FColor::Red, false, DebugLineLifetime);
 		}
 		else
 		{

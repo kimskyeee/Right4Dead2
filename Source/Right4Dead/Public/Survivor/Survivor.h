@@ -272,6 +272,10 @@ public:
 	class UBoxComponent* WeaponOverlapBox;
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	UMaterialInterface* OverlayMaterial;
+
+	//아이템 발견 (trace)
+	UPROPERTY()
+	AItemBase* FocusedItem;
 	
 	// 무기 줍기 키입력 바인딩
 	UPROPERTY(editanywhere, Category="Input")
