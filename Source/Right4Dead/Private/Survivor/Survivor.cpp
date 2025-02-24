@@ -816,7 +816,7 @@ void ASurvivor::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* Othe
 
 	//6초동안 sphere trace로 좀비 감지하기 (범위 3000이상)
 	//0.2초마다 loop
-	GetWorld()->GetTimerManager().SetTimer(PipeBombTraceTimerHandle, this, &ASurvivor::PipeBombTraceZombies, 0.2f, true);
+	GetWorld()->GetTimerManager().SetTimer(PipeBombTraceTimerHandle, this, &ASurvivor::PipeBombTraceZombies, 0.1f, true);
 
 	//6초후 폭발 타이머 설정 (폭발함수 구현하기)
 	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &ASurvivor::ExplodeWeapon, 6.0f, false);
@@ -829,6 +829,7 @@ void ASurvivor::PipeBombTraceZombies()
 	FVector TraceStart = CurrentWeapon->GetActorLocation();
 	FVector TraceEnd = TraceStart;
 	float TraceRadius = 3000.0f; //감지 범위
+	UE_LOG(LogTemp, Warning, TEXT("실행은 되고있음"));
 
 	TArray<FHitResult> HitResults;
 	FCollisionShape SphereShape = FCollisionShape::MakeSphere(TraceRadius);
@@ -852,6 +853,7 @@ void ASurvivor::PipeBombTraceZombies()
 			if (Zombie)
 			{
 				Zombie->HandlePipeBombBeep(CurrentWeapon);
+				
 			}
 		}
 	}
