@@ -4,6 +4,7 @@
 #include "UIWeaponSlot.h"
 
 #include "Survivor.h"
+#include "Components/Image.h"
 #include "Components/Overlay.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
