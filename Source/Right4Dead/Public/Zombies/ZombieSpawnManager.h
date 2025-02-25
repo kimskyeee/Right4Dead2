@@ -30,6 +30,8 @@ public:
 	TArray<AZombieSpawnPoint*> SpawnPoints;
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
     TArray<ACommonZombie*> CommonZombies;
+	UPROPERTY()
+	TObjectPtr<USoundWave> HordeComingSound = nullptr;
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

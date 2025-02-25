@@ -13,6 +13,11 @@ AZombieSpawnManager::AZombieSpawnManager()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	const ConstructorHelpers::FObjectFinder<USoundWave> SoundObj(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/Horde/HordeComingSound.HordeComingSound'"));
+	if (SoundObj.Succeeded())
+	{
+		HordeComingSound = SoundObj.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -52,7 +57,7 @@ void AZombieSpawnManager::CallHorde()
 		}
 	}
 
-	// UGameplayStatics::PlaySound2D();
+	UGameplayStatics::PlaySound2D(this, HordeComingSound);
 }
 
 void AZombieSpawnManager::DisableTick()
