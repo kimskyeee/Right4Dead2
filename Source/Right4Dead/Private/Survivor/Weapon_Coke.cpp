@@ -15,8 +15,7 @@ AWeapon_Coke::AWeapon_Coke()
 void AWeapon_Coke::BeginPlay()
 {
 	Super::BeginPlay();
-
-	WeaponData.WeaponName==EWeaponType::HandleObject;
+	
 	
 }
 

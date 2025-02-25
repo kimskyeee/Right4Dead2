@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "WeaponBase.h"
-#include "AWeapon_Heal.generated.h"
+#include "Weapon_Heal.generated.h"
 
 UCLASS()
-class RIGHT4DEAD_API AAWeapon_Heal : public AWeaponBase
+class RIGHT4DEAD_API AWeapon_Heal : public AWeaponBase
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AAWeapon_Heal();
+	AWeapon_Heal();
 
 protected:
 	// Called when the game starts or when spawned
@@ -28,5 +28,5 @@ public:
 	UPROPERTY()
 	class ASurvivor* survivor;
 	
-	virtual void LeftClickEvent() override;
+	//virtual void LeftClickEvent() override;
 };

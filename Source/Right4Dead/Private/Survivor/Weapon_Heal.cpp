@@ -1,28 +1,26 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AWeapon_Heal.h"
+#include "Weapon_Heal.h"
 
 #include "Survivor.h"
 
 
 // Sets default values
-AAWeapon_Heal::AAWeapon_Heal()
+AWeapon_Heal::AWeapon_Heal()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
 // Called when the game starts or when spawned
-void AAWeapon_Heal::BeginPlay()
+void AWeapon_Heal::BeginPlay()
 {
 	Super::BeginPlay();
-
-	WeaponData.WeaponName==EWeaponType::HandleObject;	
 }
 
 // Called every frame
-void AAWeapon_Heal::Tick(float DeltaTime)
+void AWeapon_Heal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -58,7 +56,7 @@ void AAWeapon_Heal::Tick(float DeltaTime)
 	}
 }
 
-void AAWeapon_Heal::LeftClickEvent()
+/*void AWeapon_Heal::LeftClickEvent()
 {
 	Super::LeftClickEvent();
 
@@ -84,5 +82,5 @@ void AAWeapon_Heal::LeftClickEvent()
 		//프로그레스바 초기화
 	}
 	bIsHoldingLeft = false;
-}
+}*/
 

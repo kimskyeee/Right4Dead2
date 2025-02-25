@@ -1177,7 +1177,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 	switch (NewWeapon.WeaponName)
 	{
 	case EWeaponType::Primary:
-		if (PrimaryWeaponSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
@@ -1186,7 +1186,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		break;
 
 	case EWeaponType::Secondary:
-		if (SecondaryWeaponSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
@@ -1195,7 +1195,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		break;
 
 	case EWeaponType::Melee:
-		if (MeleeWeaponSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
@@ -1205,7 +1205,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		break;
 
 	case EWeaponType::HandleObject:
-		if (HandleObjectSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
