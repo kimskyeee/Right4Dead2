@@ -19,7 +19,6 @@ void USurvivorArmAnim::AnimNotify_AxeCameraShake()
 void USurvivorArmAnim::AnimNotify_SpawnCylinder()
 {
 	// 실린더 스윕 발생
-	UE_LOG(LogTemp,Warning,TEXT("스윕"))
 	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
 	if (player)
 	{
