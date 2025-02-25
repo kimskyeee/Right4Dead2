@@ -292,6 +292,8 @@ public:
 	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);
 	// 무기 내리기 함수
 	void UnequipWeapon();
+	// 무기 버리기
+	void DropWeapon();
 	
 	// 무기 던지고 나서 판단하기
 	UPROPERTY(editanywhere, Category="ThrownWeapon")

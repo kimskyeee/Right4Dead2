@@ -1177,7 +1177,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 	switch (NewWeapon.WeaponName)
 	{
 	case EWeaponType::Primary:
-		if (PrimaryWeaponSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
@@ -1186,7 +1186,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		break;
 
 	case EWeaponType::Secondary:
-		if (SecondaryWeaponSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
@@ -1195,7 +1195,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		break;
 
 	case EWeaponType::Melee:
-		if (MeleeWeaponSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
@@ -1205,7 +1205,7 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		break;
 
 	case EWeaponType::HandleObject:
-		if (HandleObjectSlot.WeaponFactory) // 이미 무기가 있다면 교체
+		if (CurrentWeapon) // 이미 무기가 있다면 교체
 		{
 			UnequipWeapon();
 		}
@@ -1229,12 +1229,10 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		return;
 	}
 
-	// 기존 무기가 있다면 숨기고 장착 해제
-	if (CurrentWeapon)
+	// 기존 무기가 있다면 버리기
+	if (CurrentWeapon && CurrentWeapon->WeaponData.WeaponName==WeaponData->WeaponName)
 	{
-		CurrentWeapon->SetEquipped(false);
-		CurrentWeapon->SetActorHiddenInGame(true);
-		UAnimInstance* AnimInst = Arms->GetAnimInstance();
+		DropWeapon();
 	}
 
 	// 월드에 있는 무기를 찾음
@@ -1248,12 +1246,12 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		CurrentWeapon = WorldWeapon;
 		WorldWeapon->Root->SetCollisionProfileName(TEXT("EquipWeapon"));
 	}
-	else
+	/*else
 	{
 		// 월드에 무기가 없으면 새로 생성
 		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
 		CurrentWeapon->SetEquipped(true);
-	}
+	}*/
 
 	// 현재 장착한 무기 데이터 업데이트
 	CurrentWeaponSlot = *WeaponData;
@@ -1340,6 +1338,36 @@ void ASurvivor::UnequipWeapon()
 		}
 	}
 }
+
+
+//무기 버리기
+void ASurvivor::DropWeapon()
+{
+	if (CurrentWeapon)
+	{
+		// 무기 부착 해제
+		CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+
+		// 무기 상태 업데이트
+		CurrentWeapon->SetEquipped(false);
+		CurrentWeapon->SetActorHiddenInGame(false);
+		CurrentWeapon->Root->SetCollisionProfileName(TEXT("WorldWeapon"));
+
+		// 무기 위치 설정 (플레이어의 위치에서 약간 앞쪽으로)
+		FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
+		CurrentWeapon->SetActorLocation(DropLocation);
+
+		// 무기 회전 설정 (기본 회전값으로 설정)
+		CurrentWeapon->SetActorRotation(FRotator(0, 0, 0));
+		
+		// 현재 무기 초기화
+		CurrentWeapon = nullptr;
+		CurrentWeaponSlot.Reset();
+	}
+}
+
+
+
 
 
 
