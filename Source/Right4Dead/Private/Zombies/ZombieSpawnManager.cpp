@@ -4,7 +4,6 @@
 #include "ZombieSpawnManager.h"
 
 #include "CommonZombie.h"
-#include "CommonZombieAIController.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
 #include "ZombieBaseFSM.h"
@@ -59,6 +58,7 @@ void AZombieSpawnManager::BeginPlay()
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		auto* Zombie = GetWorld()->SpawnActor<ACommonZombie>(ZombieFactory, FVector(0, 0, -9999), FRotator::ZeroRotator, SpawnParams);
 		Zombie->SpawnManager = this;
+		ActiveZombies.Add(Zombie);
 		EnqueueZombie(Zombie);
 	}
 }
@@ -67,10 +67,16 @@ void AZombieSpawnManager::EnqueueZombie(ACommonZombie* Zombie)
 {
 	if (Zombie)
 	{
+		if (false == ActiveZombies.Contains(Zombie))
+		{
+			return;
+		}
 		Zombie->SetActorTickEnabled(false);
 		Zombie->ZombieFSM->SetComponentTickEnabled(false);
 		Zombie->ZombieAnimInstance->EnableUpdateAnimation(false);
 		Zombie->GetCharacterMovement()->bUseRVOAvoidance = false;
+		Zombie->SetActorEnableCollision(false);
+		
 		PoolCount++;
 		ZombiePool.Enqueue(Zombie);
 		ActiveZombies.Remove(Zombie);
@@ -88,8 +94,11 @@ ACommonZombie* AZombieSpawnManager::DequeueZombie()
 		}
 		PoolCount--;
 		ZombiePool.Dequeue(Zombie);
+	} while (nullptr == Zombie || ActiveZombies.Contains(Zombie));
+	if (Zombie)
+	{
 		ActiveZombies.Add(Zombie);
-	} while (nullptr == Zombie);
+	}
 	return Zombie;
 }
 
@@ -103,7 +112,7 @@ void AZombieSpawnManager::CallHorde()
 {
 	// 시뮬레이트 또는 게임 실행 중에만 동작
 	const UWorld* World = GetWorld();
-	if (nullptr == World && World->WorldType != EWorldType::PIE && World->WorldType == EWorldType::Game)
+	if (nullptr == World || (World->WorldType != EWorldType::PIE && World->WorldType == EWorldType::Game))
 	{
 		return;
 	}
@@ -118,13 +127,17 @@ void AZombieSpawnManager::CallHorde()
 			if (--Rem < 0) break;
 			auto* Zombie = DequeueZombie();
 			if (nullptr == Zombie) continue;
+			
 			Zombie->SetActorTickEnabled(true);
 			Zombie->ZombieFSM->SetComponentTickEnabled(true);
 			Zombie->ZombieAnimInstance->EnableUpdateAnimation(true);
+			Zombie->GetCharacterMovement()->bUseRVOAvoidance = true;
+			Zombie->SetActorEnableCollision(true);
+			
 			Zombie->InitStart();
 			Zombie->ZombieFSM->ChaseTarget = InitTarget;
-			Zombie->SetActorLocation(SpawnPoint->GetActorLocation(), false, nullptr, ETeleportType::None);
-			Zombie->SetActorRotation(SpawnPoint->GetActorRotation(), ETeleportType::None);
+			Zombie->SetActorLocation(SpawnPoint->GetActorLocation(), false, nullptr, ETeleportType::TeleportPhysics);
+			Zombie->SetActorRotation(SpawnPoint->GetActorRotation(), ETeleportType::TeleportPhysics);
 		}
 	}
 }

@@ -3,6 +3,9 @@
 
 #include "MarketDoor.h"
 
+#include "ZombieSpawnManager.h"
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values
 AMarketDoor::AMarketDoor()
@@ -52,6 +55,7 @@ AMarketDoor::AMarketDoor()
 	}
 
 	SetRootComponent(Root);
+	AlarmLocation->SetupAttachment(RootComponent);
 	Frame->SetupAttachment(RootComponent);
 	LeftHinge->SetupAttachment(RootComponent);
 	RightHinge->SetupAttachment(RootComponent);
@@ -63,10 +67,8 @@ AMarketDoor::AMarketDoor()
 	RightBackGrip->SetupAttachment(RightDoor);
 	RightFrontGrip->SetupAttachment(RightDoor);
 	RightGlass->SetupAttachment(RightDoor);
-
-	AlarmLocation->SetMobility(EComponentMobility::Static);
+	
 	Frame->SetRelativeScale3D(FVector(1, 1, 1.136364));
-	Frame->SetMobility(EComponentMobility::Static);
 	LeftHinge->SetRelativeLocation(FVector(0, -250, 0));
 	RightHinge->SetRelativeLocation(FVector(0, -8, 0));
 	LeftDoor->SetRelativeLocation(FVector(0, 125, 0));
@@ -93,13 +95,22 @@ AMarketDoor::AMarketDoor()
 void AMarketDoor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	ZombieSpawnManager = Cast<AZombieSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AZombieSpawnManager::StaticClass()));
 }
 
 // Called every frame
 void AMarketDoor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (true == bAlarming)
+	{
+		CurrentAlarmTime += DeltaTime;
+		if (CurrentAlarmTime > HordeTriggerTime)
+		{
+			CurrentAlarmTime = 0.0f;
+			ZombieSpawnManager->CallHorde();
+		}
+	}
 }
 
 void AMarketDoor::Interaction()

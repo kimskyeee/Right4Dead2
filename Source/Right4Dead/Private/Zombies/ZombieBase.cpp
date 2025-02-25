@@ -78,8 +78,6 @@ void AZombieBase::BeginPlay()
 
 void AZombieBase::InitStart()
 {
-	SetActorEnableCollision(true);
-	GetCharacterMovement()->bUseRVOAvoidance = true;
 	ZombieFSM->SetState(EZombieState::EZS_Idle);
 	Hp = MaxHp;
 	bTakeDamaged = false;
@@ -230,7 +228,7 @@ void AZombieBase::HandleShove(const FVector& FromLocation)
 
 void AZombieBase::HandleStartChase(const TObjectPtr<AActor>& Target) const
 {
-	if (AIController->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
+	if (nullptr != AIController && AIController->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
 	{
 		AIController->MoveToActor(Target);
 	}
@@ -259,10 +257,6 @@ void AZombieBase::OnDamaged(const float Damage)
 void AZombieBase::OnDie()
 {
 	PRINT_CALLINFO();
-	if (AIController)
-	{
-		AIController->UnPossess();
-	}
 	ZombieFSM->HandleDie();
 }
 

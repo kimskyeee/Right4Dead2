@@ -88,7 +88,7 @@ void UZombieBaseFSM::SetState(const EZombieState NewState)
 #pragma region Idle
 void UZombieBaseFSM::StartIdle()
 {
-	ChaseTarget = nullptr;
+	// ChaseTarget = nullptr;
 }
 void UZombieBaseFSM::TickIdle()
 {

@@ -6,6 +6,8 @@
 #include "ItemBase.h"
 #include "MarketDoor.generated.h"
 
+class AZombieSpawnManager;
+
 UCLASS()
 class RIGHT4DEAD_API AMarketDoor : public AItemBase
 {
@@ -54,10 +56,18 @@ public:
 	
 	virtual void Interaction() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Debugging")
     bool bIsOpen = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Debugging")
 	bool bFirst = true;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Debugging")
+	TObjectPtr<AZombieSpawnManager> ZombieSpawnManager = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Debugging")
+	bool bAlarming = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Debugging")
+	float HordeTriggerTime = 30.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Debugging")
+	float CurrentAlarmTime = 30.0f;
 	
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionDoor();
