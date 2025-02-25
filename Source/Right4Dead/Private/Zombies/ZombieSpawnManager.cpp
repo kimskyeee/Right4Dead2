@@ -4,13 +4,13 @@
 #include "ZombieSpawnManager.h"
 
 #include "CommonZombie.h"
+#include "CommonZombieAIController.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
 #include "ZombieBaseFSM.h"
 #include "ZombieSpawnPoint.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-
 
 // Sets default values
 AZombieSpawnManager::AZombieSpawnManager()

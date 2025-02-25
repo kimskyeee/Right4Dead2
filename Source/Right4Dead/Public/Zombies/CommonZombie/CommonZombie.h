@@ -17,6 +17,7 @@ public:
 	ACommonZombie();
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void InitData() override;
 
 public:

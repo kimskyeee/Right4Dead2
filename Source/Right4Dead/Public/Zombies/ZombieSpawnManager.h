@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ZombieSpawnManager.generated.h"
 
+class ACommonZombieAIController;
 class ACommonZombie;
 class AZombieSpawnPoint;
 class ASurvivor;
@@ -38,6 +39,7 @@ public:
 	
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
 	TSet<ACommonZombie*> ActiveZombies;
+	
 	UPROPERTY()
 	TObjectPtr<USoundWave> HordeComingSound = nullptr;
 

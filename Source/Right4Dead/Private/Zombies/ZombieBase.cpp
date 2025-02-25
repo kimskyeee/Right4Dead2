@@ -62,10 +62,6 @@ void AZombieBase::BeginPlay()
 	Super::BeginPlay();
 	InitData();
 	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
-}
-
-void AZombieBase::InitStart()
-{
 	AIController = Cast<ACommonZombieAIController>(GetController());
 	if (nullptr == AIController)
 	{
@@ -78,6 +74,10 @@ void AZombieBase::InitStart()
 			AIController->Possess(this);
 		}
 	}
+}
+
+void AZombieBase::InitStart()
+{
 	SetActorEnableCollision(true);
 	GetCharacterMovement()->bUseRVOAvoidance = true;
 	ZombieFSM->SetState(EZombieState::EZS_Idle);
