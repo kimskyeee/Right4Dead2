@@ -1160,13 +1160,10 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 {
 	if (FocusedWeapon) // 플레이어가 바라보고 있는 무기가 있다면
 	{
-		UE_LOG(LogTemp, Warning, TEXT("주울 무기 발견!"));
 		PickUpWeapon(FocusedWeapon->WeaponData);
 	}
 	if (FocusedItem)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("주울 아이템 발견!"));
-
 		FocusedItem->Interaction();
 	}
 }
