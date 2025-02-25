@@ -51,7 +51,7 @@ public:
 	virtual void Interaction() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-    bool bIsOpen = true;
+    bool bIsOpen = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bFirst = true;
 	
