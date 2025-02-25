@@ -37,7 +37,7 @@ void ASmoker::BeginPlay()
 void ASmoker::InitData()
 {
 	// TODO: Smoker 데이터
-	Hp = 250.0f;
+	Hp = MaxHp = 250.0f;
 	Speed = 210.0f;
 	SpecialZombieFSM->SpecialAttackRange = 3000.0f;
 	

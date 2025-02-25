@@ -21,8 +21,8 @@ void AHunter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	Hp = 250.0f;
-    	Speed = 250.0f;
+	Hp = MaxHp = 250.0f;
+	Speed = 250.0f;
 }
 
 void AHunter::InitData()

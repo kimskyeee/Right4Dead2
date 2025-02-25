@@ -21,7 +21,7 @@ void ACharger::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	Hp = 600.0f;
+	Hp = MaxHp = 600.0f;
 	Speed = 250.0f;
 }
 

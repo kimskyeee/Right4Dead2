@@ -37,7 +37,8 @@ public:
 	TObjectPtr<UStaticMesh> LegRightMesh = nullptr;
 	
 	void TriggerDismemberment(const FPointDamageEvent* PointDamageEvent) const;
-	
+	virtual void HandleDie() override;
+
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	void HandlePipeBombBeep(AActor* PipeBombActor) const;

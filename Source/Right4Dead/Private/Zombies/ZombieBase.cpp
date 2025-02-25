@@ -6,6 +6,7 @@
 #include "ShoveDamageType.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
+#include "ZombieSpawnManager.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -19,7 +20,7 @@ AZombieBase::AZombieBase()
 	
 	AIControllerClass = ACommonZombieAIController::StaticClass();
 	FinalDamage = 0;
-	Hp = 0;
+	Hp = MaxHp = 0;
 	Speed = 0;
 	TakeDamageMultiplier = 1;
 	PartDamageMultipliers = {4, 1.25f, 0.75f, 1};
@@ -59,6 +60,12 @@ void AZombieBase::ForceDie()
 void AZombieBase::BeginPlay()
 {
 	Super::BeginPlay();
+	InitData();
+	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
+}
+
+void AZombieBase::InitStart()
+{
 	AIController = Cast<ACommonZombieAIController>(GetController());
 	if (nullptr == AIController)
 	{
@@ -71,9 +78,12 @@ void AZombieBase::BeginPlay()
 			AIController->Possess(this);
 		}
 	}
-
-	ZombieAnimInstance = Cast<UZombieAnimInstance>(GetMesh()->GetAnimInstance());
-	InitData();
+	SetActorEnableCollision(true);
+	GetCharacterMovement()->bUseRVOAvoidance = true;
+	ZombieFSM->SetState(EZombieState::EZS_Idle);
+	Hp = MaxHp;
+	bTakeDamaged = false;
+	// TODO: Bone 숨긴거 다시 표시
 }
 
 void AZombieBase::Tick(float DeltaSeconds)
@@ -167,10 +177,7 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 
 void AZombieBase::HandleDie()
 {
-	ZombieFSM->SetComponentTickEnabled(false);
-	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
-	SetActorTickEnabled(false);
 }
 
 void AZombieBase::HandleNormalAttack()
@@ -231,7 +238,10 @@ void AZombieBase::HandleStartChase(const TObjectPtr<AActor>& Target) const
 
 void AZombieBase::HandleStopChase() const
 {
-	AIController->StopMovement();
+	if (AIController)
+	{
+		AIController->StopMovement();
+	}
 }
 
 
@@ -249,10 +259,10 @@ void AZombieBase::OnDamaged(const float Damage)
 void AZombieBase::OnDie()
 {
 	PRINT_CALLINFO();
-	AIController->UnPossess();
-	GetCharacterMovement()->bUseRVOAvoidance = false;
-	GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
-	GetMesh()->SetCollisionProfileName("NoCollision");
+	if (AIController)
+	{
+		AIController->UnPossess();
+	}
 	ZombieFSM->HandleDie();
 }
 

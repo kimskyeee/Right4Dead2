@@ -230,5 +230,6 @@ void UZombieBaseFSM::HandleDamage()
 }
 void UZombieBaseFSM::HandleDie()
 {
+	SetState(EZombieState::EZS_Dead);
 	Owner->HandleDie();
 }

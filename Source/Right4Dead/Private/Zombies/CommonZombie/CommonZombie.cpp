@@ -7,6 +7,7 @@
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
 #include "ZombieFSM.h"
+#include "ZombieSpawnManager.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
@@ -52,7 +53,7 @@ ACommonZombie::ACommonZombie()
 
 void ACommonZombie::InitData()
 {
-	Hp = 50.0f;
+	Hp = MaxHp = 50.0f;
 	Speed = 250.0f;
 	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
@@ -129,6 +130,16 @@ void ACommonZombie::TriggerDismemberment(const FPointDamageEvent* PointDamageEve
 	{
 		SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, ShotDirection, 1500);
 	}
+}
+
+void ACommonZombie::HandleDie()
+{
+	Super::HandleDie();
+	FTimerHandle Handle;
+	GetWorldTimerManager().SetTimer(Handle, [this]()
+	{
+		SpawnManager->EnqueueZombie(this);
+	}, 2.0f, false);
 }
 
 void ACommonZombie::OnDie()

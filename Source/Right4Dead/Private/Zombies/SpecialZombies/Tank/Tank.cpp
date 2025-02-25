@@ -47,16 +47,16 @@ void ATank::InitData()
 		switch (GameInstance->GetDifficulty())
 		{
 		case EDifficulty::Easy:
-			Hp = 3000.0f;
+			Hp = MaxHp = 3000.0f;
 			break;
 		case EDifficulty::Normal:
-			Hp = 4000.0f;
+			Hp = MaxHp = 4000.0f;
 			break;
 		case EDifficulty::Advanced:
-			Hp = 8000.0f;
+			Hp = MaxHp = 8000.0f;
 			break;
 		case EDifficulty::Expert:
-			Hp = 8000.0f;
+			Hp = MaxHp = 8000.0f;
 			break;
 		}
 	}

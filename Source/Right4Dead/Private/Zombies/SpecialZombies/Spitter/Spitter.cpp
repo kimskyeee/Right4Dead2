@@ -37,7 +37,7 @@ void ASpitter::BeginPlay()
 void ASpitter::InitData()
 {
 	// TODO: Spitter 데이터
-	Hp = 100.0f;
+	Hp = MaxHp = 100.0f;
     Speed = 210.0f;
 	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
