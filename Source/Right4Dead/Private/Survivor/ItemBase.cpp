@@ -39,6 +39,5 @@ void AItemBase::ClearOverlayMaterial()
 
 void AItemBase::Interaction()
 {
-	PRINT_CALLINFO();
 }
 

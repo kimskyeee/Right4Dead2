@@ -271,7 +271,7 @@ public:
 	//라인트레이스 말고 오버랩으로 오버레이 해보기
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class UBoxComponent* WeaponOverlapBox;
-	UPROPERTY(EditAnywhere, Category = "Weapon")
+	UPROPERTY(EditAnywhere, Category = "Overlay")
 	UMaterialInterface* OverlayMaterial;
 
 	//아이템 발견 (trace)

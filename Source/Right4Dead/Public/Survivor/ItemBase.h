@@ -25,8 +25,8 @@ public:
 	
 	//트레이싱 됐을때 overlay 재질 설정해주는 함수
 	TArray<UMaterialInterface*> OriginalMaterials;
-	void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial);
-	void ClearOverlayMaterial();
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial);
+	virtual void ClearOverlayMaterial();
 	
 	virtual void Interaction();
 };

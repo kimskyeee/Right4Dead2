@@ -29,6 +29,8 @@ public:
 	TObjectPtr<UStaticMeshComponent> Bell = nullptr;
 
 	virtual void Interaction() override;
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
+	virtual void ClearOverlayMaterial() override;
 
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionBell();

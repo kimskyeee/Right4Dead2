@@ -216,6 +216,7 @@ void ASurvivor::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 	const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp,Warning,TEXT("오버랩 이벤트"));
 	AWeaponBase* OverlapWeapon = Cast<AWeaponBase>(OtherActor);
 	if (OverlapWeapon)
 	{
@@ -225,6 +226,7 @@ void ASurvivor::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	if (OverlapItem)
 	{
 		OverlapItem->SetOverlayMaterial(OverlayMaterial);
+		//preset - weapon overlap과 overlap으로 체크해야함
 	}
 }
 
@@ -1165,6 +1167,7 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 	if (FocusedItem)
 	{
 		FocusedItem->Interaction();
+		UE_LOG(LogTemp, Warning, TEXT("아이템 상호작용"));
 	}
 }
 
