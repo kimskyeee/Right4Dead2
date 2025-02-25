@@ -10,6 +10,13 @@ AMarketDoor::AMarketDoor()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	const ConstructorHelpers::FObjectFinder<USoundWave> SoundObj(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/MarketDoorAlarm/MarketDoorAlarm.MarketDoorAlarm'"));
+	if (SoundObj.Succeeded())
+	{
+		AlarmSound = SoundObj.Object;
+		AlarmSound->bLooping = true;
+	}
+	AlarmLocation = CreateDefaultSubobject<USceneComponent>(TEXT("AlarmLocation"));
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	LeftHinge = CreateDefaultSubobject<USceneComponent>(TEXT("LeftHinge"));
 	RightHinge = CreateDefaultSubobject<USceneComponent>(TEXT("RightHinge"));
@@ -57,7 +64,9 @@ AMarketDoor::AMarketDoor()
 	RightFrontGrip->SetupAttachment(RightDoor);
 	RightGlass->SetupAttachment(RightDoor);
 
+	AlarmLocation->SetMobility(EComponentMobility::Static);
 	Frame->SetRelativeScale3D(FVector(1, 1, 1.136364));
+	Frame->SetMobility(EComponentMobility::Static);
 	LeftHinge->SetRelativeLocation(FVector(0, -250, 0));
 	RightHinge->SetRelativeLocation(FVector(0, -8, 0));
 	LeftDoor->SetRelativeLocation(FVector(0, 125, 0));

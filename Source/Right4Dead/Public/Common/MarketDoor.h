@@ -24,6 +24,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USoundWave> AlarmSound = nullptr;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> AlarmLocation = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> Root = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> LeftHinge = nullptr;
@@ -57,4 +61,7 @@ public:
 	
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionDoor();
+
+	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
+	void StopAlarm();
 };
