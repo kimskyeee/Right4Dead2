@@ -14,6 +14,9 @@ AWhitekerBell::AWhitekerBell()
 	SetRootComponent(Root);
 	Bell = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Bell"));
 	Bell->SetupAttachment(RootComponent);
+
+	//충돌체 설정
+	Bell->SetGenerateOverlapEvents(true);
 }
 
 // Called when the game starts or when spawned
@@ -32,5 +35,17 @@ void AWhitekerBell::Interaction()
 {
 	Super::Interaction();
 	InteractionBell();
+}
+
+void AWhitekerBell::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
+{
+	Super::SetOverlayMaterial(MyOverlayMaterial);
+	Bell->SetOverlayMaterial(MyOverlayMaterial);
+}
+
+void AWhitekerBell::ClearOverlayMaterial()
+{
+	Super::ClearOverlayMaterial();
+	Bell->SetOverlayMaterial(nullptr);
 }
 
