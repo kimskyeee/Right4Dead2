@@ -24,5 +24,5 @@ public:
 	float CurrentSpecialAttackTime = 20.0f;
 	
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void TickChase() override;
+	virtual void TickChase(const float DeltaTime) override;
 };

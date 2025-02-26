@@ -29,11 +29,11 @@ void USpecialZombieBaseFSM::TickComponent(float DeltaTime, enum ELevelTick TickT
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-void USpecialZombieBaseFSM::TickChase()
+void USpecialZombieBaseFSM::TickChase(const float DeltaTime)
 {
-	Super::TickChase();
+	Super::TickChase(DeltaTime);
 	
-	CurrentChaseTime += GetWorld()->GetDeltaSeconds();
+	CurrentChaseTime += DeltaTime;
 	
 	if (CurrentChaseTime > SearchInterval)
 	{

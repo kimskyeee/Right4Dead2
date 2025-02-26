@@ -21,9 +21,9 @@ void UZombieFSM::StartIdle()
 {
 	Super::StartIdle();
 }
-void UZombieFSM::TickIdle()
+void UZombieFSM::TickIdle(const float DeltaTime)
 {
-	Super::TickIdle();
+	Super::TickIdle(DeltaTime);
 }
 void UZombieFSM::EndIdle()
 {
@@ -36,11 +36,11 @@ void UZombieFSM::StartChase()
 {
 	Super::StartChase();
 }
-void UZombieFSM::TickChase()
+void UZombieFSM::TickChase(const float DeltaTime)
 {
-	Super::TickChase();
+	Super::TickChase(DeltaTime);
 
-	CurrentChaseTime += GetWorld()->GetDeltaSeconds();
+	CurrentChaseTime += DeltaTime;
 	if (CurrentChaseTime > StopChaseTime)
 	{
 		TriggerStopChase();
@@ -76,9 +76,9 @@ void UZombieFSM::StartAttack()
 {
 	Super::StartAttack();
 }
-void UZombieFSM::TickAttack()
+void UZombieFSM::TickAttack(const float DeltaTime)
 {
-	Super::TickAttack();
+	Super::TickAttack(DeltaTime);
 }
 void UZombieFSM::EndAttack()
 {
@@ -91,9 +91,9 @@ void UZombieFSM::StartDead()
 {
 	Super::StartDead();
 }
-void UZombieFSM::TickDead()
+void UZombieFSM::TickDead(const float DeltaTime)
 {
-	Super::TickDead();
+	Super::TickDead(DeltaTime);
 }
 void UZombieFSM::EndDead()
 {

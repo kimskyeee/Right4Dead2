@@ -59,7 +59,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Debugging|Idle")
 	float Awareness = 1500.0f;
 	virtual void StartIdle();
-	virtual void TickIdle();
+	virtual void TickIdle(const float DeltaTime);
 	virtual void EndIdle();
 
 	/*
@@ -72,7 +72,7 @@ public:
 	UPROPERTY(EditAnywhere, Category="Debugging|Chase")
 	float StopChaseTime = 20.0f;
 	virtual void StartChase();
-	virtual void TickChase();
+	virtual void TickChase(const float DeltaTime);
 	virtual void EndChase();
 	virtual void TriggerStartChase(const TObjectPtr<AActor>& Target);
 	virtual void TriggerStopChase();
@@ -87,7 +87,7 @@ public:
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging|Attack")
 	float CurrentAttackTime = 0.0f;
 	virtual void StartAttack();
-	virtual void TickAttack();
+	virtual void TickAttack(const float DeltaTime);
 	virtual void EndAttack();
 	virtual void TriggerNormalAttack();
 	virtual void TriggerSpecialAttack();
@@ -96,7 +96,7 @@ public:
 	 *Dead
 	 */
 	virtual void StartDead();
-	virtual void TickDead();
+	virtual void TickDead(const float DeltaTime);
 	virtual void EndDead();
 
 	/*
