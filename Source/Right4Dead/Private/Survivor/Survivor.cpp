@@ -389,12 +389,6 @@ void ASurvivor::Tick(float DeltaTime)
 				HoldTime=0.0f;
 				bIsHoldingLeft = false;
 				
-				/*if (CokeBoxSlot.WeaponFactory) 
-				{
-					UnequipWeapon();
-					CokeBoxSlot = FWeaponData();
-				}*/
-			
 				if (CokeDeliveryUI)
 				{
 					CokeDeliveryUI->SetVisibility(ESlateVisibility::Hidden);
@@ -464,8 +458,6 @@ void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 		Arms->SetVisibility(true);
 		CurrentWeapon->SetHidden(false);
 		ThirdPerson->SetVisibility(false);
-		Arms->bPauseAnims = false;
-		ThirdPerson->bPauseAnims = true;
 	}
 	else
 	{
@@ -476,8 +468,6 @@ void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 		Arms->SetVisibility(false);
 		CurrentWeapon->SetHidden(true);
 		ThirdPerson->SetVisibility(true);
-		Arms->bPauseAnims = true;
-		ThirdPerson->bPauseAnims = false;
 	}
 }
 
@@ -754,7 +744,7 @@ void ASurvivor::HandleHoldAttack()
 		{
 			auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
 			CokeDelivery->bIsCanOpen = true;
-			CokeDelivery->Interaction();
+			CokeDelivery->InteractionDelivery();
 			if (CokeDeliveryUI)
 			{
 				CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
