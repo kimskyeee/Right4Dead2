@@ -33,6 +33,7 @@ AWeaponBase::AWeaponBase()
 	Root->SetGenerateOverlapEvents(true);
 	//SKYE: 무기 프리셋 변경3
 	Root->SetCollisionProfileName(TEXT("WorldWeapon"));
+	Root->SetCanEverAffectNavigation(false);
 
 }
 
