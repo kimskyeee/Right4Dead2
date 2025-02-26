@@ -34,16 +34,16 @@ void UZombieBaseFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	switch (State)
 	{
 	case EZombieState::EZS_Idle:
-		TickIdle();
+		TickIdle(DeltaTime);
 		break;
 	case EZombieState::EZS_Chase:
-		TickChase();
+		TickChase(DeltaTime);
 		break;
 	case EZombieState::EZS_Attack:
-		TickAttack();
+		TickAttack(DeltaTime);
 		break;
 	case EZombieState::EZS_Dead:
-		TickDead();
+		TickDead(DeltaTime);
 		break;
 	}
 }
@@ -90,7 +90,7 @@ void UZombieBaseFSM::StartIdle()
 {
 	// ChaseTarget = nullptr;
 }
-void UZombieBaseFSM::TickIdle()
+void UZombieBaseFSM::TickIdle(const float DeltaTime)
 {
 	if (ChaseTarget)
 	{
@@ -98,7 +98,7 @@ void UZombieBaseFSM::TickIdle()
 		return;
 	}
 	
-	CurrentIdleTime += GetWorld()->GetDeltaSeconds();
+	CurrentIdleTime += DeltaTime;
 	if (CurrentIdleTime > SearchInterval)
 	{
 		CurrentIdleTime = 0;
@@ -143,7 +143,7 @@ void UZombieBaseFSM::EndIdle()
 void UZombieBaseFSM::StartChase()
 {
 }
-void UZombieBaseFSM::TickChase()
+void UZombieBaseFSM::TickChase(const float DeltaTime)
 {
 	if (nullptr == ChaseTarget)
 	{
@@ -170,7 +170,7 @@ void UZombieBaseFSM::StartAttack()
 {
 	CurrentAttackTime = NormalAttackInterval;
 }
-void UZombieBaseFSM::TickAttack()
+void UZombieBaseFSM::TickAttack(const float DeltaTime)
 {
 	if (nullptr == ChaseTarget)
 	{
@@ -185,7 +185,7 @@ void UZombieBaseFSM::TickAttack()
 		return;
 	}
 	
-	CurrentAttackTime += GetWorld()->GetDeltaSeconds();
+	CurrentAttackTime += DeltaTime;
 	if (CurrentAttackTime > NormalAttackInterval)
 	{
 		TriggerNormalAttack();
@@ -212,7 +212,7 @@ void UZombieBaseFSM::StartDead()
 {
 	ChaseTarget = nullptr;
 }
-void UZombieBaseFSM::TickDead()
+void UZombieBaseFSM::TickDead(const float DeltaTime)
 {
 }
 void UZombieBaseFSM::EndDead()

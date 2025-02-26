@@ -29,28 +29,28 @@ public:
 	 *Idle
 	 */
 	virtual void StartIdle() override;
-	virtual void TickIdle() override;
+	virtual void TickIdle(const float DeltaTime) override;
 	virtual void EndIdle() override;
 
 	/*
 	 *Chase
 	 */
 	virtual void StartChase() override;
-	virtual void TickChase() override;
+	virtual void TickChase(const float DeltaTime) override;
 	virtual void EndChase() override;
 
 	/*
 	 *Attack
 	 */
 	virtual void StartAttack() override;
-	virtual void TickAttack() override;
+	virtual void TickAttack(const float DeltaTime) override;
 	virtual void EndAttack() override;
 
 	/*
 	 *Dead
 	 */
 	virtual void StartDead() override;
-	virtual void TickDead() override;
+	virtual void TickDead(const float DeltaTime) override;
 	virtual void EndDead() override;
 
 	/*
