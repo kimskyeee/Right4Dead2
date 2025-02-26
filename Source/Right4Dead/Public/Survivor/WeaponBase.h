@@ -40,15 +40,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Data")
 	FWeaponData WeaponData;
 	
-	//공격함수 생성
-	void LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation);
-
-	//Event
-	UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void OnFire();
-    UFUNCTION(BlueprintNativeEvent, Category = "Weapon")
-	void OnReload();
-
 	//Weapon 변수
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Weapon")
 	EWeaponType Name;
