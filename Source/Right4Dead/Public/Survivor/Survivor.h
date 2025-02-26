@@ -69,6 +69,11 @@ public:
 	class UUISurvivorMedKit* MedKitUI;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
 	TSubclassOf<class UUISurvivorMedKit> MedKitUIClass;
+	//자가 치유 UI 캐싱
+	UPROPERTY()
+	class UUISurvivorCokeDelivery* CokeDeliveryUI;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUISurvivorCokeDelivery> CokeDeliveryUIClass;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -173,6 +178,8 @@ public:
 	void MeleeWeaponAttack();
 	void HandleHoldAttack();
 	void HandleReleaseAttack();
+	void CokeHoldAction();
+	void CokeReleaseAction();
 	void NoneAttack();
 	//좌클릭 함수 추가
 	void Sweep();

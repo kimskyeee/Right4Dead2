@@ -43,17 +43,4 @@ void ACommonDoor::Interaction()
 	InteractionCommonDoor();
 }
 
-void ACommonDoor::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
-{
-	Super::SetOverlayMaterial(MyOverlayMaterial);
-	bIsCokeDelivery = true;
-	Door->SetOverlayMaterial(MyOverlayMaterial);
-}
-
-void ACommonDoor::ClearOverlayMaterial()
-{
-	Super::ClearOverlayMaterial();
-	bIsCokeDelivery = true;
-	Door->SetOverlayMaterial(nullptr);
-}
 
