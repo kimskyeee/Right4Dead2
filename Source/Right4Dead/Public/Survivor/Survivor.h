@@ -97,6 +97,7 @@ public:
 	TSubclassOf<class UCameraShakeBase> DamagedCameraShake;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
 	TSubclassOf<class UCameraShakeBase> SweepCameraShake;
+	EWeaponType beforeCokeWeapon;
 
 	//카메라 전환 (1<->3)
 	void SwitchCamera(const bool& bThirdPerson);
@@ -167,6 +168,11 @@ public:
 	bool bIsReloading;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings",meta=(ClampMin="0"));
 	float FireDamage = 10.0f;
+	
+	UPROPERTY(EditAnywhere,Category="Input")
+	class UInputAction* IA_SurFireHold;
+	UPROPERTY(EditAnywhere,Category="Input")
+	class UInputAction* IA_SurFireReleased;
 
 	//좌클릭, R키(장전) 바인딩
 	void LeftClickAttack(const struct FInputActionValue& InputValue);
@@ -176,6 +182,7 @@ public:
 	void PrimaryWeaponAttack();
 	void SecondaryWeaponAttack();
 	void MeleeWeaponAttack();
+	void HandleSingleClickAttack();
 	void HandleHoldAttack();
 	void HandleReleaseAttack();
 	void NoneAttack();
@@ -298,6 +305,7 @@ public:
 	void PickUpWeapon(FWeaponData NewWeapon);
 	// 무기 슬롯 결정 함수
 	void SwitchWeaponSlot(EWeaponType SlotType);
+	void ReturnToPreviousWeapon();
 	// 무기 교체 함수
 	void EquipWeapon(FWeaponData* WeaponData);
 	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);

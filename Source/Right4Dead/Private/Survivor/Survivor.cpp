@@ -232,7 +232,6 @@ void ASurvivor::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp,Warning,TEXT("오버랩 이벤트"));
 	AWeaponBase* OverlapWeapon = Cast<AWeaponBase>(OtherActor);
 	if (OverlapWeapon)
 	{
@@ -428,9 +427,14 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurvivorJump);
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurvivorCrouch);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::LeftClickAttack);
-		// 응급키트 꾹누르면
-		pi->BindAction(IA_SurFire, ETriggerEvent::Ongoing, this, &ASurvivor::HandleHoldAttack);
-		pi->BindAction(IA_SurFire, ETriggerEvent::Completed, this, &ASurvivor::HandleReleaseAttack);
+		// 응급키트 그냥 누르면 / 꾹누르면
+		// pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::HandleSingleClickAttack);
+		// pi->BindAction(IA_SurFire, ETriggerEvent::Ongoing, this, &ASurvivor::HandleHoldAttack);
+		// pi->BindAction(IA_SurFire, ETriggerEvent::Completed, this, &ASurvivor::HandleReleaseAttack);
+
+		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::HandleSingleClickAttack);
+		pi->BindAction(IA_SurFireHold, ETriggerEvent::Triggered, this, &ASurvivor::HandleHoldAttack);
+		pi->BindAction(IA_SurFireReleased, ETriggerEvent::Canceled, this, &ASurvivor::HandleReleaseAttack);
 		
 		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::RightClickAttack);
 		pi->BindAction(IA_SurReload, ETriggerEvent::Started, this, &ASurvivor::WeaponReload);
@@ -538,13 +542,12 @@ void ASurvivor::OnDie()
 
 void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 {
-	PRINTLOGTOSCREEN(TEXT("LeftClickAttack"));
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	USurvivorArmAnim* WeaponInst = Cast<USurvivorArmAnim>(AnimInst);
 	bool bIsEquipped = WeaponInst->bIsEquippedWeapon;
 
 	//SKYE: 슬롯을 처음에 구분후 슬롯별 무기 공격 추가 필요함
-	if (bIsEquipped) //무기가 있을때만 가능
+	if (CurrentWeapon && bIsEquipped) //무기가 있을때만 가능
 	{
 		switch (CurrentWeaponSlot->WeaponName)
 		{
@@ -557,12 +560,12 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 		case EWeaponType::Melee:
 			MeleeWeaponAttack();
 			break;
-		case EWeaponType::HandleObject:
+		/*case EWeaponType::HandleObject:
 			HandleHoldAttack();
-			break;
-		case EWeaponType::CokeDelivery:
+			break;*/
+		/*case EWeaponType::CokeDelivery:
 			HandleHoldAttack();
-			break;
+			break;*/
 		default:
 			NoneAttack();
 			break;
@@ -587,7 +590,6 @@ void ASurvivor::PrimaryWeaponAttack()
 		APlayerCameraManager* FirstCam = UGameplayStatics::GetPlayerCameraManager(GetWorld(),0);
 		if (!FirstCam)
 		{
-			UE_LOG(LogTemp, Error, TEXT("카메라 매니저가 없음"));
 			return;
 		}
 		FVector Start = FirstCam->GetCameraLocation();
@@ -674,9 +676,41 @@ void ASurvivor::MeleeWeaponAttack()
 	}
 }
 
+void ASurvivor::HandleSingleClickAttack()
+{
+	UAnimInstance* AnimInst = Arms->GetAnimInstance();
+	USurvivorArmAnim* WeaponInst = Cast<USurvivorArmAnim>(AnimInst);
+	bool bIsEquipped = WeaponInst->bIsEquippedWeapon;
+	
+	if (bIsHoldingLeft)
+	{
+		return;
+	}
+
+	if (bIsEquipped && (CurrentWeaponSlot->WeaponName == EWeaponType::HandleObject || CurrentWeaponSlot->WeaponName == EWeaponType::CokeDelivery))
+	{
+		// 응급키트면
+		auto* HealKit = Cast<AWeaponHealKit>(CurrentWeapon);
+		if (HealKit)
+		{
+			if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+			{
+				AnimInstance->Montage_Play(ShoveMontage);
+			}
+			SwitchCamera(false);
+		}
+		// 콜라면
+		auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
+		if (Coke)
+		{
+			DropWeapon();
+		}
+	}
+}
+
 void ASurvivor::HandleHoldAttack()
 {
-	PRINTLOGTOSCREEN(TEXT("홀드중 HandleHoldAttack()"));
+	PRINTLOGTOSCREEN(TEXT("좌클릭 꾹 누르면"));
 	// 응급키트면
 	auto* HealKit = Cast<AWeaponHealKit>(CurrentWeapon);
 	if (HealKit)
@@ -692,7 +726,7 @@ void ASurvivor::HandleHoldAttack()
 			bIsHoldingLeft = true;
 
 			CurrentWeapon->PrimaryWeapon->SetVisibility(false);
-			// 응급 키트를 든 상태에서 꾹 누르면 카메라를 3인칭을로 전환
+			// 응급 키트를 든 상태에서 꾹 누르면 카메라를 3인칭으로 전환
 			SwitchCamera(true);
 		}
 	}
@@ -721,7 +755,6 @@ void ASurvivor::HandleHoldAttack()
 
 void ASurvivor::HandleReleaseAttack()
 {
-	PRINTLOGTOSCREEN(TEXT("놓기 HandleReleaseAttack()"));
 	// 5초 되기전 놓기
 	if (bIsHoldingLeft && HoldTime<MaxHoldTime)
 	{
@@ -1107,7 +1140,6 @@ void ASurvivor::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 	//조건1: 좀비가 맞았는지?
     if (CommonZombie)
     {
-    	UE_LOG(LogTemp, Warning, TEXT("오버랩발생"));
         //조건2: 좀비가 플레이어 전방 기준 좌우 45도 안에 있는가?
         FVector ZombieLocation = (CommonZombie->GetActorLocation() - GetActorLocation()).GetSafeNormal();
         FVector SurvivorForwardVector = GetActorForwardVector();
@@ -1327,6 +1359,8 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 		TargetSlot = &HandleObjectSlot;
 		break;
 	case EWeaponType::CokeDelivery:
+		// 코크 배달 무기로 전환하는 경우, 현재 무기 타입 저장
+		beforeCokeWeapon = CurrentWeapon->WeaponData.WeaponName; // 또는 접근 방식에 맞게 수정
 		TargetSlot = &CokeBoxSlot;
 		break;
 	default:
@@ -1371,7 +1405,7 @@ void ASurvivor::SwitchWeaponSlot(EWeaponType SlotType)
 	}
 
 	// 현재 무기 해제
-	if (CurrentWeapon)
+	if (CurrentWeapon && CurrentWeapon->Name != EWeaponType::CokeDelivery)
 	{
 		UnequipWeapon();
 	}
@@ -1387,11 +1421,18 @@ void ASurvivor::SwitchWeaponSlot(EWeaponType SlotType)
 	}
 }
 
+void ASurvivor::ReturnToPreviousWeapon()
+{
+	if (CurrentWeapon && CurrentWeapon->WeaponData.WeaponName == EWeaponType::CokeDelivery)
+	{
+		SwitchWeaponSlot(beforeCokeWeapon);
+	}
+}
+
 //무기 장착
 void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 {
 	if (!WeaponData || !WeaponData->WeaponFactory) return;
-
 	// 기존 무기가 장착하고 싶은 무기와 같은 슬롯에 있다면 버리기
 	// WeaponData가 유효한지 확인
 	if (!WeaponData)
@@ -1565,6 +1606,12 @@ void ASurvivor::DropWeapon()
 
 		// 무기 회전 설정 (기본 회전값으로 설정)
 		CurrentWeapon->SetActorRotation(FRotator(0, 0, 0));
+
+		if (CurrentWeapon->WeaponData.WeaponName==EWeaponType::CokeDelivery)
+		{
+			ReturnToPreviousWeapon();
+			return;
+		}
 		
 		// 현재 무기 초기화
 		CurrentWeapon = nullptr;
