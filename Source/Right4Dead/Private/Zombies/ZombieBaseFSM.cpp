@@ -8,7 +8,6 @@
 UZombieBaseFSM::UZombieBaseFSM()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	SetComponentTickInterval(0.1f);
 }
 void UZombieBaseFSM::BeginPlay()
 {
