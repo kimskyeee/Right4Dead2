@@ -357,7 +357,9 @@ void ASurvivor::Tick(float DeltaTime)
 	if (bIsHoldingLeft)
 	{
 		HoldTime += GetWorld()->GetDeltaSeconds();
-		// HoldTime이 MaxHoldTime을 초과하면 회복 및 카메라 전환
+		// HoldTime이 MaxHoldTime을 초과하면
+		// 키트 : 회복 및 카메라 전환
+		// 콜라 : 배달
 		if (HoldTime >= MaxHoldTime)
 		{
 			auto* Heal = Cast<AWeaponHealKit>(CurrentWeapon);
@@ -385,8 +387,11 @@ void ASurvivor::Tick(float DeltaTime)
 			auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
 			if (Coke)
 			{
+				PRINTLOGTOSCREEN(TEXT("콜라입니다"));
+				HoldTime=0.0f;
 				bIsHoldingLeft = false;
-				// 응급도구 삭제
+				
+				// 콜라병 삭제
 				if (CokeBoxSlot.WeaponFactory) 
 				{
 					UnequipWeapon();
@@ -400,8 +405,8 @@ void ASurvivor::Tick(float DeltaTime)
 				}
 			}
 			
-			// 카메라 전환
-			SwitchCamera();
+			// 5초가 지나면 카메라를 원래대로 전환하고 싶다
+			SwitchCamera(false);
 			
 			CurrentWeaponSlot.Reset();
 			CurrentWeapon=nullptr;
@@ -426,6 +431,7 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		// 응급키트 꾹누르면
 		pi->BindAction(IA_SurFire, ETriggerEvent::Ongoing, this, &ASurvivor::HandleHoldAttack);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Completed, this, &ASurvivor::HandleReleaseAttack);
+		
 		pi->BindAction(IA_SurRight, ETriggerEvent::Started, this, &ASurvivor::RightClickAttack);
 		pi->BindAction(IA_SurReload, ETriggerEvent::Started, this, &ASurvivor::WeaponReload);
 		pi->BindAction(IA_PrimaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipPrimaryWeapon);
@@ -434,18 +440,15 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_HandleObject, ETriggerEvent::Started, this, &ASurvivor::EquipHandleObject);
 		pi->BindAction(IA_CokeDelivery, ETriggerEvent::Started, this, &ASurvivor::EquipCokeBox);
 		pi->BindAction(IA_PickUp,ETriggerEvent::Started,this,&ASurvivor::PickUpWeapon_Input);
-		// 콜라 들고 꾹누르면
-		pi->BindAction(IA_PickUp,ETriggerEvent::Ongoing,this,&ASurvivor::CokeHoldAction);
-		pi->BindAction(IA_PickUp,ETriggerEvent::Completed,this,&ASurvivor::CokeReleaseAction);
 	}
 }
 
 //카메라 전환 함수 
-void ASurvivor::SwitchCamera()
+void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 {
-	bFirstPerson = !bFirstPerson;
-	
-	if (bFirstPerson)
+	// bFirstPerson = !bFirstPerson;
+	PRINT_CALLINFO();
+	if (false == bThirdPerson)
 	{
 		FirstCameraComp->SetActive(true);
 		ThirdPersonCameraComp->SetActive(false);
@@ -529,12 +532,13 @@ void ASurvivor::OnDamaged(float Damage)
 void ASurvivor::OnDie()
 {
 	bIsDead = true;
-	SwitchCamera();
+	SwitchCamera(true);
 	
 }
 
 void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 {
+	PRINTLOGTOSCREEN(TEXT("LeftClickAttack"));
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	USurvivorArmAnim* WeaponInst = Cast<USurvivorArmAnim>(AnimInst);
 	bool bIsEquipped = WeaponInst->bIsEquippedWeapon;
@@ -672,6 +676,7 @@ void ASurvivor::MeleeWeaponAttack()
 
 void ASurvivor::HandleHoldAttack()
 {
+	PRINTLOGTOSCREEN(TEXT("홀드중 HandleHoldAttack()"));
 	// 응급키트면
 	auto* HealKit = Cast<AWeaponHealKit>(CurrentWeapon);
 	if (HealKit)
@@ -687,14 +692,36 @@ void ASurvivor::HandleHoldAttack()
 			bIsHoldingLeft = true;
 
 			CurrentWeapon->PrimaryWeapon->SetVisibility(false);
-			// 카메라 전환
-			SwitchCamera();
+			// 응급 키트를 든 상태에서 꾹 누르면 카메라를 3인칭을로 전환
+			SwitchCamera(true);
 		}
+	}
+
+	// 콜라면
+	auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
+	if (Coke)
+	{
+		auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
+		CokeDelivery->bIsCanOpen = true;
+		CokeDelivery->Interaction();
+		if (CokeDeliveryUI)
+		{
+			CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
+			CokeDeliveryUI->AddToViewport();
+		}
+	
+		// 좌클릭을 꾹 누르고 있으면 시작하게 바꾸고
+		bIsHoldingLeft = true;
+	
+		CurrentWeapon->PrimaryWeapon->SetVisibility(false);
+		// 콜라병을 든 상태에서 꾹 누르면 카메라를 3인칭을로 전환
+		SwitchCamera(true);
 	}
 }
 
 void ASurvivor::HandleReleaseAttack()
 {
+	PRINTLOGTOSCREEN(TEXT("놓기 HandleReleaseAttack()"));
 	// 5초 되기전 놓기
 	if (bIsHoldingLeft && HoldTime<MaxHoldTime)
 	{
@@ -712,41 +739,17 @@ void ASurvivor::HandleReleaseAttack()
 		HoldTime=0.0f;
 		CurrentWeapon->PrimaryWeapon->SetVisibility(true);
 		// 카메라 전환
-		SwitchCamera();
+		SwitchCamera(false);
 	}
-	bIsHoldingLeft = false;
-}
-
-void ASurvivor::CokeHoldAction()
-{
-	// 콜라면
-	auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
-	if (Coke)
-	{
-		if (CokeDeliveryUI)
-			{
-				CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
-				CokeDeliveryUI->AddToViewport();
-			}
-		// 좌클릭을 꾹 누르고 있으면 시작
-		bIsHoldingLeft = true;
-
-		CurrentWeapon->PrimaryWeapon->SetVisibility(false);
-		// 카메라 전환
-		SwitchCamera();
-	}
-}
-
-void ASurvivor::CokeReleaseAction()
-{
-	// 5초 되기전 놓기
+	
 	if (bIsHoldingLeft && HoldTime<MaxHoldTime)
 	{
-		auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
-
 		// 콜라면
+		auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
 		if (Coke)
 		{
+			auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
+			CokeDelivery->bIsCanOpen = false;
 			if (CokeDeliveryUI)
 			{
 				CokeDeliveryUI->SetVisibility(ESlateVisibility::Hidden);
@@ -757,7 +760,7 @@ void ASurvivor::CokeReleaseAction()
 		HoldTime=0.0f;
 		CurrentWeapon->PrimaryWeapon->SetVisibility(true);
 		// 카메라 전환
-		SwitchCamera();
+		SwitchCamera(false);
 	}
 	bIsHoldingLeft = false;
 }
@@ -1301,24 +1304,6 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 	if (FocusedItem)
 	{
 		FocusedItem->Interaction();
-	}
-
-	// 코크면 E키를 꾹 눌렀을때 CokeDelivery 장소에서 UI가 업데이트 되어야하는데...
-	if (CurrentWeapon->WeaponData.WeaponName==EWeaponType::CokeDelivery)
-	{		
-		// 콜라면
-		auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
-		if (Coke)
-		{
-			auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
-			CokeDelivery->bIsCanOpen = true;
-		
-			if (CokeDeliveryUI)
-			{
-				CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
-				CokeDeliveryUI->AddToViewport();
-			}
-		}
 	}
 }
 

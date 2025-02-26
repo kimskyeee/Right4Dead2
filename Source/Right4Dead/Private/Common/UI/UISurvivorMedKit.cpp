@@ -2,7 +2,6 @@
 
 
 #include "UISurvivorMedKit.h"
-
 #include "Survivor.h"
 #include "Components/ProgressBar.h"
 

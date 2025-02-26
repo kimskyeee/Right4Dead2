@@ -99,7 +99,7 @@ public:
 	TSubclassOf<class UCameraShakeBase> SweepCameraShake;
 
 	//카메라 전환 (1<->3)
-	void SwitchCamera();
+	void SwitchCamera(const bool& bThirdPerson);
 	UPROPERTY(visibleAnywhere)
 	bool bFirstPerson;
 	UPROPERTY(EditAnywhere)
@@ -178,8 +178,6 @@ public:
 	void MeleeWeaponAttack();
 	void HandleHoldAttack();
 	void HandleReleaseAttack();
-	void CokeHoldAction();
-	void CokeReleaseAction();
 	void NoneAttack();
 	//좌클릭 함수 추가
 	void Sweep();

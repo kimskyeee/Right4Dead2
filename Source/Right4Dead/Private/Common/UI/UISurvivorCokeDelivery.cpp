@@ -5,8 +5,6 @@
 #include "Survivor.h"
 #include "Components/ProgressBar.h"
 
-class ASurvivor;
-
 void UUISurvivorCokeDelivery::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
