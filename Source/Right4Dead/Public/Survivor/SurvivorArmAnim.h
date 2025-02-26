@@ -31,6 +31,10 @@ public:
 	bool SecondaryWeapon;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool MeleeWeapon;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool HandleObject;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool CokeDelivery;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	float speed = 0;

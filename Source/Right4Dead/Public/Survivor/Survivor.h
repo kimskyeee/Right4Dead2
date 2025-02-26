@@ -225,10 +225,11 @@ public:
 	void spawnShoveCylinder();
 	void DestroyShoveCylinder();
 
-	//몽타주 재생 테스트
+	//몽타주 재생 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UAnimMontage* ShoveMontage;
-	FTimerHandle ShoveTimerHandle;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UAnimMontage* CokeShoveMontage;
 	
 	//무기 교체 키바인딩, 함수
 	UPROPERTY(EditAnywhere,Category="Input")
@@ -287,11 +288,15 @@ public:
 	void PickUpWeapon_Input(const FInputActionValue& Value);
 	// 무기 줍기 함수
 	void PickUpWeapon(FWeaponData NewWeapon);
+	// 무기 슬롯 결정 함수
+	void SwitchWeaponSlot(EWeaponType SlotType);
 	// 무기 교체 함수
 	void EquipWeapon(FWeaponData* WeaponData);
 	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);
 	// 무기 내리기 함수
 	void UnequipWeapon();
+	// 무기 버리기
+	void DropWeapon();
 	
 	// 무기 던지고 나서 판단하기
 	UPROPERTY(editanywhere, Category="ThrownWeapon")
