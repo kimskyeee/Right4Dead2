@@ -386,27 +386,33 @@ void ASurvivor::Tick(float DeltaTime)
 			auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
 			if (Coke)
 			{
-				PRINTLOGTOSCREEN(TEXT("콜라입니다"));
 				HoldTime=0.0f;
 				bIsHoldingLeft = false;
-				FinishedDelivery = true;
 				
-				// 콜라병 삭제
-				if (CokeBoxSlot.WeaponFactory) 
+				/*if (CokeBoxSlot.WeaponFactory) 
 				{
 					UnequipWeapon();
 					CokeBoxSlot = FWeaponData();
-				}
+				}*/
 			
 				if (CokeDeliveryUI)
 				{
 					CokeDeliveryUI->SetVisibility(ESlateVisibility::Hidden);
 					CokeDeliveryUI->RemoveFromParent();
 				}
+
+				FinisedDeliveryCoke();
 			}
 			
 			// 5초가 지나면 카메라를 원래대로 전환하고 싶다
 			SwitchCamera(false);
+			
+			// 콜라병 삭제
+			if (CurrentWeapon->WeaponData.WeaponName==EWeaponType::CokeDelivery)
+			{
+				ReturnToPreviousWeapon();
+				return;
+			}
 			
 			CurrentWeaponSlot.Reset();
 			CurrentWeapon=nullptr;
@@ -451,21 +457,27 @@ void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 	PRINT_CALLINFO();
 	if (false == bThirdPerson)
 	{
+		// 1인칭이면
 		FirstCameraComp->SetActive(true);
 		ThirdPersonCameraComp->SetActive(false);
 		SpringArmComp->SetActive(false);
 		Arms->SetVisibility(true);
 		CurrentWeapon->SetHidden(false);
 		ThirdPerson->SetVisibility(false);
+		Arms->bPauseAnims = false;
+		ThirdPerson->bPauseAnims = true;
 	}
 	else
 	{
+		// 3인칭이면
 		FirstCameraComp->SetActive(false);
 		ThirdPersonCameraComp->SetActive(true);
 		SpringArmComp->SetActive(true);
 		Arms->SetVisibility(false);
 		CurrentWeapon->SetHidden(true);
 		ThirdPerson->SetVisibility(true);
+		Arms->bPauseAnims = true;
+		ThirdPerson->bPauseAnims = false;
 	}
 }
 
