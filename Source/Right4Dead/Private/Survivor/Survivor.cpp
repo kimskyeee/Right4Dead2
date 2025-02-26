@@ -24,6 +24,7 @@
 #include "UITakeDamage.h"
 #include "UIWeaponSlot.h"
 #include "WeaponBase.h"
+#include "WeaponCoke.h"
 #include "WeaponHealKit.h"
 #include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "BehaviorTree/Tasks/BTTask_PlayAnimation.h"
@@ -74,6 +75,11 @@ ASurvivor::ASurvivor()
 	if (TempShoveMontage.Succeeded())
 	{
 		ShoveMontage = TempShoveMontage.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UAnimMontage> TempCokeShoveMontage(TEXT("/Script/Engine.AnimMontage'/Game/UltimateFPSAnimationsKIT/Animations/Add/Coke/My_Anim_Attack_I_Montage.My_Anim_Attack_I_Montage'"));
+	if (TempCokeShoveMontage.Succeeded())
+	{
+		CokeShoveMontage = TempCokeShoveMontage.Object;
 	}
 
 	//Input데이터 할당하기
@@ -147,7 +153,12 @@ ASurvivor::ASurvivor()
 	{
 		IA_HandleObject=TempIAHandle.Object;
 	}
-
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIACoke(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Weapon6_Coke.IA_Weapon6_Coke'"));
+	if (TempIACoke.Succeeded())
+	{
+		IA_CokeDelivery=TempIACoke.Object;
+	}
+	
 	//무기줍기
 	ConstructorHelpers::FObjectFinder<UInputAction> TempIAPickUp(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurPickUp.IA_SurPickUp'"));
 	if (TempIAPickUp.Succeeded())
@@ -377,6 +388,7 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SecondaryWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipSecondaryWeapon);
 		pi->BindAction(IA_MeleeWeapon, ETriggerEvent::Started, this, &ASurvivor::EquipMeleeWeapon);
 		pi->BindAction(IA_HandleObject, ETriggerEvent::Started, this, &ASurvivor::EquipHandleObject);
+		pi->BindAction(IA_CokeDelivery, ETriggerEvent::Started, this, &ASurvivor::EquipCokeBox);
 		pi->BindAction(IA_PickUp,ETriggerEvent::Started,this,&ASurvivor::PickUpWeapon_Input);
 	}
 }
@@ -613,11 +625,14 @@ void ASurvivor::HandleHoldAttack()
 	auto* HealKit = Cast<AWeaponHealKit>(CurrentWeapon);
 	if (HealKit)
 	{
-		// 좌클릭을 꾹 누르고 있으면 시작
-		bIsHoldingLeft = true;
-
-		// 카메라 전환
-		SwitchCamera();
+		if (CurrentHP!=MaxHP)
+		{
+			// 좌클릭을 꾹 누르고 있으면 시작
+			bIsHoldingLeft = true;
+		
+			// 카메라 전환
+			SwitchCamera();
+		}
 	}
 }
 
@@ -636,7 +651,7 @@ void ASurvivor::HandleReleaseAttack()
 
 void ASurvivor::NoneAttack()
 {
- 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
 		AnimInstance->Montage_Play(ShoveMontage);
 	}
@@ -779,7 +794,6 @@ void ASurvivor::Sweep()
         }
    }
 }
-
 
 void ASurvivor::ThrowWeapon()
 {
@@ -937,8 +951,6 @@ void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 			AnimInstance->Montage_Play(CurrentWeapon->WeaponData.WeaponReloadMontage);
 		}
 	}
-
-	
 }
 
 void ASurvivor::DecreaseAmmoCount()
@@ -949,13 +961,25 @@ void ASurvivor::DecreaseAmmoCount()
 	}
 }
 
-
 //우클릭시 밀쳐내기
 void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
 {
-    if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
-    {
-        AnimInstance->Montage_Play(ShoveMontage);
+	if (!CurrentWeapon)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon nullptr"));
+	}
+
+	//TODO: 무기없을때 우클릭 모션 해결하기
+	//아마 콜라의 우클릭 모션에도 노티파이 추가해야할지도
+	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+	{
+		auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
+		if (Coke==CurrentWeapon)
+		{
+			AnimInstance->Montage_Play(CokeShoveMontage);
+		}
+		else
+			AnimInstance->Montage_Play(ShoveMontage);
     }
 }
 
@@ -1033,7 +1057,7 @@ void ASurvivor::spawnShoveCylinder()
 }
 
 
-//무기 슬롯 설정 (1,2,3,4 키 바인딩)
+//무기 슬롯 설정 (1,2,3,4,5(아직없고),6번(콜라) 키 바인딩)
 void ASurvivor::EquipPrimaryWeapon(const struct FInputActionValue& InputValue)
 {
 	SwitchWeaponSlot(EWeaponType::Primary);
@@ -1053,6 +1077,14 @@ void ASurvivor::EquipHandleObject(const struct FInputActionValue& InputValue)
 {
 	SwitchWeaponSlot(EWeaponType::HandleObject);
 }
+
+void ASurvivor::EquipCokeBox(const struct FInputActionValue& InputValue)
+{
+	SwitchWeaponSlot(EWeaponType::CokeDelivery);
+}
+
+
+
 
 //무기 슬롯값 애니메이션 구분하기
 int32 ASurvivor::GetCurrentWeaponSlotIndex() const
@@ -1079,6 +1111,10 @@ int32 ASurvivor::GetCurrentWeaponSlotIndex() const
 	else if (CurrentWeaponData.WeaponName == EWeaponType::HandleObject)
 	{
 		return 3; // Handle 슬롯
+	}
+	else if (CurrentWeaponData.WeaponName == EWeaponType::CokeDelivery)
+	{
+		return 5; // Coke
 	}
 
 	return -1; // 알 수 없는 슬롯
@@ -1176,6 +1212,9 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 	case EWeaponType::HandleObject:
 		TargetSlot = &HandleObjectSlot;
 		break;
+	case EWeaponType::CokeDelivery:
+		TargetSlot = &CokeBoxSlot;
+		break;
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("무기 모르겠어용"));
 		return;
@@ -1208,6 +1247,9 @@ void ASurvivor::SwitchWeaponSlot(EWeaponType SlotType)
 		break;
 	case EWeaponType::HandleObject:
 		TargetSlot = &HandleObjectSlot;
+		break;
+	case EWeaponType::CokeDelivery:
+		TargetSlot = &CokeBoxSlot;
 		break;
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("잘못된 슬롯임"));
@@ -1288,11 +1330,19 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 
 	// 현재 장착한 무기 데이터 업데이트
 	CurrentWeaponSlot = *WeaponData;
+	auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
 	
 	// 무기를 캐릭터의 소켓에 부착
 	if (CurrentWeapon && Arms)
 	{
-		CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+		if (CurrentWeapon==Coke)
+		{
+			CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "HandleSocket");
+		}
+		else
+		{
+			CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
+		}
 		CurrentWeapon->SetActorRelativeRotation(FRotator(0, 0, 0));
 		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
 		

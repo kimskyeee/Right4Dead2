@@ -244,6 +244,10 @@ public:
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_HandleObject;
 	void EquipHandleObject(const struct FInputActionValue& InputValue);
+	//5번슬롯 아직 없음
+	//콜라 (6번슬롯)
+	class UInputAction* IA_CokeDelivery;
+	void EquipCokeBox(const struct FInputActionValue& InputValue);
 	
 	//무기 슬롯
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
@@ -254,6 +258,8 @@ public:
 	FWeaponData MeleeWeaponSlot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
 	FWeaponData HandleObjectSlot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
+	FWeaponData CokeBoxSlot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WeaponData")
 	TOptional<FWeaponData> CurrentWeaponSlot;
 
@@ -278,9 +284,6 @@ public:
 	//아이템 발견 (trace)
 	UPROPERTY()
 	AItemBase* FocusedItem;
-
-	UFUNCTION(BlueprintImplementableEvent, Category="Sound")
-	void PlayBellSound();
 	
 	// 무기 줍기 키입력 바인딩
 	UPROPERTY(editanywhere, Category="Input")
@@ -307,6 +310,7 @@ public:
 	UAnimMontage* UnequipMontage;
 	
 };
+
 
 
 

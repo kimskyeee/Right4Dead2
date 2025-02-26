@@ -54,40 +54,6 @@ void AWeaponBase::Tick(float DeltaTime)
 	// 여기서 총알 개수 카운트 하면 되지 않으려나?
 }
 
-//공격함수 추가
-void AWeaponBase::LineTrace(FVector MuzzleLocation, FVector ImpactPoint,FRotator ProjectileRotation)
-{
-	ASurvivor* target = Cast<ASurvivor>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
-	
-	FHitResult HitResult;
-	FVector SpreadStart;
-	FVector CameraFVector;
-	FCollisionQueryParams Params;
-	//나를 무시하는 조건을 추가해주기
-	Params.AddIgnoredActor(this);
-	
-	if (target)
-	{
-		SpreadStart = target->FirstCameraComp->GetComponentLocation();
-		CameraFVector = target->FirstCameraComp->GetForwardVector();
-	}
-
-	float End = UKismetMathLibrary::RandomFloatInRange(WeaponData.BulletSpread*(-1),WeaponData.BulletSpread);
-	FVector SpreadEnd = (CameraFVector*20000) + FVector(End,End,End);
-	
-	GetWorld()->LineTraceSingleByChannel(HitResult,SpreadStart,SpreadEnd,ECC_Visibility,Params);
-
-	FVector MuzzleEnd = HitResult.ImpactPoint;
-	FVector MuzzleStart = Muzzle->GetComponentLocation();
-
-	GetWorld()->LineTraceSingleByChannel(HitResult,MuzzleStart,MuzzleEnd,ECC_Visibility,Params);
-
-	MuzzleLocation = MuzzleStart;
-	ImpactPoint = HitResult.ImpactPoint;
-	ProjectileRotation = UKismetMathLibrary::FindLookAtRotation(HitResult.TraceStart, HitResult.TraceEnd);
-
-}
-
 void AWeaponBase::SetEquipped(bool bEquip)
 {
 	IsEquipped = bEquip;
@@ -99,7 +65,6 @@ void AWeaponBase::SetEquipped(bool bEquip)
 void AWeaponBase::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
 {
 	PrimaryWeapon->SetOverlayMaterial(MyOverlayMaterial);
-	
 }
 
 void AWeaponBase::ClearOverlayMaterial()
@@ -107,13 +72,6 @@ void AWeaponBase::ClearOverlayMaterial()
 	PrimaryWeapon->SetOverlayMaterial(nullptr);
 }
 
-void AWeaponBase::OnReload_Implementation()
-{
-}
-
-void AWeaponBase::OnFire_Implementation()
-{
-}
 
 
 
