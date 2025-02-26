@@ -37,6 +37,8 @@ public:
 	bool bIsOpen = true;
 	
 	virtual void Interaction() override;
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
+	virtual void ClearOverlayMaterial() override;
 
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionDoor();

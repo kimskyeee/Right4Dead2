@@ -74,4 +74,7 @@ public:
 
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void StopAlarm();
+
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
+	virtual void ClearOverlayMaterial() override;
 };

@@ -45,4 +45,14 @@ void ACommonDoor::Interaction()
 	InteractionCommonDoor();
 }
 
+void ACommonDoor::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
+{
+	// 아무것도 하지 않음
+}
+
+void ACommonDoor::ClearOverlayMaterial()
+{
+	// 아무것도 하지 않음
+}
+
 

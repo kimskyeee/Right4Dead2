@@ -135,3 +135,13 @@ void AMarketDoor::Interaction()
 	InteractionDoor();
 }
 
+void AMarketDoor::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
+{
+	// 아무것도 하지 않음
+}
+
+void AMarketDoor::ClearOverlayMaterial()
+{
+	// 아무것도 하지 않음
+}
+

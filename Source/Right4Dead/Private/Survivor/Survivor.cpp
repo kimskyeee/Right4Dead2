@@ -177,14 +177,14 @@ ASurvivor::ASurvivor()
 		OverlayMaterial=TempWeaponOverlay.Object;
 	}
 
-	//무기 오버레이 만들기
+	/*//무기 오버레이 만들기
 	WeaponOverlapBox=CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponOverlap"));
 	WeaponOverlapBox->SetupAttachment(FirstCameraComp);
 	WeaponOverlapBox->SetRelativeLocation(FVector(280,0,-20));
-	WeaponOverlapBox->SetRelativeScale3D(FVector(10,1,1));
+	WeaponOverlapBox->SetRelativeScale3D(FVector(3,1,1));
 
 	WeaponOverlapBox->SetGenerateOverlapEvents(true);
-	WeaponOverlapBox->SetCollisionProfileName(TEXT("WeaponBox"));
+	WeaponOverlapBox->SetCollisionProfileName(TEXT("WeaponBox"));*/
 
 	// 실린더 메시 설정
 	ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMeshAsset(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cylinder.Cylinder'"));
@@ -326,8 +326,8 @@ void ASurvivor::BeginPlay()
 	SpringArmComp->SetActive(false);
 
 	//BOX overlap시 발생할 이벤트
-	WeaponOverlapBox->OnComponentBeginOverlap.AddDynamic(this,&ASurvivor::OnWeaponOverlap);
-	WeaponOverlapBox->OnComponentEndOverlap.AddDynamic(this,&ASurvivor::OnWeaponEndOverlap);
+	/*WeaponOverlapBox->OnComponentBeginOverlap.AddDynamic(this,&ASurvivor::OnWeaponOverlap);
+	WeaponOverlapBox->OnComponentEndOverlap.AddDynamic(this,&ASurvivor::OnWeaponEndOverlap);*/
 }
 
 // Called every frame
@@ -1285,7 +1285,7 @@ void ASurvivor::TraceForWeapon()
 {
 	FVector Start = FirstCameraComp->GetComponentLocation(); // 카메라 위치
 	FVector ForwardVector = FirstCameraComp->GetForwardVector(); // 카메라의 정면 방향
-	FVector End = Start + (ForwardVector * 500.f); // 500cm(5m) 앞까지 탐색
+	FVector End = Start + (ForwardVector * 100.f); // 100cm(1m) 앞까지 탐색
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
@@ -1293,7 +1293,7 @@ void ASurvivor::TraceForWeapon()
 
 	// ObjectType이 WorldWeapon인 물체만 감지하고 싶다.
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
 	// 현재 자신이 가지고 있는 물체는 제외하고 싶다.
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(CurrentWeapon);
@@ -1312,9 +1312,18 @@ void ASurvivor::TraceForWeapon()
 		true
 	);
 
+	if (FocusedWeapon)
+	{
+		FocusedWeapon->ClearOverlayMaterial();
+	}
+	if (FocusedItem)
+	{
+		FocusedItem->ClearOverlayMaterial();
+	}
+	
 	if (bHit)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *OutHit.GetActor()->GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("%s"), *OutHit.GetActor()->GetName());
 		AActor* HitActor = OutHit.GetActor();
 		
 		AWeaponBase* HitWeapon = Cast<AWeaponBase>(OutHit.GetActor()); // 무기인지 확인
@@ -1323,10 +1332,14 @@ void ASurvivor::TraceForWeapon()
 		if (HitWeapon)
 		{
 			FocusedWeapon = HitWeapon; // 감지한 무기를 저장
+			FocusedWeapon->SetOverlayMaterial(OverlayMaterial);
+			FocusedItem = nullptr;
 		}
 		else if (HitItem)
 		{
 			FocusedItem = HitItem;
+			FocusedItem->SetOverlayMaterial(OverlayMaterial);
+			FocusedWeapon = nullptr;
 		}
 		else
 		{
@@ -1336,8 +1349,8 @@ void ASurvivor::TraceForWeapon()
 	}
 	else
 	{
-		FocusedWeapon = nullptr;
-		FocusedItem = nullptr; //감지된게 없으면 초기화
+		FocusedWeapon = nullptr; //감지된게 없으면 초기화
+		FocusedItem = nullptr;
 	}
 }
 

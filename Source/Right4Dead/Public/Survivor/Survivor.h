@@ -288,8 +288,8 @@ public:
 	AWeaponBase* FocusedWeapon;
 	void TraceForWeapon(); //스피어트레이스하기 (라인트레이스는 정밀도가 필요해서 인식이 잘 안됨... 꼭 트레이스가 아니라 박스 콜리전으로 고쳐도됨)
 	//라인트레이스 말고 오버랩으로 오버레이 해보기
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class UBoxComponent* WeaponOverlapBox;
+	/*UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class UBoxComponent* WeaponOverlapBox;*/
 	UPROPERTY(EditAnywhere, Category = "Overlay")
 	UMaterialInterface* OverlayMaterial;
 

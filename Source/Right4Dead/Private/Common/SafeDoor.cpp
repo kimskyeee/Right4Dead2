@@ -56,3 +56,13 @@ void ASafeDoor::Interaction()
 	Super::Interaction();
 	InteractionDoor();
 }
+
+void ASafeDoor::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
+{
+	// 아무것도 하지 않음
+}
+
+void ASafeDoor::ClearOverlayMaterial()
+{
+	// 아무것도 하지 않음
+}

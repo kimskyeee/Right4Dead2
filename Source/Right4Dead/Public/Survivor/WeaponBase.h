@@ -28,13 +28,13 @@ public:
 	
 	//외관
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USphereComponent* Root;
+	class USphereComponent* Root = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class UStaticMeshComponent* PrimaryWeapon;
+	class UStaticMeshComponent* PrimaryWeapon = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USceneComponent* Muzzle;
+	class USceneComponent* Muzzle = nullptr;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USceneComponent* Eject;
+	class USceneComponent* Eject = nullptr;
 
 	// 무기 데이터 구조체
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Data")
