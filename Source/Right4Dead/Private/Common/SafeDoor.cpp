@@ -35,6 +35,8 @@ ASafeDoor::ASafeDoor()
 	}
 	Door->SetupAttachment(Hinge);
 	Door->SetRelativeLocation(FVector(0, 70, 0));
+
+	Door->SetCollisionProfileName(TEXT("WorldWeapon"));
 }
 
 // Called when the game starts or when spawned

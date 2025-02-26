@@ -89,6 +89,11 @@ AMarketDoor::AMarketDoor()
 	RightFrontGrip->SetRelativeScale3D(FVector(1, 1, 1.136364f));
 	LeftGlass->SetRelativeLocation(FVector(0, -10, 10));
 	RightGlass->SetRelativeLocation(FVector(0, -10, 10));
+
+	LeftDoor->SetCollisionProfileName(TEXT("WorldWeapon"));
+	RightDoor->SetCollisionProfileName(TEXT("WorldWeapon"));
+	LeftGlass->SetCollisionProfileName(TEXT("WorldWeapon"));
+	RightGlass->SetCollisionProfileName(TEXT("WorldWeapon"));
 }
 
 // Called when the game starts or when spawned

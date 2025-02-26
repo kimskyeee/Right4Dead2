@@ -22,6 +22,8 @@ ACommonDoor::ACommonDoor()
 	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	Door->SetupAttachment(Hinge);
 	Door->SetRelativeLocation(FVector(0, 4.75, 0));
+
+	Door->SetCollisionProfileName(TEXT("WorldWeapon"));
 }
 
 // Called when the game starts or when spawned

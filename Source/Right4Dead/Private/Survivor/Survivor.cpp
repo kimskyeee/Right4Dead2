@@ -677,6 +677,12 @@ void ASurvivor::MeleeWeaponAttack()
 
 void ASurvivor::HandleSingleClickAttack()
 {
+	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
+	if (false == CurrentWeaponSlot.IsSet())
+	{
+		return;
+	}
+	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	USurvivorArmAnim* WeaponInst = Cast<USurvivorArmAnim>(AnimInst);
 	bool bIsEquipped = WeaponInst->bIsEquippedWeapon;
@@ -1279,39 +1285,40 @@ void ASurvivor::TraceForWeapon()
 {
 	FVector Start = FirstCameraComp->GetComponentLocation(); // 카메라 위치
 	FVector ForwardVector = FirstCameraComp->GetForwardVector(); // 카메라의 정면 방향
-	FVector End = Start + (ForwardVector * 1000.f); // 1000cm(10m) 앞까지 탐색
-
-	FHitResult HitResult;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this); // 자기 자신은 무시
-	
-	if (CurrentWeapon)
-	{
-		Params.AddIgnoredActor(CurrentWeapon);
-	}
+	FVector End = Start + (ForwardVector * 500.f); // 500cm(5m) 앞까지 탐색
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
 	const float DebugLineLifetime = 2.0f;
 
-	// Capsule Trace 실행
-	bool bHit = GetWorld()->SweepSingleByChannel(
-		HitResult,
+	// ObjectType이 WorldWeapon인 물체만 감지하고 싶다.
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1));
+	// 현재 자신이 가지고 있는 물체는 제외하고 싶다.
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(CurrentWeapon);
+	FHitResult OutHit;
+	const bool bHit = UKismetSystemLibrary::CapsuleTraceSingleForObjects(
+		GetWorld(),
 		Start,
 		End,
-		FQuat::Identity, // 회전 없음
-		ECC_Visibility, // 충돌 채널
-		FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), // 캡슐 형태
-		Params
+		CapsuleRadius,
+		CapsuleHalfHeight,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForOneFrame,
+		OutHit,
+		true
 	);
 
 	if (bHit)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *HitResult.GetActor()->GetName());
-		AActor* HitActor = HitResult.GetActor();
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *OutHit.GetActor()->GetName());
+		AActor* HitActor = OutHit.GetActor();
 		
-		AWeaponBase* HitWeapon = Cast<AWeaponBase>(HitResult.GetActor()); // 무기인지 확인
-		AItemBase* HitItem = Cast<AItemBase>(HitResult.GetActor()); // 아이템인지 확인
+		AWeaponBase* HitWeapon = Cast<AWeaponBase>(OutHit.GetActor()); // 무기인지 확인
+		AItemBase* HitItem = Cast<AItemBase>(OutHit.GetActor()); // 아이템인지 확인
 
 		if (HitWeapon)
 		{

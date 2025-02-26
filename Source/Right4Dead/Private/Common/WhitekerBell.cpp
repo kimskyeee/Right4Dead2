@@ -17,6 +17,8 @@ AWhitekerBell::AWhitekerBell()
 
 	//충돌체 설정
 	Bell->SetGenerateOverlapEvents(true);
+
+	Bell->SetCollisionProfileName(TEXT("WorldWeapon"));
 }
 
 // Called when the game starts or when spawned
