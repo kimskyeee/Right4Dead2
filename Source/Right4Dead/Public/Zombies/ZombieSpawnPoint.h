@@ -3,11 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CommonZombie.h"
 #include "GameFramework/Actor.h"
 #include "ZombieSpawnPoint.generated.h"
-
-class AZombieSpawnManager;
 
 UCLASS()
 class RIGHT4DEAD_API AZombieSpawnPoint : public AActor
@@ -16,13 +13,4 @@ class RIGHT4DEAD_API AZombieSpawnPoint : public AActor
 
 public:
 	AZombieSpawnPoint();
-
-protected:
-	virtual void BeginPlay() override;
-
-public:
-	TSubclassOf<ACommonZombie> ZombieFactory;
-	virtual void Tick(float DeltaTime) override;
-	UFUNCTION(CallInEditor, Category = "Debugging")
-	void SpawnCommonZombie(AZombieSpawnManager* SpawnManager) const;
 };

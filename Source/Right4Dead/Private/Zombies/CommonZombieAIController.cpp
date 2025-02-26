@@ -8,11 +8,9 @@
 ACommonZombieAIController::ACommonZombieAIController()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
 	SetTickableWhenPaused(true);
 	SetActorTickInterval(0.1f);
 	bStartAILogicOnPossess = true;
-	bStopAILogicOnUnposses = true;
 	bCanBeInCluster = true;
 }
 
@@ -20,17 +18,11 @@ ACommonZombieAIController::ACommonZombieAIController()
 void ACommonZombieAIController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	SetFolderPath(TEXT("Zombie/CommonZombie/AIController"));
 }
 
 // Called every frame
 void ACommonZombieAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void ACommonZombieAIController::OnUnPossess()
-{
-	Super::OnUnPossess();
-	Destroy();
 }

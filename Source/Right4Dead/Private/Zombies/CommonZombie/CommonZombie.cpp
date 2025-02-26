@@ -7,6 +7,7 @@
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
 #include "ZombieFSM.h"
+#include "ZombieSpawnManager.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
@@ -50,9 +51,15 @@ ACommonZombie::ACommonZombie()
 		LegRightMesh = LegRightObj.Object;
 }
 
+void ACommonZombie::BeginPlay()
+{
+	Super::BeginPlay();
+	SetFolderPath(TEXT("Zombie/CommonZombie"));
+}
+
 void ACommonZombie::InitData()
 {
-	Hp = 50.0f;
+	Hp = MaxHp = 50.0f;
 	Speed = 250.0f;
 	
 	if (const URight4DeadGameInstance* GameInstance = Cast<URight4DeadGameInstance>(UGameplayStatics::GetGameInstance(this)))
@@ -79,12 +86,12 @@ void ACommonZombie::InitData()
 	}
 }
 
-void SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStaticMesh* SpawnMesh, FVector ImpulseDirection, float Power)
+AStaticMeshActor* SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStaticMesh* SpawnMesh, FVector ImpulseDirection, float Power)
 {
 	// 이미 Bone이 숨겨진 상태라면 다시 스폰시키지 않는다
 	if (SkeletalMesh->IsBoneHiddenByName(BoneName))
 	{
-		return;
+		return nullptr;
 	}
 	// Bone을 숨겨라
 	SkeletalMesh->HideBoneByName(BoneName, PBO_None);
@@ -101,6 +108,8 @@ void SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName BoneName, UStatic
 	// 적절한 방향으로 적절한 세기로 날린다
 	ImpulseDirection *= Power;
 	StaticMeshActor->GetStaticMeshComponent()->AddImpulse(ImpulseDirection);
+
+	return StaticMeshActor;
 }
 
 void ACommonZombie::TriggerDismemberment(const FPointDamageEvent* PointDamageEvent) const
@@ -109,26 +118,45 @@ void ACommonZombie::TriggerDismemberment(const FPointDamageEvent* PointDamageEve
 	const FName ParentBoneName = UR4DHelper::GetParentBone(GetMesh(), PointDamageEvent->HitInfo.BoneName);
 	const FVector ShotDirection = PointDamageEvent->ShotDirection.GetSafeNormal();
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *ShotDirection.ToString());
+	AStaticMeshActor* SpawnedMesh = nullptr; 
 	if (ParentBoneName == TEXT("neck_01"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("neck_01"), HeadMesh, ShotDirection, 1500);
+		SpawnedMesh = SpawnPartMesh(GetMesh(), TEXT("neck_01"), HeadMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("lowerarm_l"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("lowerarm_l"), ArmLeftMesh, ShotDirection, 1500);
+		SpawnedMesh = SpawnPartMesh(GetMesh(), TEXT("lowerarm_l"), ArmLeftMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("lowerarm_r"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("lowerarm_r"), ArmRightMesh, ShotDirection, 1500);
+		SpawnedMesh = SpawnPartMesh(GetMesh(), TEXT("lowerarm_r"), ArmRightMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("thigh_l"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("thigh_l"), LegLeftMesh, ShotDirection, 1500);
+		SpawnedMesh = SpawnPartMesh(GetMesh(), TEXT("thigh_l"), LegLeftMesh, ShotDirection, 1500);
 	}
 	else if (ParentBoneName == TEXT("thigh_r"))
 	{
-		SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, ShotDirection, 1500);
+		SpawnedMesh = SpawnPartMesh(GetMesh(), TEXT("thigh_r"), LegRightMesh, ShotDirection, 1500);
 	}
+	if (SpawnedMesh)
+	{
+		FTimerHandle Handle;
+		GetWorldTimerManager().SetTimer(Handle, [SpawnedMesh]()
+		{
+			SpawnedMesh->Destroy();
+		}, 10.0f, false);
+	}
+}
+
+void ACommonZombie::HandleDie()
+{
+	Super::HandleDie();
+	FTimerHandle Handle;
+	GetWorldTimerManager().SetTimer(Handle, [this]()
+	{
+		SpawnManager->EnqueueZombie(this);
+	}, 2.0f, false);
 }
 
 void ACommonZombie::OnDie()

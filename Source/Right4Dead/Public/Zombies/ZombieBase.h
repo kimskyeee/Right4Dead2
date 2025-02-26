@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "ZombieBase.generated.h"
 
+class AZombieSpawnManager;
 enum class EZombieState : uint8;
 class UZombieAnimInstance;
 class AAIController;
@@ -34,15 +35,18 @@ private:
 	UFUNCTION(CallInEditor, Category="Debugging")
 	void ForceDie();
 	float FinalDamage;
-	
+
 public:
+	UPROPERTY()
+	TObjectPtr<AZombieSpawnManager> SpawnManager = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UZombieBaseFSM> ZombieFSM = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AAIController> AIController = nullptr;
 	UPROPERTY()
 	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
-	
+
+	float MaxHp;
 	UPROPERTY(EditInstanceOnly, Category=Debugging)
 	float Hp;
 	float Speed;
@@ -50,6 +54,7 @@ public:
 	FPartDamageMultipliers PartDamageMultipliers;
 	bool bTakeDamaged;
 	virtual void BeginPlay() override;
+	virtual void InitStart();
 	virtual void InitData() PURE_VIRTUAL(AZombieBase::InitData, )
 	virtual void Tick(float DeltaSeconds) override;
 	
@@ -62,7 +67,7 @@ public:
 	UFUNCTION()
 	void OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, FVector Origin, const FHitResult& HitInfo,
 								   class AController* InstigatedBy, AActor* DamageCauser);
-	void HandleDie();
+	virtual void HandleDie();
 
 	float NormalAttackDamage = 1;
 	virtual void HandleNormalAttack();

@@ -36,7 +36,7 @@ void ABoomer::BeginPlay()
 
 void ABoomer::InitData()
 {
-	Hp = 50.0f;
+	Hp = MaxHp = 50.0f;
 	Speed = 175.0f;
 	ZombieFSM->NormalAttackInterval = 1.0f;
 	SpecialZombieFSM->SpecialAttackRange = 350.0f;

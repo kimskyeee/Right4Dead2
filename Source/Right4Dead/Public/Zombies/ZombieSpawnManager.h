@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ZombieSpawnManager.generated.h"
 
+class ACommonZombieAIController;
 class ACommonZombie;
 class AZombieSpawnPoint;
 class ASurvivor;
@@ -25,18 +26,32 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category="Debugging")
+	int MaxZombieCount = 90;
+	UPROPERTY(EditAnywhere, Category="Debugging")
 	int NumOfHorde = 30;
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
 	TArray<AZombieSpawnPoint*> SpawnPoints;
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
-    TArray<ACommonZombie*> CommonZombies;
-	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
+	TSubclassOf<ACommonZombie> ZombieFactory;
+
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
+	TObjectPtr<AActor> InitTarget = nullptr;
+	
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
+	TSet<ACommonZombie*> ActiveZombies;
+	
+	UPROPERTY()
+	TObjectPtr<USoundWave> HordeComingSound = nullptr;
+
+	void EnqueueZombie(ACommonZombie* Zombie);
+	ACommonZombie* DequeueZombie();
+	virtual void Tick(float DeltaTime) override;
+	
 	UFUNCTION(CallInEditor, Category="Debugging")
 	void CallHorde();
-	
-	UFUNCTION(CallInEditor, Category="Debugging")
-	void DisableTick();
+
+private:
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
+	int PoolCount = 0;
+	TQueue<ACommonZombie*, EQueueMode::SingleThreaded> ZombiePool;
 };

@@ -21,7 +21,7 @@ void AJockey::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Hp = 325.0f;
+	Hp = MaxHp = 325.0f;
 	Speed = 250.0f;
 }
 

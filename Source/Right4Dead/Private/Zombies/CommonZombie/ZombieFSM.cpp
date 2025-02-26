@@ -112,7 +112,7 @@ void UZombieFSM::HandleDamage()
 }
 void UZombieFSM::HandleDie()
 {
-	SetState(EZombieState::EZS_Dead);
+	Super::HandleDie();
 }
 
 void UZombieFSM::HandlePipeBombBeep(AActor* PipeBombActor)

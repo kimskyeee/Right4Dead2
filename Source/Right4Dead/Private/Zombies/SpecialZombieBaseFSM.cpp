@@ -1,10 +1,10 @@
 ﻿#include "SpecialZombieBaseFSM.h"
 
 #include "ZombieBase.h"
+#include "CommonZombie.h"
 #include "ZombieSpawnManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Right4Dead/Right4Dead.h"
 
 USpecialZombieBaseFSM::USpecialZombieBaseFSM()
 {
@@ -47,7 +47,7 @@ void USpecialZombieBaseFSM::TickChase()
         	ActorsToIgnore.Add(Owner);
 			// TODO: Survivor의 Capsule 또는 SkeletalMesh를 별도의 CollisionPreset 사용하도록 설정
 			const AZombieSpawnManager* ZombieSpawnManager = Cast<AZombieSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AZombieSpawnManager::StaticClass()));
-			for (const auto CommonZombie : ZombieSpawnManager->CommonZombies)
+			for (auto* CommonZombie : ZombieSpawnManager->ActiveZombies)
 			{
 				ActorsToIgnore.Add(CommonZombie);
 			}
