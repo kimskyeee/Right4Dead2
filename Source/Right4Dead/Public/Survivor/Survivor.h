@@ -69,6 +69,11 @@ public:
 	class UUISurvivorMedKit* MedKitUI;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
 	TSubclassOf<class UUISurvivorMedKit> MedKitUIClass;
+	//자가 치유 UI 캐싱
+	UPROPERTY()
+	class UUISurvivorCokeDelivery* CokeDeliveryUI;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUISurvivorCokeDelivery> CokeDeliveryUIClass;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -94,7 +99,7 @@ public:
 	TSubclassOf<class UCameraShakeBase> SweepCameraShake;
 
 	//카메라 전환 (1<->3)
-	void SwitchCamera();
+	void SwitchCamera(const bool& bThirdPerson);
 	UPROPERTY(visibleAnywhere)
 	bool bFirstPerson;
 	UPROPERTY(EditAnywhere)

@@ -36,12 +36,9 @@ public:
 	bool bIsOpen = true;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bIsCanOpen = false;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bIsCokeDelivery = false;
+
 	
 	virtual void Interaction() override;
-	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
-	virtual void ClearOverlayMaterial() override;
 
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionCommonDoor();
