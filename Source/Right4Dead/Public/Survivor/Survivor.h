@@ -321,7 +321,10 @@ public:
 	// 무기 내리는 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* UnequipMontage;
-	
+
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bCanDeliveryCola = false;
 };
 
 

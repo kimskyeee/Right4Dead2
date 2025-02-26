@@ -427,10 +427,6 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurvivorJump);
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurvivorCrouch);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::LeftClickAttack);
-		// 응급키트 그냥 누르면 / 꾹누르면
-		// pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::HandleSingleClickAttack);
-		// pi->BindAction(IA_SurFire, ETriggerEvent::Ongoing, this, &ASurvivor::HandleHoldAttack);
-		// pi->BindAction(IA_SurFire, ETriggerEvent::Completed, this, &ASurvivor::HandleReleaseAttack);
 
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::HandleSingleClickAttack);
 		pi->BindAction(IA_SurFireHold, ETriggerEvent::Triggered, this, &ASurvivor::HandleHoldAttack);
@@ -687,7 +683,10 @@ void ASurvivor::HandleSingleClickAttack()
 		return;
 	}
 
-	if (bIsEquipped && (CurrentWeaponSlot->WeaponName == EWeaponType::HandleObject || CurrentWeaponSlot->WeaponName == EWeaponType::CokeDelivery))
+	//짜잔
+	const bool bIsHandleWeapon = CurrentWeaponSlot->WeaponName == EWeaponType::HandleObject;
+	const bool bIsCoke = CurrentWeaponSlot->WeaponName == EWeaponType::CokeDelivery;
+	if (bIsEquipped && (bIsHandleWeapon || bIsCoke))
 	{
 		// 응급키트면
 		auto* HealKit = Cast<AWeaponHealKit>(CurrentWeapon);
@@ -703,7 +702,10 @@ void ASurvivor::HandleSingleClickAttack()
 		auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
 		if (Coke)
 		{
-			DropWeapon();
+			if (!bCanDeliveryCola)
+			{
+				DropWeapon();
+			}
 		}
 	}
 }
@@ -735,21 +737,24 @@ void ASurvivor::HandleHoldAttack()
 	auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
 	if (Coke)
 	{
-		auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
-		CokeDelivery->bIsCanOpen = true;
-		CokeDelivery->Interaction();
-		if (CokeDeliveryUI)
+		if (bCanDeliveryCola)
 		{
-			CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
-			CokeDeliveryUI->AddToViewport();
+			auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
+			CokeDelivery->bIsCanOpen = true;
+			CokeDelivery->Interaction();
+			if (CokeDeliveryUI)
+			{
+				CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
+				CokeDeliveryUI->AddToViewport();
+			}
+		
+			// 좌클릭을 꾹 누르고 있으면 시작하게 바꾸고
+			bIsHoldingLeft = true;
+		
+			CurrentWeapon->PrimaryWeapon->SetVisibility(false);
+			// 콜라병을 든 상태에서 꾹 누르면 카메라를 3인칭으로 전환
+			SwitchCamera(true);
 		}
-	
-		// 좌클릭을 꾹 누르고 있으면 시작하게 바꾸고
-		bIsHoldingLeft = true;
-	
-		CurrentWeapon->PrimaryWeapon->SetVisibility(false);
-		// 콜라병을 든 상태에서 꾹 누르면 카메라를 3인칭을로 전환
-		SwitchCamera(true);
 	}
 }
 
