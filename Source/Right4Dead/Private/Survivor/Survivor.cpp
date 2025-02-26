@@ -428,7 +428,8 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		pi->BindAction(IA_SurJump, ETriggerEvent::Started, this, &ASurvivor::SurvivorJump);
 		pi->BindAction(IA_SurCrouch, ETriggerEvent::Started, this, &ASurvivor::SurvivorCrouch);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::LeftClickAttack);
-		// 응급키트 꾹누르면
+		// 응급키트 그냥 누르면 / 꾹누르면
+		pi->BindAction(IA_SurFire, ETriggerEvent::Started, this, &ASurvivor::HandleSingleClickAttack);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Ongoing, this, &ASurvivor::HandleHoldAttack);
 		pi->BindAction(IA_SurFire, ETriggerEvent::Completed, this, &ASurvivor::HandleReleaseAttack);
 		
@@ -538,7 +539,6 @@ void ASurvivor::OnDie()
 
 void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 {
-	PRINTLOGTOSCREEN(TEXT("LeftClickAttack"));
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
 	USurvivorArmAnim* WeaponInst = Cast<USurvivorArmAnim>(AnimInst);
 	bool bIsEquipped = WeaponInst->bIsEquippedWeapon;
@@ -557,9 +557,9 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 		case EWeaponType::Melee:
 			MeleeWeaponAttack();
 			break;
-		case EWeaponType::HandleObject:
+		/*case EWeaponType::HandleObject:
 			HandleHoldAttack();
-			break;
+			break;*/
 		case EWeaponType::CokeDelivery:
 			HandleHoldAttack();
 			break;
@@ -674,9 +674,30 @@ void ASurvivor::MeleeWeaponAttack()
 	}
 }
 
+void ASurvivor::HandleSingleClickAttack()
+{
+	UAnimInstance* AnimInst = Arms->GetAnimInstance();
+	USurvivorArmAnim* WeaponInst = Cast<USurvivorArmAnim>(AnimInst);
+	bool bIsEquipped = WeaponInst->bIsEquippedWeapon;
+	
+	if (bIsHoldingLeft)
+	{
+		return;
+	}
+
+	if (bIsEquipped && CurrentWeaponSlot->WeaponName == EWeaponType::HandleObject)
+	{
+		if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(ShoveMontage);
+		}
+		SwitchCamera(false);
+	}
+}
+
 void ASurvivor::HandleHoldAttack()
 {
-	PRINTLOGTOSCREEN(TEXT("홀드중 HandleHoldAttack()"));
+	PRINTLOGTOSCREEN(TEXT("좌클릭 꾹 누르면"));
 	// 응급키트면
 	auto* HealKit = Cast<AWeaponHealKit>(CurrentWeapon);
 	if (HealKit)
@@ -692,7 +713,7 @@ void ASurvivor::HandleHoldAttack()
 			bIsHoldingLeft = true;
 
 			CurrentWeapon->PrimaryWeapon->SetVisibility(false);
-			// 응급 키트를 든 상태에서 꾹 누르면 카메라를 3인칭을로 전환
+			// 응급 키트를 든 상태에서 꾹 누르면 카메라를 3인칭으로 전환
 			SwitchCamera(true);
 		}
 	}
@@ -721,7 +742,6 @@ void ASurvivor::HandleHoldAttack()
 
 void ASurvivor::HandleReleaseAttack()
 {
-	PRINTLOGTOSCREEN(TEXT("놓기 HandleReleaseAttack()"));
 	// 5초 되기전 놓기
 	if (bIsHoldingLeft && HoldTime<MaxHoldTime)
 	{

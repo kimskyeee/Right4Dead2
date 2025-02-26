@@ -176,6 +176,7 @@ public:
 	void PrimaryWeaponAttack();
 	void SecondaryWeaponAttack();
 	void MeleeWeaponAttack();
+	void HandleSingleClickAttack();
 	void HandleHoldAttack();
 	void HandleReleaseAttack();
 	void NoneAttack();
