@@ -41,6 +41,7 @@ void AWeaponBase::BeginPlay()
 {
 	// 시작하면 총알수를 세팅해주고
 	WeaponData.CurrentAmmo = WeaponData.MaxAmmo;
+	SlotType = WeaponData.WeaponName;
 }
 
 // Called every frame

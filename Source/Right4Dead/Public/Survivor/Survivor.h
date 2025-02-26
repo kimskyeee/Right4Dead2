@@ -39,9 +39,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// 보유중인 모든 무기 인스턴스
+	// Key : WeaponType 슬롯에
+	// Value : 들어있는 무기의 포인터
 	UPROPERTY()
-	TArray<FWeaponData> WeaponInstances; 
+	TMap<EWeaponType, AWeaponBase*> Inventory; 
 	
 	// 디버그모드 온오프
 	UPROPERTY(EditAnywhere, Category=DEBUG)
@@ -302,12 +303,12 @@ public:
 	class UInputAction* IA_PickUp;
 	void PickUpWeapon_Input(const FInputActionValue& Value);
 	// 무기 줍기 함수
-	void PickUpWeapon(FWeaponData NewWeapon);
+	void PickUpWeapon(AWeaponBase* NewWeapon);
 	// 무기 슬롯 결정 함수
 	void SwitchWeaponSlot(EWeaponType SlotType);
 	void ReturnToPreviousWeapon();
 	// 무기 교체 함수
-	void EquipWeapon(FWeaponData* WeaponData);
+	void EquipWeapon(AWeaponBase* Weapon);
 	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);
 	// 무기 내리기 함수
 	void UnequipWeapon();

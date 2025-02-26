@@ -11,43 +11,45 @@
 
 //TArray는 동적배열
 //AWeaponBase 타입의 객체를 저장하는 배열이고
-//& WeaponInstances 참조를 통해 함수에서도 원본 배열을 직접 수정할 수 있다
-void UUIWeaponSlot::UpdateSlot(int32 SelectedSlot, const TArray<FWeaponData>& WeaponInstances)
+//& Inventory 참조를 통해 함수에서도 원본 배열을 직접 수정할 수 있다
+void UUIWeaponSlot::UpdateSlot(AWeaponBase* EquippedWeapon, const TMap<EWeaponType, AWeaponBase*>& Inventory)
 {
 	// 각 슬롯의 기본 이미지 배열 (초기 UI 상태)
 	TArray<UImage*> DefaultImages = { FirstBGImage, SecondBGImage, ThirdBGImage, FourthBGImage, FifthBGImage };
-	
-	// 모든 슬롯의 정보를 돌아보면서 UI를 업데이트 해보자
-	for (int32 i=0; i<WeaponSlots.Num(); i++)
+
+	// TODO: 일단 이전 방식과 연동을 위해...
+	const int32 SlotIndex = static_cast<int32>(EquippedWeapon->SlotType) - 1;
+	if (SlotIndex < 0)
 	{
-		// 선택된 슬롯이면 초록색 UI를 활성화 할 것이다
-		// 현재 슬롯이 선택된 슬롯인지 확인한다
-		bool bIsSelected = (i ==SelectedSlot);
-		// 초록색 UI를 설정한다 (선택된 슬롯이 아니면 hidden할거임)
-		WeaponSlots[i].GreenIndicator->SetVisibility(bIsSelected ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+		return;
+	}
 
-		// 근데 해당 슬롯에 무기가 있나?
-		if (WeaponInstances.IsValidIndex(i))
+	for (int i = 0; i < WeaponSlots.Num(); i++)
+	{
+		// 방금 손에 든 무기의 슬롯이 맞는가?
+		const bool bIsSelected = (i == SlotIndex);
+
+		// 초록색 UI를 설정한다 (현재 활성화된 슬롯이라면 초록 인디케이터를 표시, 아니면 숨김)
+		const ESlateVisibility NewVisibility = bIsSelected ? ESlateVisibility::Visible : ESlateVisibility::Hidden;
+		WeaponSlots[i].GreenIndicator->SetVisibility(NewVisibility);
+
+		UTexture2D* Texture = nullptr;
+		// 손에 들지 않은 i번째 슬롯에 무기가 있는가? 
+		const EWeaponType SlotType = static_cast<EWeaponType>(i + 1);
+		if (Inventory[SlotType])
 		{
-			// 있으면 무기 데이터 가져오자
-			const FWeaponData& WeaponData = WeaponInstances[i];
-			
-			// 이미지 업데이트 할거임
-			// 장착한 슬롯이면 EquipTexture, 아닐 경우 UnequipTexture 사용
-			UTexture2D* Texture = bIsSelected ? WeaponData.WeaponEquipSlotUI 
-											  : WeaponData.WeaponUnEquipSlotUI;
-
-			// 슬롯의 무기 이미지를 업데이트 (Brush를 Texture로 변경)
-			WeaponSlots[i].WeaponImage->SetBrushFromTexture(Texture);
+			// 슬롯에 무기가 있다면...
+			// 현재 장착하고 있는 무기라면 장착 이미지를
+			// 그렇지 않다면 비장착 이미지를
+			Texture = bIsSelected ? EquippedWeapon->WeaponData.WeaponEquipSlotUI : EquippedWeapon->WeaponData.WeaponUnEquipSlotUI;
 		}
-
 		else
 		{
-			if (UTexture2D* DefaultTexture = Cast<UTexture2D>(DefaultImages[i]->GetBrush().GetResourceObject()))
-			{
-				WeaponSlots[i].WeaponImage->SetBrushFromTexture(DefaultTexture);
-			}
-		}		
+			// 슬롯에 무기가 없다면 기본 이미지로 설정해라
+			Texture = Cast<UTexture2D>(DefaultImages[i]->GetBrush().GetResourceObject());
+		}
+		// 최종적으로 i번째 슬롯의 무기 이미지를 업데이트 (Brush를 Texture로 변경)
+		WeaponSlots[i].WeaponImage->SetBrushFromTexture(Texture);
 	}
 }
 

@@ -328,6 +328,14 @@ void ASurvivor::BeginPlay()
 	//BOX overlap시 발생할 이벤트
 	/*WeaponOverlapBox->OnComponentBeginOverlap.AddDynamic(this,&ASurvivor::OnWeaponOverlap);
 	WeaponOverlapBox->OnComponentEndOverlap.AddDynamic(this,&ASurvivor::OnWeaponEndOverlap);*/
+
+	// Inventory를 초기화 하고 싶다
+	// 슬롯 종류의 총 갯수만큼 Inventory를 늘리고 싶다.
+	constexpr int32 SlotTypeNumber = static_cast<int32>(EWeaponType::MAX);
+	for (int i = 0; i < SlotTypeNumber; i++)
+	{
+		Inventory.Add(static_cast<EWeaponType>(i), nullptr);
+	}
 }
 
 // Called every frame
@@ -570,7 +578,6 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 			break;
 		}
 	}
-
 	else
 		NoneAttack();
 }
@@ -721,7 +728,7 @@ void ASurvivor::HandleSingleClickAttack()
 
 void ASurvivor::HandleHoldAttack()
 {
-	PRINTLOGTOSCREEN(TEXT("좌클릭 꾹 누르면"));
+	// PRINTLOGTOSCREEN(TEXT("좌클릭 꾹 누르면"));
 	// 응급키트면
 	auto* HealKit = Cast<AWeaponHealKit>(CurrentWeapon);
 	if (HealKit)
@@ -1092,7 +1099,7 @@ void ASurvivor::ExplodeWeapon()
 void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 {
 	//총일때만 가능합니다
-	if (CurrentWeapon && CurrentWeapon->Name == EWeaponType::Primary)
+	if (CurrentWeapon && CurrentWeapon->SlotType == EWeaponType::Primary)
 	{
 		// 총알이 아직 부족하고, 남은 탄약이 존재하는 경우에만 장전 가능
 		if (CurrentWeapon->WeaponData.CurrentAmmo < CurrentWeapon->WeaponData.MaxAmmo &&
@@ -1359,7 +1366,7 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 {
 	if (FocusedWeapon) // 플레이어가 바라보고 있는 무기가 있다면
 	{
-		PickUpWeapon(FocusedWeapon->WeaponData);
+		PickUpWeapon(FocusedWeapon);
 	}
 	if (FocusedItem)
 	{
@@ -1367,29 +1374,27 @@ void ASurvivor::PickUpWeapon_Input(const FInputActionValue& Value)
 	}
 }
 
-void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
+void ASurvivor::PickUpWeapon(AWeaponBase* NewWeapon)
 {
-	//무기를 장착할 슬롯을 결정하자
-	FWeaponData* TargetSlot = nullptr;
-	switch (NewWeapon.WeaponName)
+	switch (NewWeapon->SlotType)
 	{
 	case EWeaponType::Primary:
-		TargetSlot = &PrimaryWeaponSlot;
+		PrimaryWeaponSlot = NewWeapon->WeaponData;
 		break;
 	case EWeaponType::Secondary:
-		TargetSlot = &SecondaryWeaponSlot;
+		SecondaryWeaponSlot = NewWeapon->WeaponData;
 		break;
 	case EWeaponType::Melee:
-		TargetSlot = &MeleeWeaponSlot;
+		MeleeWeaponSlot = NewWeapon->WeaponData;
 		bIsThrown = false;
 		break;
 	case EWeaponType::HandleObject:
-		TargetSlot = &HandleObjectSlot;
+		HandleObjectSlot = NewWeapon->WeaponData;
 		break;
 	case EWeaponType::CokeDelivery:
 		// 코크 배달 무기로 전환하는 경우, 현재 무기 타입 저장
 		beforeCokeWeapon = CurrentWeapon->WeaponData.WeaponName; // 또는 접근 방식에 맞게 수정
-		TargetSlot = &CokeBoxSlot;
+		CokeBoxSlot = NewWeapon->WeaponData;
 		break;
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("무기 모르겠어용"));
@@ -1400,53 +1405,20 @@ void ASurvivor::PickUpWeapon(FWeaponData NewWeapon)
 	{
 		UnequipWeapon();
 	}
-
-	*TargetSlot = NewWeapon;
-	EquipWeapon(TargetSlot);
+	
+	EquipWeapon(NewWeapon);
 }
 
 void ASurvivor::SwitchWeaponSlot(EWeaponType SlotType)
 {
-	FWeaponData* TargetSlot = nullptr;
-
-	// 전환할 슬롯 결정
-	switch (SlotType)
-	{
-	case EWeaponType::Primary:
-		TargetSlot = &PrimaryWeaponSlot;
-		break;
-	case EWeaponType::Secondary:
-		TargetSlot = &SecondaryWeaponSlot;
-		break;
-	case EWeaponType::Melee:
-		TargetSlot = &MeleeWeaponSlot;
-		break;
-	case EWeaponType::HandleObject:
-		TargetSlot = &HandleObjectSlot;
-		break;
-	case EWeaponType::CokeDelivery:
-		TargetSlot = &CokeBoxSlot;
-		break;
-	default:
-		UE_LOG(LogTemp, Warning, TEXT("잘못된 슬롯임"));
-		return;
-	}
-
-	// 현재 무기 해제
-	if (CurrentWeapon && CurrentWeapon->Name != EWeaponType::CokeDelivery)
+	// 현재 무기를 들고 있고, 콜라가 아니라면 무기를 장착 해제해라
+	if (CurrentWeapon && CurrentWeapon->SlotType != EWeaponType::CokeDelivery)
 	{
 		UnequipWeapon();
 	}
 
-	// 새로운 무기 장착
-	if (TargetSlot->WeaponFactory)
-	{
-		EquipWeapon(TargetSlot);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("해당 슬롯에 무기가 없음"));
-	}
+	// TargetSlot에 있는 무기를 장착해라.
+	EquipWeapon(Inventory[SlotType]);
 }
 
 void ASurvivor::ReturnToPreviousWeapon()
@@ -1458,89 +1430,59 @@ void ASurvivor::ReturnToPreviousWeapon()
 }
 
 //무기 장착
-void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
+void ASurvivor::EquipWeapon(AWeaponBase* Weapon)
 {
-	if (!WeaponData || !WeaponData->WeaponFactory) return;
-	// 기존 무기가 장착하고 싶은 무기와 같은 슬롯에 있다면 버리기
-	// WeaponData가 유효한지 확인
-	if (!WeaponData)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("WeaponData가 nullptr입니다."));
-		return;
-	}
-
+	if (!Weapon || !Weapon->WeaponData.WeaponFactory) return;
+	
 	// CurrentWeapon이 유효한지 확인
 	if (!CurrentWeapon)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon이 nullptr입니다."));
+		UE_LOG(LogTemp, Warning, TEXT("무기를 들고 있지 않은 상태에서 새로 무기를 장착"));
 	}
 	else
 	{
 		// WeaponName 값을 로그로 출력
-		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon WeaponName: %d"), static_cast<int32>(CurrentWeapon->WeaponData.WeaponName));
-		UE_LOG(LogTemp, Warning, TEXT("WeaponData WeaponName: %d"), static_cast<int32>(WeaponData->WeaponName));
+		UE_LOG(LogTemp, Warning, TEXT("손에 들고 있었던 무기의 타입번호 : %d"), static_cast<int32>(CurrentWeapon->WeaponData.WeaponName));
+		UE_LOG(LogTemp, Warning, TEXT("새롭게 들 무기의 타입번호 : %d"), static_cast<int32>(Weapon->WeaponData.WeaponName));
 
 		// 기존 무기가 장착하고 싶은 무기와 같은 슬롯에 있다면 버리기
-		if (CurrentWeapon->WeaponData.WeaponName == WeaponData->WeaponName)
+		if (CurrentWeapon->WeaponData.WeaponName == Weapon->WeaponData.WeaponName)
 		{
-			PRINTLOGTOSCREEN(TEXT("이거 실행"));
+			UE_LOG(LogTemp, Warning, TEXT("손에 들고 있었던 무기와 장착 할 무기의 슬롯이 같으므로 이전 무기를 버린다."));
 			DropWeapon();
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("WeaponName이 일치하지 않습니다."));
+			UE_LOG(LogTemp, Warning, TEXT("손에 들고 있었던 무기와 장착 할 무기의 슬롯이 다르다."));
 		}
 	}
 
-	// 월드에 있는 무기를 찾음
-	AWeaponBase* WorldWeapon = FindWeaponInWorld(WeaponData);
-	if (WorldWeapon)
-	{
-		// 월드에 있는 무기를 장착
-		//SKYE: 무기 프리셋 변경1
-		WorldWeapon->SetEquipped(true);
-		WorldWeapon->SetActorHiddenInGame(false);
-		CurrentWeapon = WorldWeapon;
-		WorldWeapon->Root->SetCollisionProfileName(TEXT("EquipWeapon"));
-	}
-	else
-	{
-		// 월드에 무기가 없으면 새로 생성
-		CurrentWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponFactory);
-		CurrentWeapon->SetEquipped(true);
-		CurrentWeapon->Root->SetCollisionProfileName(TEXT("EquipWeapon"));
-	}
+	Weapon->SetEquipped(true);
+	Weapon->SetActorHiddenInGame(false);
+	CurrentWeapon = Weapon;
+	Weapon->Root->SetCollisionProfileName(TEXT("EquipWeapon"));
+	CurrentWeaponSlot = Weapon->WeaponData;
 
-	// 현재 장착한 무기 데이터 업데이트
-	CurrentWeaponSlot = *WeaponData;
-	auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
+	// 적합한 인벤토리 슬롯에 무기를 넣고 싶다.
+	Inventory[Weapon->SlotType] = Weapon;
+	// UI도 업데이트 하고 싶다.
+	SurvivorMainUI->WeaponSlot->UpdateSlot(CurrentWeapon, Inventory);
 	
-	// 무기를 캐릭터의 소켓에 부착
-	if (CurrentWeapon && Arms)
+	// 무기를 캐릭터의 소켓에 부착하고 싶다.
+	if (Arms)
 	{
-		if (CurrentWeapon==Coke)
+		if (Weapon->SlotType == EWeaponType::CokeDelivery)
 		{
+			// 만약, 콜라라면 더 어울리는 소켓에 붙이고 싶다.
 			CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "HandleSocket");
 		}
 		else
 		{
+			// 그렇지 않다면 일반적인 무기 소켓에 붙이고 싶다.
 			CurrentWeapon->AttachToComponent(Arms, FAttachmentTransformRules::KeepRelativeTransform, "WeaponSocket");
 		}
 		CurrentWeapon->SetActorRelativeRotation(FRotator(0, 0, 0));
 		CurrentWeapon->SetActorRelativeLocation(FVector(0, 0, 0));
-		
-		// WeaponName enum을 int로 변환하여 슬롯 인덱스로 사용
-		int32 SlotIndex = static_cast<int32>(CurrentWeapon->WeaponData.WeaponName)-1;
-
-		// WeaponInstance (weapon data인거죵) 를 배열에 저장
-		if (WeaponInstances.Num() <= SlotIndex)
-		{
-			WeaponInstances.SetNum(SlotIndex + 1);
-		}
-		WeaponInstances[SlotIndex] = CurrentWeapon->WeaponData;
-    
-		// 수정된 WeaponInstance 배열을 전달
-		SurvivorMainUI->WeaponSlot->UpdateSlot(SlotIndex, WeaponInstances);
 	}
 	
 	UAnimInstance* AnimInst = Arms->GetAnimInstance();
@@ -1551,14 +1493,14 @@ void ASurvivor::EquipWeapon(FWeaponData* WeaponData)
 		{
 			WeaponInst->bIsEquippedWeapon=true;
 		}
-	}
-	
-	if (WeaponData->WeaponDrawMontage)
-	{
-		Arms->GetAnimInstance()->Montage_Play(WeaponData->WeaponDrawMontage);
+		
+		// 마지막으로 무기를 드는 애니메이션을 재생시키고 싶다.
+		if (auto* Montage = Weapon->WeaponData.WeaponDrawMontage)
+		{
+			AnimInst->Montage_Play(Montage);
+		}
 	}
 }
-
 
 //월드에 소환된 무기중에 false값을 가지고 있는 무기만 찾아주기
 AWeaponBase* ASurvivor::FindWeaponInWorld(FWeaponData* WeaponData)
