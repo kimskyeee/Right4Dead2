@@ -94,6 +94,10 @@ AMarketDoor::AMarketDoor()
 	RightDoor->SetCollisionProfileName(TEXT("WorldWeapon"));
 	LeftGlass->SetCollisionProfileName(TEXT("WorldWeapon"));
 	RightGlass->SetCollisionProfileName(TEXT("WorldWeapon"));
+
+	// NavMesh 문제로 일단 외관상 열어놓은 상태로 시작
+	LeftHinge->SetRelativeRotation(FRotator(0, -90, 0));
+	RightHinge->SetRelativeRotation(FRotator(0, 90, 0));
 }
 
 // Called when the game starts or when spawned
@@ -101,6 +105,13 @@ void AMarketDoor::BeginPlay()
 {
 	Super::BeginPlay();
 	ZombieSpawnManager = Cast<AZombieSpawnManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AZombieSpawnManager::StaticClass()));
+
+	LeftHinge->SetRelativeRotation(FRotator(0, -90, 0));
+	RightHinge->SetRelativeRotation(FRotator(0, 90, 0));
+
+	// BeginPlay에서 각도를 닫아준걸로 바꿔도 NavMesh는 여전히 이동 가능 경로 판정 
+	LeftHinge->SetRelativeRotation(FRotator(0, 0, 0));
+	RightHinge->SetRelativeRotation(FRotator(0, 0, 0));
 }
 
 // Called every frame
