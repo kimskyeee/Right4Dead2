@@ -325,6 +325,10 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bCanDeliveryCola = false;
+	UPROPERTY(BlueprintReadWrite)
+	bool FinishedDelivery = false;
+	UFUNCTION(BlueprintImplementableEvent)
+	void FinisedDeliveryCoke();
 };
 
 

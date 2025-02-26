@@ -389,6 +389,7 @@ void ASurvivor::Tick(float DeltaTime)
 				PRINTLOGTOSCREEN(TEXT("콜라입니다"));
 				HoldTime=0.0f;
 				bIsHoldingLeft = false;
+				FinishedDelivery = true;
 				
 				// 콜라병 삭제
 				if (CokeBoxSlot.WeaponFactory) 
