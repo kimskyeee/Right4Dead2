@@ -1117,12 +1117,12 @@ void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 			// 장전된 탄 수 반영
 			CurrentWeapon->WeaponData.CurrentAmmo += AmmoToLoad;
 			CurrentWeapon->WeaponData.MaxAmmoAmount -= AmmoToLoad;
-		}
 
-		// 몽타주 플레이
-		if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
-		{
-			AnimInstance->Montage_Play(CurrentWeapon->WeaponData.WeaponReloadMontage);
+			// 몽타주 플레이
+			if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+			{
+				AnimInstance->Montage_Play(CurrentWeapon->WeaponData.WeaponReloadMontage);
+			}
 		}
 	}
 }
@@ -1296,7 +1296,7 @@ void ASurvivor::TraceForWeapon()
 {
 	FVector Start = FirstCameraComp->GetComponentLocation(); // 카메라 위치
 	FVector ForwardVector = FirstCameraComp->GetForwardVector(); // 카메라의 정면 방향
-	FVector End = Start + (ForwardVector * 100.f); // 100cm(1m) 앞까지 탐색
+	FVector End = Start + (ForwardVector * 300.f); // 100cm(1m) 앞까지 탐색
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
