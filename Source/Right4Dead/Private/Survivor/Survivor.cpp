@@ -1112,12 +1112,12 @@ void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 			// 장전된 탄 수 반영
 			CurrentWeapon->WeaponData.CurrentAmmo += AmmoToLoad;
 			CurrentWeapon->WeaponData.MaxAmmoAmount -= AmmoToLoad;
-		}
 
-		// 몽타주 플레이
-		if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
-		{
-			AnimInstance->Montage_Play(CurrentWeapon->WeaponData.WeaponReloadMontage);
+			// 몽타주 플레이
+			if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+			{
+				AnimInstance->Montage_Play(CurrentWeapon->WeaponData.WeaponReloadMontage);
+			}
 		}
 	}
 }
