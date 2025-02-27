@@ -99,6 +99,11 @@ void AZombieBase::Tick(float DeltaSeconds)
 		}
 		else
 		{
+			if (GetCharacterMovement()->GetFeetLocation().Z > ClimbDestination.GetLocation().Z + 200)
+			{
+				EndClimbing();
+				return;
+			}
 			const FVector P = P0 + GetActorForwardVector() * Speed * DeltaSeconds;
 			SetActorLocation(P);
 		}

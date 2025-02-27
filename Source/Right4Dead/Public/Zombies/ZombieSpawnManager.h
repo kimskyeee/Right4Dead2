@@ -25,10 +25,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY(EditAnywhere, Category="Debugging")
-	int MaxZombieCount = 120;
-	UPROPERTY(EditAnywhere, Category="Debugging")
-	int NumOfHorde = 40;
+	
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
 	TArray<AZombieSpawnPoint*> SpawnPoints;
 
@@ -37,21 +34,32 @@ public:
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
 	TObjectPtr<AActor> InitTarget = nullptr;
 	
-	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
-	TSet<ACommonZombie*> ActiveZombies;
+	
 	
 	UPROPERTY()
 	TObjectPtr<USoundWave> HordeComingSound = nullptr;
 
-	void EnqueueZombie(ACommonZombie* Zombie);
-	ACommonZombie* DequeueZombie();
-	virtual void Tick(float DeltaTime) override;
 	
+	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(EditAnywhere, Category="Debugging")
+	int NumOfHorde = 30;
 	UFUNCTION(CallInEditor, BlueprintCallable, Category="Debugging")
 	void CallHorde();
 
+	
+	void EnqueueZombie(ACommonZombie* Zombie);
+	
+	ACommonZombie* DequeueZombie();
+	
+	UPROPERTY(EditAnywhere, Category="Debugging")
+	int MaxZombieCount = 90;
+	
+	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
+	TSet<ACommonZombie*> ActiveZombies;
 private:
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
 	int PoolCount = 0;
+	
 	TQueue<ACommonZombie*, EQueueMode::SingleThreaded> ZombiePool;
 };
