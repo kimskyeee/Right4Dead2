@@ -71,11 +71,15 @@ void AZombieSpawnManager::EnqueueZombie(ACommonZombie* Zombie)
 		{
 			return;
 		}
-		Zombie->SetActorTickEnabled(false);
-		Zombie->ZombieFSM->SetComponentTickEnabled(false);
-		Zombie->ZombieAnimInstance->EnableUpdateAnimation(false);
-		Zombie->GetCharacterMovement()->bUseRVOAvoidance = false;
-		Zombie->SetActorEnableCollision(false);
+		
+		// 각종 기능 비활성화
+		{ 
+			Zombie->SetActorTickEnabled(false);
+			Zombie->ZombieFSM->SetComponentTickEnabled(false);
+			Zombie->ZombieAnimInstance->EnableUpdateAnimation(false);
+			Zombie->GetCharacterMovement()->bUseRVOAvoidance = false;
+			Zombie->SetActorEnableCollision(false);
+		}
 		
 		PoolCount++;
 		ZombiePool.Enqueue(Zombie);

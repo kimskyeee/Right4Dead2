@@ -72,7 +72,7 @@ public:
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionDoor();
 
-	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
+	UFUNCTION(CallInEditor, BlueprintImplementableEvent, BlueprintCallable, Category = "Debugging")
 	void StopAlarm();
 
 	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
