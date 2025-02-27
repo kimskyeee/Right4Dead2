@@ -519,6 +519,11 @@ float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& Damag
 
 void ASurvivor::OnDamaged(float Damage)
 {
+	if (bGod)
+	{
+		return;
+	}
+	
 	bIsDamaged=true;
 	//카메라 쉐이크
 	auto pc = GetWorld()->GetFirstPlayerController();

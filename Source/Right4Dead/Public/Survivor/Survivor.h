@@ -328,6 +328,8 @@ public:
 	bool bCanDeliveryCola = false;
 	UFUNCTION(BlueprintImplementableEvent)
 	void FinisedDeliveryCoke();
+	UPROPERTY(BlueprintReadWrite)
+    bool bGod = false;
 };
 
 
