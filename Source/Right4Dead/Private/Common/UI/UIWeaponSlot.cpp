@@ -36,12 +36,12 @@ void UUIWeaponSlot::UpdateSlot(AWeaponBase* EquippedWeapon, const TMap<EWeaponTy
 		UTexture2D* Texture = nullptr;
 		// 손에 들지 않은 i번째 슬롯에 무기가 있는가? 
 		const EWeaponType SlotType = static_cast<EWeaponType>(i + 1);
-		if (Inventory[SlotType])
+		if (auto Weapon = Inventory[SlotType])
 		{
 			// 슬롯에 무기가 있다면...
 			// 현재 장착하고 있는 무기라면 장착 이미지를
 			// 그렇지 않다면 비장착 이미지를
-			Texture = bIsSelected ? EquippedWeapon->WeaponData.WeaponEquipSlotUI : EquippedWeapon->WeaponData.WeaponUnEquipSlotUI;
+			Texture = bIsSelected ? Weapon->WeaponData.WeaponEquipSlotUI : Weapon->WeaponData.WeaponUnEquipSlotUI;
 		}
 		else
 		{
