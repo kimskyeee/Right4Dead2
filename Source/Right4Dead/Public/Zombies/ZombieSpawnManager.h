@@ -26,9 +26,9 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, Category="Debugging")
-	int MaxZombieCount = 90;
+	int MaxZombieCount = 120;
 	UPROPERTY(EditAnywhere, Category="Debugging")
-	int NumOfHorde = 30;
+	int NumOfHorde = 40;
 	UPROPERTY(VisibleInstanceOnly, Category="Debugging")
 	TArray<AZombieSpawnPoint*> SpawnPoints;
 
@@ -47,7 +47,7 @@ public:
 	ACommonZombie* DequeueZombie();
 	virtual void Tick(float DeltaTime) override;
 	
-	UFUNCTION(CallInEditor, Category="Debugging")
+	UFUNCTION(CallInEditor, BlueprintCallable, Category="Debugging")
 	void CallHorde();
 
 private:

@@ -117,7 +117,7 @@ void AZombieSpawnManager::CallHorde()
 		return;
 	}
 	
-	UGameplayStatics::PlaySound2D(this, HordeComingSound);
+	UGameplayStatics::PlaySound2D(this, HordeComingSound, 1, 1, -1);
 	
 	int Rem = FMath::Min(NumOfHorde, PoolCount);
 	while (Rem > 0)
