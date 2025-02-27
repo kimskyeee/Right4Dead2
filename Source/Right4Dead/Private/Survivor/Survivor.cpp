@@ -1318,7 +1318,7 @@ void ASurvivor::TraceForWeapon()
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::None,
 		OutHit,
 		true
 	);
