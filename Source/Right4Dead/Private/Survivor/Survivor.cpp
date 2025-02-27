@@ -40,6 +40,7 @@
 #include "Logging/LogTrace.h"
 #include "Right4Dead/Right4Dead.h"
 #include "Tests/AutomationCommon.h"
+#include "Windows/WindowsApplication.h"
 
 // Sets default values
 ASurvivor::ASurvivor()
@@ -369,18 +370,17 @@ void ASurvivor::Tick(float DeltaTime)
 		// 콜라 : 배달
 		if (HoldTime >= MaxHoldTime)
 		{
+			HoldTime = 0.0f;
+			bIsHoldingLeft = false;
 			auto* Heal = Cast<AWeaponHealKit>(CurrentWeapon);
 			if (Heal)
 			{
 				// 잃은 체력의 80% 회복
 				CurrentHP += 0.8f * (MaxHP - CurrentHP);
-				HoldTime = 0.0f;
-				bIsHoldingLeft = false;
-				
 				// 응급도구 삭제
 				if (HandleObjectSlot.WeaponFactory) 
 				{
-					UnequipWeapon();
+					UnequipWeapon(false, true);
 					HandleObjectSlot = FWeaponData();
 				}
 			
@@ -394,9 +394,6 @@ void ASurvivor::Tick(float DeltaTime)
 			auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
 			if (Coke)
 			{
-				HoldTime=0.0f;
-				bIsHoldingLeft = false;
-				
 				if (CokeDeliveryUI)
 				{
 					CokeDeliveryUI->SetVisibility(ESlateVisibility::Hidden);
@@ -412,12 +409,9 @@ void ASurvivor::Tick(float DeltaTime)
 			// 콜라병 삭제
 			if (CurrentWeapon->WeaponData.WeaponName==EWeaponType::CokeDelivery)
 			{
-				ReturnToPreviousWeapon();
+				UnequipWeapon(false, true);
 				return;
 			}
-			
-			CurrentWeaponSlot.Reset();
-			CurrentWeapon=nullptr;
 		}
 	}
 }
@@ -464,7 +458,7 @@ void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 		ThirdPersonCameraComp->SetActive(false);
 		SpringArmComp->SetActive(false);
 		Arms->SetVisibility(true);
-		CurrentWeapon->SetHidden(false);
+		if (CurrentWeapon) CurrentWeapon->SetHidden(false);
 		ThirdPerson->SetVisibility(false);
 	}
 	else
@@ -474,7 +468,7 @@ void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 		ThirdPersonCameraComp->SetActive(true);
 		SpringArmComp->SetActive(true);
 		Arms->SetVisibility(false);
-		CurrentWeapon->SetHidden(true);
+		if (CurrentWeapon) CurrentWeapon->SetHidden(true);
 		ThirdPerson->SetVisibility(true);
 	}
 }
@@ -720,7 +714,7 @@ void ASurvivor::HandleSingleClickAttack()
 		{
 			if (!bCanDeliveryCola)
 			{
-				DropWeapon();
+				UnequipWeapon(true, false);
 			}
 		}
 	}
@@ -1292,7 +1286,7 @@ void ASurvivor::TraceForWeapon()
 {
 	FVector Start = FirstCameraComp->GetComponentLocation(); // 카메라 위치
 	FVector ForwardVector = FirstCameraComp->GetForwardVector(); // 카메라의 정면 방향
-	FVector End = Start + (ForwardVector * 100.f); // 100cm(1m) 앞까지 탐색
+	FVector End = Start + (ForwardVector * 200.f); // 100cm(1m) 앞까지 탐색
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
@@ -1393,7 +1387,7 @@ void ASurvivor::PickUpWeapon(AWeaponBase* NewWeapon)
 		break;
 	case EWeaponType::CokeDelivery:
 		// 코크 배달 무기로 전환하는 경우, 현재 무기 타입 저장
-		beforeCokeWeapon = CurrentWeapon->WeaponData.WeaponName; // 또는 접근 방식에 맞게 수정
+		BeforeCokeWeapon = CurrentWeapon;
 		CokeBoxSlot = NewWeapon->WeaponData;
 		break;
 	default:
@@ -1403,29 +1397,28 @@ void ASurvivor::PickUpWeapon(AWeaponBase* NewWeapon)
 
 	if (CurrentWeapon) // 이미 무기가 있다면 교체
 	{
-		UnequipWeapon();
+		UE_LOG(LogTemp, Warning, TEXT("ASDASD"));
+		UnequipWeapon(false, false);
 	}
 	
 	EquipWeapon(NewWeapon);
 }
 
-void ASurvivor::SwitchWeaponSlot(EWeaponType SlotType)
+void ASurvivor::SwitchWeaponSlot(EWeaponType NextSlotType)
 {
-	// 현재 무기를 들고 있고, 콜라가 아니라면 무기를 장착 해제해라
-	if (CurrentWeapon && CurrentWeapon->SlotType != EWeaponType::CokeDelivery)
+	if (CurrentWeapon)
 	{
-		UnequipWeapon();
-	}
-
-	// TargetSlot에 있는 무기를 장착해라.
-	EquipWeapon(Inventory[SlotType]);
-}
-
-void ASurvivor::ReturnToPreviousWeapon()
-{
-	if (CurrentWeapon && CurrentWeapon->WeaponData.WeaponName == EWeaponType::CokeDelivery)
-	{
-		SwitchWeaponSlot(beforeCokeWeapon);
+		if (CurrentWeapon->SlotType == EWeaponType::CokeDelivery)
+		{
+			UnequipWeapon(true, false);
+			EquipWeapon(BeforeCokeWeapon);
+		}
+		else
+		{
+			UnequipWeapon(false, false);
+			// TargetSlot에 있는 무기를 장착해라.
+			EquipWeapon(Inventory[NextSlotType]);
+		}
 	}
 }
 
@@ -1446,14 +1439,11 @@ void ASurvivor::EquipWeapon(AWeaponBase* Weapon)
 		UE_LOG(LogTemp, Warning, TEXT("새롭게 들 무기의 타입번호 : %d"), static_cast<int32>(Weapon->WeaponData.WeaponName));
 
 		// 기존 무기가 장착하고 싶은 무기와 같은 슬롯에 있다면 버리기
-		if (CurrentWeapon->WeaponData.WeaponName == Weapon->WeaponData.WeaponName)
+		if (Inventory[Weapon->SlotType] != nullptr)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("손에 들고 있었던 무기와 장착 할 무기의 슬롯이 같으므로 이전 무기를 버린다."));
-			DropWeapon();
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("손에 들고 있었던 무기와 장착 할 무기의 슬롯이 다르다."));
+			EquipWeapon(Inventory[Weapon->SlotType]);
+			UnequipWeapon(true, false);
 		}
 	}
 
@@ -1521,19 +1511,46 @@ AWeaponBase* ASurvivor::FindWeaponInWorld(FWeaponData* WeaponData)
 }
 
 //무기 내리기
-void ASurvivor::UnequipWeapon()
+void ASurvivor::UnequipWeapon(bool bDrop, bool bRemove)
 {
-	if (CurrentWeapon)
+	if (bDrop && bRemove)
 	{
-		//SKYE: 무기 프리셋 변경2
-		CurrentWeapon->SetEquipped(false);
-		CurrentWeapon->Root->SetCollisionProfileName(TEXT("SlotWeapon"));
-		CurrentWeapon->SetActorHiddenInGame(true);
+		UE_LOG(LogTemp, Error, TEXT("Drop하면서 Remove는 뭐야"));
 	}
 	
-	/*// 현재 무기 초기화
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->SetActorHiddenInGame(!bDrop);
+		CurrentWeapon->SetEquipped(false);
+		
+		if (bDrop)
+		{
+			// 무기 부착 해제
+			CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			CurrentWeapon->Root->SetCollisionProfileName(TEXT("WorldWeapon"));
+
+			// 무기 위치 설정 (플레이어의 위치에서 약간 앞쪽으로)
+			FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
+			CurrentWeapon->SetActorLocation(DropLocation);
+
+			// 무기 회전 설정 (기본 회전값으로 설정)
+			CurrentWeapon->SetActorRotation(FRotator(0, 0, 0));
+		}
+		else
+		{
+			CurrentWeapon->Root->SetCollisionProfileName(TEXT("SlotWeapon"));
+		}
+	}
+	
+	if (bRemove)
+	{
+		PRINT_CALLINFO();
+		CurrentWeapon->Destroy();
+	}
+	
+	// 현재 무기 초기화
 	CurrentWeapon = nullptr;
-	CurrentWeaponSlot.Reset();*/
+	CurrentWeaponSlot.Reset();
 
 	if (UnequipMontage && GetMesh()->GetAnimInstance())
 	{
@@ -1551,44 +1568,6 @@ void ASurvivor::UnequipWeapon()
 		}
 	}
 }
-
-//무기 버리기
-void ASurvivor::DropWeapon()
-{
-	if (!CurrentWeapon)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon nullptr"));
-		return;
-	}
-	if (CurrentWeapon)
-	{
-		// 무기 부착 해제
-		CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-		// 무기 상태 업데이트
-		CurrentWeapon->SetEquipped(false);
-		CurrentWeapon->SetActorHiddenInGame(false);
-		CurrentWeapon->Root->SetCollisionProfileName(TEXT("WorldWeapon"));
-
-		// 무기 위치 설정 (플레이어의 위치에서 약간 앞쪽으로)
-		FVector DropLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
-		CurrentWeapon->SetActorLocation(DropLocation);
-
-		// 무기 회전 설정 (기본 회전값으로 설정)
-		CurrentWeapon->SetActorRotation(FRotator(0, 0, 0));
-
-		if (CurrentWeapon->WeaponData.WeaponName==EWeaponType::CokeDelivery)
-		{
-			ReturnToPreviousWeapon();
-			return;
-		}
-		
-		// 현재 무기 초기화
-		CurrentWeapon = nullptr;
-		CurrentWeaponSlot.Reset();
-	}
-}
-
 
 
 

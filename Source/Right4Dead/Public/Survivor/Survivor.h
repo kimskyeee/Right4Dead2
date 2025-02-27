@@ -98,7 +98,9 @@ public:
 	TSubclassOf<class UCameraShakeBase> DamagedCameraShake;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="CameraShake")
 	TSubclassOf<class UCameraShakeBase> SweepCameraShake;
-	EWeaponType beforeCokeWeapon;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, category="Debugging")
+	AWeaponBase* BeforeCokeWeapon = nullptr;
 
 	//카메라 전환 (1<->3)
 	void SwitchCamera(const bool& bThirdPerson);
@@ -305,15 +307,12 @@ public:
 	// 무기 줍기 함수
 	void PickUpWeapon(AWeaponBase* NewWeapon);
 	// 무기 슬롯 결정 함수
-	void SwitchWeaponSlot(EWeaponType SlotType);
-	void ReturnToPreviousWeapon();
+	void SwitchWeaponSlot(EWeaponType NextSlotType);
 	// 무기 교체 함수
 	void EquipWeapon(AWeaponBase* Weapon);
 	AWeaponBase* FindWeaponInWorld(FWeaponData* WeaponData);
 	// 무기 내리기 함수
-	void UnequipWeapon();
-	// 무기 버리기
-	void DropWeapon();
+	void UnequipWeapon(bool bDrop, bool bRemove);
 	
 	// 무기 던지고 나서 판단하기
 	UPROPERTY(editanywhere, Category="ThrownWeapon")
