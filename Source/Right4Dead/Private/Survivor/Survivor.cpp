@@ -1415,8 +1415,10 @@ void ASurvivor::PickUpWeapon(AWeaponBase* NewWeapon)
 
 void ASurvivor::SwitchWeaponSlot(EWeaponType SlotType)
 {
-	// 현재 무기를 들고 있고, 콜라가 아니라면 무기를 장착 해제해라
-	if (CurrentWeapon && CurrentWeapon->SlotType != EWeaponType::CokeDelivery)
+	// 현재 무기를 들고 있고,
+	// TODO:콜라가 아니라면 무기를 장착 해제해라
+	bool bIsNotCoke = CurrentWeapon->SlotType != EWeaponType::CokeDelivery;
+	if (CurrentWeapon)
 	{
 		UnequipWeapon();
 	}
