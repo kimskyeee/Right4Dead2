@@ -1291,7 +1291,7 @@ void ASurvivor::TraceForWeapon()
 {
 	FVector Start = FirstCameraComp->GetComponentLocation(); // 카메라 위치
 	FVector ForwardVector = FirstCameraComp->GetForwardVector(); // 카메라의 정면 방향
-	FVector End = Start + (ForwardVector * 100.f); // 100cm(1m) 앞까지 탐색
+	FVector End = Start + (ForwardVector * 300.f); // 100cm(1m) 앞까지 탐색
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
