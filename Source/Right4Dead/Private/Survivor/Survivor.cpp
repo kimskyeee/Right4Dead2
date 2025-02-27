@@ -543,7 +543,6 @@ void ASurvivor::OnDamaged(float Damage)
 void ASurvivor::OnDie()
 {
 	bIsDead = true;
-	SwitchCamera(true);
 	
 }
 
