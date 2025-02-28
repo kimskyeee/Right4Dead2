@@ -1021,11 +1021,10 @@ void ASurvivor::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* Othe
 
 	//6초동안 sphere trace로 좀비 감지하기 (범위 3000이상)
 	//0.2초마다 loop
-	GetWorld()->GetTimerManager().SetTimer(PipeBombTraceTimerHandle, this, &ASurvivor::PipeBombTraceZombies, 0.1f, true);
+	GetWorld()->GetTimerManager().SetTimer(PipeBombTraceTimerHandle, this, &ASurvivor::PipeBombTraceZombies, 1.0f, true);
 
 	//6초후 폭발 타이머 설정 (폭발함수 구현하기)
 	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &ASurvivor::ExplodeWeapon, 6.0f, false);
-	
 }
 
 void ASurvivor::PipeBombTraceZombies()
@@ -1037,7 +1036,7 @@ void ASurvivor::PipeBombTraceZombies()
 
 	TArray<FHitResult> HitResults;
 	FCollisionShape SphereShape = FCollisionShape::MakeSphere(TraceRadius);
-
+	
 	bool bHit = GetWorld()->SweepMultiByChannel(
 		HitResults,
 		TraceStart,
@@ -1050,11 +1049,9 @@ void ASurvivor::PipeBombTraceZombies()
 	//감지된 액터들 중 ACommonZombie 타입인지 확인하고 이벤트 호출
 	for (const FHitResult& HitResult : HitResults)
 	{
-		AActor* HitActor = HitResult.GetActor();
-		if (HitActor && HitActor->IsA(ACommonZombie::StaticClass()))
+		if (AActor* HitActor = HitResult.GetActor())
 		{
-			ACommonZombie* Zombie = Cast<ACommonZombie>(HitActor);
-			if (Zombie)
+			if (const ACommonZombie* Zombie = Cast<ACommonZombie>(HitActor))
 			{
 				Zombie->HandlePipeBombBeep(CurrentWeapon);
 			}
