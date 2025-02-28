@@ -99,7 +99,7 @@ void AZombieBase::Tick(float DeltaSeconds)
 		}
 		else
 		{
-			if (GetCharacterMovement()->GetFeetLocation().Z > ClimbDestination.GetLocation().Z + 200)
+			if (FVector::Dist(GetCharacterMovement()->GetFeetLocation(), ClimbDestination.GetLocation()) > 1000)
 			{
 				EndClimbing();
 				return;
