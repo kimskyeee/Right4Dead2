@@ -32,6 +32,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Audio")
 	TObjectPtr<UAudioComponent> ChaseAudio = nullptr;
 
+	UPROPERTY(BlueprintReadWrite, Category = "Audio")
+	TObjectPtr<USoundCue> DieSoundCue = nullptr;
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnChangedState(const EZombieState& BeforeState, const EZombieState& AfterState);
 };
