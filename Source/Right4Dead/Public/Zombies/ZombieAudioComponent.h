@@ -37,9 +37,13 @@ public:
 	TObjectPtr<USoundCue> DieSoundCue = nullptr;
 	UPROPERTY(BlueprintReadWrite, Category = "Audio")
 	TObjectPtr<USoundCue> PunchSoundCue = nullptr;
+	UPROPERTY(BlueprintReadWrite, Category = "Audio")
+	TObjectPtr<USoundCue> HitByBulletSoundCue = nullptr;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnChangedState(const EZombieState& BeforeState, const EZombieState& AfterState);
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnNormalAttacked();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnBulletHit();
 };

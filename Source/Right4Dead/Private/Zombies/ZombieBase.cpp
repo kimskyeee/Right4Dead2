@@ -1,6 +1,7 @@
 ﻿#include "ZombieBase.h"
 
 #include "AIController.h"
+#include "BulletDamageType.h"
 #include "CommonZombieAIController.h"
 #include "R4DHelper.h"
 #include "ShoveDamageType.h"
@@ -143,6 +144,11 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 		{
 			HandleShove(DamageCauser->GetActorLocation());
 		}
+	}
+	
+	if (DamageEvent.DamageTypeClass == UBulletDamageType::StaticClass())
+	{
+		OnBulletHit.Broadcast();
 	}
 	
 	return FinalDamage;

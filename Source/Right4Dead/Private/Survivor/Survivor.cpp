@@ -3,6 +3,7 @@
 
 #include "Survivor.h"
 
+#include "BulletDamageType.h"
 #include "CokeDelivery.h"
 #include "CommonDoor.h"
 #include "CommonZombie.h"
@@ -630,7 +631,7 @@ void ASurvivor::PrimaryWeaponAttack()
 			if (false == Hit.BoneName.IsNone())
 			{
 				const FVector HitFromDirection = (GetActorForwardVector() + FVector(0, 0, 0.5f)).GetSafeNormal();
-				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, HitFromDirection, Hit, nullptr, nullptr, UDamageType::StaticClass());
+				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, HitFromDirection, Hit, nullptr, nullptr, UBulletDamageType::StaticClass());
 			}
 		}
 

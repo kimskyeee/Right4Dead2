@@ -15,7 +15,6 @@ UZombieAudioComponent::UZombieAudioComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
 // Called when the game starts
 void UZombieAudioComponent::BeginPlay()
 {
@@ -23,6 +22,7 @@ void UZombieAudioComponent::BeginPlay()
 	Owner = Cast<AZombieBase>(GetOwner());
 	if (Owner)
 	{
+		Owner->OnBulletHit.AddDynamic(this, &UZombieAudioComponent::OnBulletHit);
 		ZombieFsm = Cast<UZombieFSM>(Owner->ZombieFSM);
 		if (ZombieFsm)
 		{

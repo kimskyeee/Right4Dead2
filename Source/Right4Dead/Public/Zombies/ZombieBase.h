@@ -14,6 +14,8 @@ class UZombieAnimInstance;
 class AAIController;
 class UZombieBaseFSM;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBulletHit);
+
 USTRUCT()
 struct FPartDamageMultipliers
 {
@@ -62,7 +64,9 @@ public:
 	virtual void InitStart();
 	virtual void InitData() PURE_VIRTUAL(AZombieBase::InitData, )
 	virtual void Tick(float DeltaSeconds) override;
-	
+
+	UPROPERTY(BlueprintAssignable)
+	FOnBulletHit OnBulletHit;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION()
 	void OnTakeAnyDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);

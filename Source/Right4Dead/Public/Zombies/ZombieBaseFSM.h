@@ -85,6 +85,7 @@ public:
 	/*
 	 *Attack
 	 */
+	UPROPERTY(BlueprintAssignable)
 	FOnNormalAttacked OnNormalAttacked;
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float NormalAttackRange = 150.0f;
