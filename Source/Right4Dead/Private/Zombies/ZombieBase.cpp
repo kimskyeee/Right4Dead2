@@ -6,8 +6,6 @@
 #include "ShoveDamageType.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
-#include "ZombieSpawnManager.h"
-#include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"

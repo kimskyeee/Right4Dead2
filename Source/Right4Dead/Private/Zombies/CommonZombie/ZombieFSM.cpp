@@ -40,6 +40,11 @@ void UZombieFSM::TickChase(const float DeltaTime)
 {
 	Super::TickChase(DeltaTime);
 
+	if (true == Owner->bClimbing)
+	{
+		return;
+	}
+	
 	CurrentChaseTime += DeltaTime;
 	if (CurrentChaseTime > StopChaseTime)
 	{
