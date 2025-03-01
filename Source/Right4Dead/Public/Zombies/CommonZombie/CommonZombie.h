@@ -36,7 +36,7 @@ public:
 	TObjectPtr<UStaticMesh> LegLeftMesh = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMesh> LegRightMesh = nullptr;
-	
+
 	void TriggerDismemberment(const FPointDamageEvent* PointDamageEvent) const;
 	virtual void HandleDie() override;
 

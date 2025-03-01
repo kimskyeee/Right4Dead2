@@ -17,6 +17,8 @@ enum class EZombieState : uint8
 	EZS_Dead
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnChangedState, const EZombieState&, BeforeState, const EZombieState&, AfterState);
+
 UCLASS(Abstract)
 class RIGHT4DEAD_API UZombieBaseFSM : public UActorComponent
 {
@@ -37,6 +39,8 @@ public:
 	UPROPERTY(EditAnywhere, Category="Debugging")
 	EZombieState State = EZombieState::EZS_Idle;
 	void SetState(const EZombieState NewState);
+	UPROPERTY(BlueprintAssignable)
+	FOnChangedState OnChangedState;
 
 	UPROPERTY(EditAnywhere, Category="Debugging")
 	TObjectPtr<AActor> ChaseTarget = nullptr;

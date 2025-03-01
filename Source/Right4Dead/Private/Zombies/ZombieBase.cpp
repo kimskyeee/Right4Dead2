@@ -6,6 +6,7 @@
 #include "ShoveDamageType.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
+#include "ZombieAudioComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -26,7 +27,7 @@ AZombieBase::AZombieBase()
 	OnTakeAnyDamage.AddDynamic(this, &AZombieBase::OnTakeAnyDamageHandler);
 	OnTakePointDamage.AddDynamic(this, &AZombieBase::OnTakePointDamageHandler);
 	OnTakeRadialDamage.AddDynamic(this, &AZombieBase::OnTakeRadialDamageHandler);
-
+	
 	// TPS Character 기본 설정값
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	Movement->GravityScale = 1.75f;
@@ -71,6 +72,15 @@ void AZombieBase::BeginPlay()
 		{
 			AIController->Possess(this);
 		}
+	}
+
+	if (ZombieAudioComponentFactory->StaticClass())
+	{
+		ZombieAudioComponent = NewObject<UZombieAudioComponent>(this, ZombieAudioComponentFactory, TEXT("ZombieAudioComponent"), RF_Transactional);
+        if(ZombieAudioComponent)
+        {
+        	ZombieAudioComponent->RegisterComponent();
+        }
 	}
 }
 

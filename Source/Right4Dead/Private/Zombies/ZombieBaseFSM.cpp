@@ -48,8 +48,9 @@ void UZombieBaseFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 }
 void UZombieBaseFSM::SetState(const EZombieState NewState)
 {
+	const EZombieState& BeforeState = State;
 	// 기존 상태에 따라 정리 작업
-	switch (State)
+	switch (BeforeState)
 	{
 	case EZombieState::EZS_Idle:
 		EndIdle();
@@ -82,6 +83,8 @@ void UZombieBaseFSM::SetState(const EZombieState NewState)
 		break;
 	}
 	State = NewState;
+
+	OnChangedState.Broadcast(BeforeState, NewState);
 }
 
 #pragma region Idle

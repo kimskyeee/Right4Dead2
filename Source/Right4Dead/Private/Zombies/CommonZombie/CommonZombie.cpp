@@ -6,8 +6,10 @@
 #include "R4DHelper.h"
 #include "Right4DeadGameInstance.h"
 #include "Survivor.h"
+#include "ZombieAudioComponent.h"
 #include "ZombieFSM.h"
 #include "ZombieSpawnManager.h"
+#include "Components/AudioComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
@@ -18,7 +20,7 @@ ACommonZombie::ACommonZombie()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
+	static const ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeletalMeshObj(TEXT("/Script/Engine.SkeletalMesh'/Game/Assets/ThirdPerson/Characters/Mannequin_UE4/Meshes/SK_Mannequin.SK_Mannequin'"));
 	if (SkeletalMeshObj.Succeeded())
 	{
 		GetMesh()->SetSkeletalMeshAsset(SkeletalMeshObj.Object);
@@ -33,12 +35,17 @@ ACommonZombie::ACommonZombie()
 	
 	CommonZombieFSM = CreateDefaultSubobject<UZombieFSM>(TEXT("ZombieFSM"));
 	ZombieFSM = CommonZombieFSM;
-
-	const ConstructorHelpers::FObjectFinder<UStaticMesh> HeadObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Head.SK_Mannequin_Head'"));
-	const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Left.SK_Mannequin_Arm_Left'"));
-	const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmRightObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Right.SK_Mannequin_Arm_Right'"));
-	const ConstructorHelpers::FObjectFinder<UStaticMesh> LegLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Leg_Left.SK_Mannequin_Leg_Left'"));
-	const ConstructorHelpers::FObjectFinder<UStaticMesh> LegRightObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Leg_Right.SK_Mannequin_Leg_Right'"));
+	static ConstructorHelpers::FClassFinder<UZombieAudioComponent> ZombieAudioComponentClass(TEXT("/Script/Engine.Blueprint'/Game/Blueprints/Zombies/CommonZombie/BP_CommonZombieAudioComponent.BP_CommonZombieAudioComponent_C'"));
+	if (ZombieAudioComponentClass.Succeeded())
+	{
+		ZombieAudioComponentFactory = ZombieAudioComponentClass.Class;
+	}
+	
+	static const ConstructorHelpers::FObjectFinder<UStaticMesh> HeadObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Head.SK_Mannequin_Head'"));
+	static const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Left.SK_Mannequin_Arm_Left'"));
+	static const ConstructorHelpers::FObjectFinder<UStaticMesh> ArmRightObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Arm_Right.SK_Mannequin_Arm_Right'"));
+	static const ConstructorHelpers::FObjectFinder<UStaticMesh> LegLeftObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Leg_Left.SK_Mannequin_Leg_Left'"));
+	static const ConstructorHelpers::FObjectFinder<UStaticMesh> LegRightObj(TEXT("/Script/Engine.StaticMesh'/Game/Assets/Zombie/CommonZombie/Models/UE4MannequinDismemberment/SK_Mannequin_Leg_Right.SK_Mannequin_Leg_Right'"));
 	if (HeadObj.Succeeded())
 		HeadMesh = HeadObj.Object;
 	if (ArmLeftObj.Succeeded())

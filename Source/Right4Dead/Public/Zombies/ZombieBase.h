@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "ZombieBase.generated.h"
 
+class UZombieAudioComponent;
 class AZombieSpawnManager;
 enum class EZombieState : uint8;
 class UZombieAnimInstance;
@@ -45,6 +46,10 @@ public:
 	TObjectPtr<AAIController> AIController = nullptr;
 	UPROPERTY()
 	TObjectPtr<UZombieAnimInstance> ZombieAnimInstance = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TSubclassOf<UZombieAudioComponent> ZombieAudioComponentFactory = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UZombieAudioComponent> ZombieAudioComponent = nullptr;
 
 	float MaxHp;
 	UPROPERTY(EditInstanceOnly, Category=Debugging)
