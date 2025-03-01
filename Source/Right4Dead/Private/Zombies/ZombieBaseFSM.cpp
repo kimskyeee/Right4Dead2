@@ -191,6 +191,7 @@ void UZombieBaseFSM::TickAttack(const float DeltaTime)
 	if (CurrentAttackTime > NormalAttackInterval)
 	{
 		TriggerNormalAttack();
+		OnNormalAttacked.Broadcast();
 		CurrentAttackTime = 0.0f;
 		return;
 	}

@@ -33,10 +33,13 @@ public:
 	TObjectPtr<USoundCue> ChaseSoundCue = nullptr;
 	UPROPERTY(BlueprintReadWrite, Category = "Audio")
 	TObjectPtr<USoundCue> FootstepSoundCue = nullptr;
-	
 	UPROPERTY(BlueprintReadWrite, Category = "Audio")
 	TObjectPtr<USoundCue> DieSoundCue = nullptr;
+	UPROPERTY(BlueprintReadWrite, Category = "Audio")
+	TObjectPtr<USoundCue> PunchSoundCue = nullptr;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnChangedState(const EZombieState& BeforeState, const EZombieState& AfterState);
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnNormalAttacked();
 };

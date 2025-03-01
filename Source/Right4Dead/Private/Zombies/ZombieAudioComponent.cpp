@@ -27,6 +27,7 @@ void UZombieAudioComponent::BeginPlay()
 		if (ZombieFsm)
 		{
 			ZombieFsm->OnChangedState.AddDynamic(this, &UZombieAudioComponent::OnChangedState);
+			ZombieFsm->OnNormalAttacked.AddDynamic(this, &UZombieAudioComponent::OnNormalAttacked);
 		}
 	}
 }

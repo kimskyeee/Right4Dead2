@@ -18,6 +18,7 @@ enum class EZombieState : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnChangedState, const EZombieState&, BeforeState, const EZombieState&, AfterState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnNormalAttacked);
 
 UCLASS(Abstract)
 class RIGHT4DEAD_API UZombieBaseFSM : public UActorComponent
@@ -84,6 +85,7 @@ public:
 	/*
 	 *Attack
 	 */
+	FOnNormalAttacked OnNormalAttacked;
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
 	float NormalAttackRange = 150.0f;
 	UPROPERTY(EditAnywhere, Category="Debugging|Attack")
