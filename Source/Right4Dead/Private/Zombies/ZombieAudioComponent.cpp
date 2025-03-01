@@ -23,6 +23,7 @@ void UZombieAudioComponent::BeginPlay()
 	if (Owner)
 	{
 		Owner->OnBulletHit.AddDynamic(this, &UZombieAudioComponent::OnBulletHit);
+		Owner->OnDismemberment.AddDynamic(this, &UZombieAudioComponent::OnDismemberment);
 		ZombieFsm = Cast<UZombieFSM>(Owner->ZombieFSM);
 		if (ZombieFsm)
 		{

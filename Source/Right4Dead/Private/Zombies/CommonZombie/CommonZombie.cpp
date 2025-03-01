@@ -147,6 +147,7 @@ void ACommonZombie::TriggerDismemberment(const FPointDamageEvent* PointDamageEve
 	}
 	if (SpawnedMesh)
 	{
+		OnDismemberment.Broadcast();
 		FTimerHandle Handle;
 		GetWorldTimerManager().SetTimer(Handle, [SpawnedMesh]()
 		{
