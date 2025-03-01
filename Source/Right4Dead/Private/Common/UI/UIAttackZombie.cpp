@@ -14,7 +14,7 @@ void UUIAttackZombie::PlayAnimationByName(ASurvivor* player)
 
 	// 애니메이션 골라서 재생
 	UWidgetAnimation* CurrentAnimation =nullptr;
-	//팩토리에 할당하는거 까먹지마!!!!!!!
+	// TODO: 팩토리에 할당하는거 까먹지마!!!!!!!
 	FString ImageName;
 
 	switch (player->AttackCount % 4) // 4넘으면 다시 0으로 순환한다...! 굳!
@@ -35,6 +35,7 @@ void UUIAttackZombie::PlayAnimationByName(ASurvivor* player)
 			CurrentAnimation=BD4;
 			ImageName=TEXT("Blood4");
 			break;
+		default: ;
 	}
 
 	// 이미지를 표시해주자
@@ -42,11 +43,13 @@ void UUIAttackZombie::PlayAnimationByName(ASurvivor* player)
 	{
 		ImageWidget->SetVisibility(ESlateVisibility::Visible);
 	}
-
+	
 	// 애니메이션을 재생해주자
 	PlayAnimation(CurrentAnimation,0.0f,1,EUMGSequencePlayMode::Forward, 1.0f);
 	player->AttackCount++;
 
+	PlayBloodSpraySound();
+	
 	// 애니메이션 종료 후 초기화
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle,[this, player, ImageName]()

@@ -36,4 +36,7 @@ public:
 	class UWidgetAnimation* BD3;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidgetAnim), Transient)
 	class UWidgetAnimation* BD4;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayBloodSpraySound();
 };
