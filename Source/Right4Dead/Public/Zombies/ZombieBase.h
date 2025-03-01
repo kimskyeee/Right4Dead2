@@ -16,6 +16,7 @@ class UZombieBaseFSM;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBulletHit);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDismemberment);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShove);
 
 USTRUCT()
 struct FPartDamageMultipliers
@@ -70,6 +71,8 @@ public:
 	FOnBulletHit OnBulletHit;
 	UPROPERTY(BlueprintAssignable)
 	FOnDismemberment OnDismemberment;
+	UPROPERTY(BlueprintAssignable)
+	FOnShove OnShove;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION()
 	void OnTakeAnyDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);

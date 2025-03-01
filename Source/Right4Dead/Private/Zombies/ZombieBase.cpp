@@ -142,6 +142,7 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 	{
 		if (DamageEvent.DamageTypeClass == UShoveDamageType::StaticClass())
 		{
+			OnShove.Broadcast();
 			HandleShove(DamageCauser->GetActorLocation());
 		}
 	}
