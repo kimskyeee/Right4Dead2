@@ -24,14 +24,16 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY(BlueprintReadOnly, Category = "Debugging")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Debugging")
 	TObjectPtr<AZombieBase> Owner = nullptr;
-	UPROPERTY(BlueprintReadOnly, Category = "Debugging")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Debugging")
 	TObjectPtr<UZombieBaseFSM> ZombieFsm = nullptr;
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Audio")
-	TObjectPtr<UAudioComponent> ChaseAudio = nullptr;
-
+	TObjectPtr<USoundCue> ChaseSoundCue = nullptr;
+	UPROPERTY(BlueprintReadWrite, Category = "Audio")
+	TObjectPtr<USoundCue> FootstepSoundCue = nullptr;
+	
 	UPROPERTY(BlueprintReadWrite, Category = "Audio")
 	TObjectPtr<USoundCue> DieSoundCue = nullptr;
 
