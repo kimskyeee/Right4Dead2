@@ -145,6 +145,13 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 			OnShove.Broadcast();
 			HandleShove(DamageCauser->GetActorLocation());
 		}
+		else if (DamageEvent.DamageTypeClass == UBulletDamageType::StaticClass())
+		{
+			if (ZombieAnimInstance)
+			{
+				ZombieAnimInstance->PlayHit();
+			}
+		}
 	}
 	
 	if (DamageEvent.DamageTypeClass == UBulletDamageType::StaticClass())

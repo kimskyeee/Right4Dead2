@@ -46,4 +46,6 @@ public:
 	void PlayAttack();
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayKnockBack(const double Theta);
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayHit();
 };
