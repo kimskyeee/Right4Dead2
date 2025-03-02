@@ -1263,8 +1263,6 @@ void ASurvivor::PickUpWeapon(AWeaponBase* NewWeapon)
 		SecondaryWeaponSlot = NewWeapon->WeaponData;
 		break;
 	case EWeaponType::Melee:
-
-		\
 		MeleeWeaponSlot = NewWeapon->WeaponData;
 		bIsThrown = false;
 		break;

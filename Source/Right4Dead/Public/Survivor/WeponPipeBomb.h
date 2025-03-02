@@ -36,13 +36,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float LIfeTime = 6.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float CurrentLifeTime;
+	float CurrentLifeTime = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float CurrentBeepTime;
+	float CurrentBeepTime = 0.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float BeepInterval=0.8f;
+	float BeepInterval = 0.8f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	float CurrentAggroTime;
+	float CurrentAggroTime = 0.0f;
 	
 
 	FTimerHandle PipeBombTraceTimerHandle;
