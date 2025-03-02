@@ -53,6 +53,8 @@ public:
 	TArray<UMaterialInterface*> OriginalMaterials;
 	void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial);
 	void ClearOverlayMaterial();
+
+	virtual void ThrownInteraction();
 };
 
 

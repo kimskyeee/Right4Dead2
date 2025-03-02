@@ -40,6 +40,7 @@ AWeaponBase::AWeaponBase()
 // Called when the game starts or when spawned
 void AWeaponBase::BeginPlay()
 {
+	Super::BeginPlay();
 	// 시작하면 총알수를 세팅해주고
 	WeaponData.CurrentAmmo = WeaponData.MaxAmmo;
 	SlotType = WeaponData.WeaponName;
@@ -49,11 +50,8 @@ void AWeaponBase::BeginPlay()
 void AWeaponBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	PrimaryActorTick.bCanEverTick = false;
 	IsEquipped = false;
 
-	// 여기서 총알 개수 카운트 하면 되지 않으려나?
 }
 
 void AWeaponBase::SetEquipped(bool bEquip)
@@ -72,6 +70,10 @@ void AWeaponBase::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
 void AWeaponBase::ClearOverlayMaterial()
 {
 	PrimaryWeapon->SetOverlayMaterial(nullptr);
+}
+
+void AWeaponBase::ThrownInteraction()
+{
 }
 
 
