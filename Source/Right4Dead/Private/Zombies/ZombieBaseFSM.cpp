@@ -24,6 +24,14 @@ void UZombieBaseFSM::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	{
 		return;
 	}
+
+	if (nullptr != ChaseTarget)
+	{
+		if (false==IsValid(ChaseTarget))
+		{
+			ChaseTarget = nullptr;
+		}
+	}
 	
 	if (ChaseTarget)
 	{

@@ -13,5 +13,5 @@ UCLASS()
 class RIGHT4DEAD_API ASkyeGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 };

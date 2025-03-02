@@ -3,7 +3,6 @@
 
 #include "Survivor.h"
 
-#include "BulletDamageType.h"
 #include "CokeDelivery.h"
 #include "CommonDoor.h"
 #include "CommonZombie.h"
@@ -12,7 +11,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "EWeaponType.h"
-#include "ExplosionDamageType.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
@@ -32,6 +30,7 @@
 #include "WeaponBase.h"
 #include "WeaponCoke.h"
 #include "WeaponHealKit.h"
+#include "WeponPipeBomb.h"
 #include "AssetTypeActions/AssetDefinition_SoundBase.h"
 #include "BehaviorTree/Tasks/BTTask_PlayAnimation.h"
 #include "Blueprint/UserWidget.h"
@@ -179,15 +178,6 @@ ASurvivor::ASurvivor()
 		OverlayMaterial=TempWeaponOverlay.Object;
 	}
 
-	/*//무기 오버레이 만들기
-	WeaponOverlapBox=CreateDefaultSubobject<UBoxComponent>(TEXT("WeaponOverlap"));
-	WeaponOverlapBox->SetupAttachment(FirstCameraComp);
-	WeaponOverlapBox->SetRelativeLocation(FVector(280,0,-20));
-	WeaponOverlapBox->SetRelativeScale3D(FVector(3,1,1));
-
-	WeaponOverlapBox->SetGenerateOverlapEvents(true);
-	WeaponOverlapBox->SetCollisionProfileName(TEXT("WeaponBox"));*/
-
 	// 실린더 메시 설정
 	ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMeshAsset(TEXT("/Script/Engine.StaticMesh'/Engine/BasicShapes/Cylinder.Cylinder'"));
 	if (CylinderMeshAsset.Succeeded())
@@ -227,6 +217,24 @@ ASurvivor::ASurvivor()
 	BoneMap.Add(TEXT("foot_r"), 3);
 	BoneMap.Add(TEXT("ball_r"), 3);
 
+	//사운드 재생
+	//도끼
+	const ConstructorHelpers::FObjectFinder<USoundWave>TempSwingMiss(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/WeaponNAttack/swing_miss1.swing_miss1'"));
+	if (TempSwingMiss.Succeeded())
+	{
+		SwingMiss = TempSwingMiss.Object;
+	}
+	const ConstructorHelpers::FObjectFinder<USoundWave>TempSwingHitZombie(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/WeaponNAttack/Melee/Axe/axe_03.axe_03'"));
+	if (TempSwingHitZombie.Succeeded())
+	{
+		SwingHitZombie = TempSwingHitZombie.Object;
+	}
+	const ConstructorHelpers::FObjectFinder<USoundWave>TempSwingHitWorld(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/WeaponNAttack/Melee/melee_swing_hit_world.melee_swing_hit_world'"));
+	if (TempSwingHitWorld.Succeeded())
+	{
+		SwingHitZombie = TempSwingHitWorld.Object;
+	}
+	
 }
 
 //무기, 아이템과 박스가 오버랩 됐을때
@@ -632,7 +640,7 @@ void ASurvivor::PrimaryWeaponAttack()
 			if (false == Hit.BoneName.IsNone())
 			{
 				const FVector HitFromDirection = (GetActorForwardVector() + FVector(0, 0, 0.5f)).GetSafeNormal();
-				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, HitFromDirection, Hit, nullptr, nullptr, UBulletDamageType::StaticClass());
+				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, HitFromDirection, Hit, nullptr, nullptr, UDamageType::StaticClass());
 			}
 		}
 
@@ -671,21 +679,9 @@ void ASurvivor::SecondaryWeaponAttack()
 
 void ASurvivor::MeleeWeaponAttack()
 {
-	//투척무기
-	//몽타주 특정시점(추가필요)에서 무기해제 (던지고 나서도 손에 들고있으면 안됨)
-	CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	bIsThrown = true;
-	//몽타주 플레이
-	if (CurrentWeapon->WeaponData.WeaponFireMontage)
-	{
-		Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
-	}
-	//SKYE: 프리셋 추가 설정
-	if (bIsThrown)
-	{
-		CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
-		ThrowWeapon();
-	}
+	// pipebomb 내부 함수 호출
+	auto* pipeBomb = Cast<AWeponPipeBomb>(CurrentWeapon);
+	pipeBomb->PipeBombInteraction();
 }
 
 void ASurvivor::HandleSingleClickAttack()
@@ -705,7 +701,7 @@ void ASurvivor::HandleSingleClickAttack()
 		return;
 	}
 
-	//짜잔
+	//짜잔(변수정리법)
 	const bool bIsHandleWeapon = CurrentWeaponSlot->WeaponName == EWeaponType::HandleObject;
 	const bool bIsCoke = CurrentWeaponSlot->WeaponName == EWeaponType::CokeDelivery;
 	if (bIsEquipped && (bIsHandleWeapon || bIsCoke))
@@ -835,6 +831,10 @@ void ASurvivor::NoneAttack()
 
 void ASurvivor::Sweep()
 {
+	// 스윕을 하면 사운드를 재생하고 싶다 (맞든 안맞든 재생할거임)
+	UGameplayStatics::PlaySound2D(this, SwingMiss, 1, 1);
+	PRINTLOGTOSCREEN(TEXT("ASurvivor::SwingMiss"));
+	
 	// 충돌을 위한 가상의 박스 생성
     auto BoxShape = FCollisionShape::MakeBox(FVector(100, 100, 5));
    
@@ -879,24 +879,29 @@ void ASurvivor::Sweep()
     Params.AddIgnoredActor(this);
 
     // SweepMultiByChannel 수행
-    const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, CameraRotation.Quaternion(), ECC_GameTraceChannel6, BoxShape, Params);
+    const bool bHit = GetWorld()->SweepMultiByChannel(HitResults, Start, End, CameraRotation.Quaternion(), ECC_GameTraceChannel10, BoxShape, Params);
 	// ->HitResults 배열에 충돌 결과들이 저장된다
 
 	if (bDebugPlay)
 	{
 		DrawDebugBox(GetWorld(), BoxLocation, FVector(100, 100, 5), CameraRotation.Quaternion(), FColor::Red, true, 3.0f);
 	}
-
+	
 	//5. 충돌결과 처리
     // 만약 가상의 박스 안에 뭔가가 있었다면?
     if (bHit)
     {
+    	//좀비 사운드 재생하자
+    	UGameplayStatics::PlaySound2D(this, SwingHitZombie, 1, 1);
+    	PRINTLOGTOSCREEN(TEXT("ASurvivor::SwingHitZombie"));
+    	
 		// 한 액터(좀비)의 여러 부위(왼쪽팔, 머리, 오른쪽팔)가 박스 영역 안에 동시에 들어왔을때 분류 (한 번만 타격!)
         TMap<AActor*, TArray<FName>> HitMap;
 
         // HitResults에서 각각의 HitResult를 꺼내서 확인
         for (auto HitResult : HitResults)
         {
+        	PRINTLOGTOSCREEN(TEXT("ASurvivor::HitActorName : %s"), *HitResult.GetActor()->GetName());
 			// 만약 BoneName이 None이라면 SkeletalMesh가 아니라는 뜻이다. 스킵하자.
             FName BoneName = HitResult.BoneName;
             if (HitResult.BoneName.IsNone())
@@ -908,16 +913,9 @@ void ASurvivor::Sweep()
             AActor* Actor = Cast<AZombieBase>(HitResult.GetActor());
             if (nullptr == Actor)
             {
-               continue;
+                continue;
             }
-
-            // BoneName이 None이 아니라면
-            USkeletalMeshComponent* Component = Cast<USkeletalMeshComponent>(HitResult.GetComponent());
-            if (nullptr == Component)
-            {
-               continue;
-            }
-
+        	
 			// Actor의 BoneName 부위가 피격당했다
             // 해당 Actor가 아직 없다면 새로운 배열(TArray))을 만들고 피격부위(BoneName)를 추가한 후 HitMAp에 저장
             if (false == HitMap.Contains(Actor))
@@ -969,133 +967,10 @@ void ASurvivor::Sweep()
         	AttackZombieUI->PlayAnimationByName(this);
         }
    }
-}
-
-void ASurvivor::ThrowWeapon()
-{
-	FVector StartLocation = GetActorLocation() + FVector(0, 0, 80); //캐릭터 머리정도
-	FVector TargetLocation = StartLocation + GetActorForwardVector()*1000;
-	//0~1사이 (포물선 궤적 높이라고 이해하자)
-	float arcValue = 0.5f;
-	FVector outVelocity = FVector::ZeroVector;
-	if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, outVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(),arcValue))
+	else
 	{
-		FPredictProjectilePathParams predictParams (20.0f, StartLocation, outVelocity, 15.0f);
-		//->20은 트레이싱이 보여질 프로젝타일 크기 /  15는 시뮬레이션 되는 Max 시간
-		if (bDebugPlay)
-		{
-			predictParams.DrawDebugTime=15.f;
-			predictParams.DrawDebugType = EDrawDebugTrace::Type::ForDuration;
-		}
-		predictParams.OverrideGravityZ=GetWorld()->GetGravityZ();
-		FPredictProjectilePathResult predictResult;
-		UGameplayStatics::PredictProjectilePath(this, predictParams, predictResult);
-
-		//이제 날려보내자
-		CurrentWeapon->Root->SetSimulatePhysics(true);
-		CurrentWeapon->Root->SetPhysicsLinearVelocity(outVelocity);
-		//근데 바닥에 닿으면 멈춰야함!
-		CurrentWeapon->Root->OnComponentHit.AddDynamic(this, &ASurvivor::OnThrowWeaponHit);
-		CurrentWeapon->Root->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		CurrentWeapon->Root->SetCollisionResponseToAllChannels(ECR_Ignore);
-		CurrentWeapon->Root->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-		CurrentWeapon->Root->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-		CurrentWeapon->Root->SetNotifyRigidBodyCollision(true); //충돌이벤트 발생가능하게 설정
+		// 헛스윙 사운드 재생
 	}
-}
-
-void ASurvivor::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
-                                 UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	//이미 바닥이면 실행하지말자
-	if (bHasLanded) return;
-
-	//바닥에 닿으면 속도를 0으로 만들자
-	bHasLanded = true;
-	
-	//속도 멈추기
-	CurrentWeapon->Root->SetPhysicsLinearVelocity(FVector::ZeroVector);
-	CurrentWeapon->Root->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
-
-	//마찰력을 증가시키자
-	CurrentWeapon->Root->SetLinearDamping(5.0f); //이속 감소
-	CurrentWeapon->Root->SetAngularDamping(5.0f); //회전 감소
-
-	//6초동안 sphere trace로 좀비 감지하기 (범위 3000이상)
-	//0.2초마다 loop
-	GetWorld()->GetTimerManager().SetTimer(PipeBombTraceTimerHandle, this, &ASurvivor::PipeBombTraceZombies, 1.0f, true);
-
-	//6초후 폭발 타이머 설정 (폭발함수 구현하기)
-	GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &ASurvivor::ExplodeWeapon, 6.0f, false);
-}
-
-void ASurvivor::PipeBombTraceZombies()
-{
-	//Sphere Trace 실행
-	FVector TraceStart = CurrentWeapon->GetActorLocation();
-	FVector TraceEnd = TraceStart;
-	float TraceRadius = 3000.0f; //감지 범위
-
-	TArray<FHitResult> HitResults;
-	FCollisionShape SphereShape = FCollisionShape::MakeSphere(TraceRadius);
-	
-	bool bHit = GetWorld()->SweepMultiByChannel(
-		HitResults,
-		TraceStart,
-		TraceEnd,
-		FQuat::Identity,
-		ECC_GameTraceChannel6,
-		SphereShape
-	);
-
-	//감지된 액터들 중 ACommonZombie 타입인지 확인하고 이벤트 호출
-	for (const FHitResult& HitResult : HitResults)
-	{
-		if (AActor* HitActor = HitResult.GetActor())
-		{
-			if (const ACommonZombie* Zombie = Cast<ACommonZombie>(HitActor))
-			{
-				Zombie->HandlePipeBombBeep(CurrentWeapon);
-			}
-		}
-	}
-}
-
-void ASurvivor::ExplodeWeapon()
-{
-	//좀비 감지 타이머 중지
-	GetWorld()->GetTimerManager().ClearTimer(PipeBombTraceTimerHandle);
-	
-	TArray<AActor*> IgnoreActors;
-	IgnoreActors.Add(this);
-
-	//데미지 적용
-	UGameplayStatics::ApplyRadialDamage(
-		this,500.f,
-		CurrentWeapon->GetActorLocation(),
-		1000.f,
-		UExplosionDamageType::StaticClass(),
-		IgnoreActors,
-		this,
-		GetWorld()->GetFirstPlayerController(),
-		true,
-		ECC_GameTraceChannel6);
-
-	//폭발 반경을 빨간색 구체로 표시 (2초간 유지)
-	if (bDebugPlay)
-	{
-		DrawDebugSphere(
-			GetWorld(),           // World
-			CurrentWeapon->GetActorLocation(),    // Center
-			500.f,      // Radius
-			32,                   // Segments
-			FColor::Red,          // Color
-			false,               // Persistent Lines
-			2.0f);                // Duration
-	}
-
-	CurrentWeapon->Destroy();
-	CurrentWeapon=nullptr;
 }
 
 //장전
@@ -1388,6 +1263,8 @@ void ASurvivor::PickUpWeapon(AWeaponBase* NewWeapon)
 		SecondaryWeaponSlot = NewWeapon->WeaponData;
 		break;
 	case EWeaponType::Melee:
+
+		\
 		MeleeWeaponSlot = NewWeapon->WeaponData;
 		bIsThrown = false;
 		break;

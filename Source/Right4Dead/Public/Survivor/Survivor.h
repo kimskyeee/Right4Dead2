@@ -190,15 +190,6 @@ public:
 	//좌클릭 함수 추가
 	void Sweep();
 	FTimerHandle CylinderTimerHandle;
-	UFUNCTION()
-	void OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse,
-	                      const FHitResult& Hit);
-	void ThrowWeapon();
-	FTimerHandle ExplosionTimerHandle;
-	void ExplodeWeapon();
-	//좀비들이 6초동안 파이프폭탄을 인지하게
-	void PipeBombTraceZombies();
-	FTimerHandle PipeBombTraceTimerHandle;
 	
 	UPROPERTY()
 	bool bHasLanded=false;
@@ -323,13 +314,18 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	UAnimMontage* UnequipMontage;
 
-
 	UPROPERTY(BlueprintReadWrite)
 	bool bCanDeliveryCola = false;
 	UFUNCTION(BlueprintImplementableEvent)
 	void FinisedDeliveryCoke();
 	UPROPERTY(BlueprintReadWrite)
     bool bGod = false;
+
+	//사운드 재생
+	class USoundWave* SwingMiss; //도끼휘두르기
+	class USoundWave* SwingHitZombie; //도끼가 좀비를 때리면
+	class USoundWave* SwingHitWorld; //도끼가 그냥 물체를 때리면
+
 };
 
 
