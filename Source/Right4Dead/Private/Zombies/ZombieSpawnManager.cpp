@@ -8,6 +8,7 @@
 #include "ZombieAnimInstance.h"
 #include "ZombieBaseFSM.h"
 #include "ZombieSpawnPoint.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -73,12 +74,11 @@ void AZombieSpawnManager::EnqueueZombie(ACommonZombie* Zombie)
 		}
 		
 		// 각종 기능 비활성화
-		{ 
+		{
 			Zombie->SetActorTickEnabled(false);
 			Zombie->ZombieFSM->SetComponentTickEnabled(false);
 			Zombie->ZombieAnimInstance->EnableUpdateAnimation(false);
 			Zombie->GetCharacterMovement()->bUseRVOAvoidance = false;
-			Zombie->SetActorEnableCollision(false);
 		}
 		
 		PoolCount++;
@@ -136,7 +136,11 @@ void AZombieSpawnManager::CallHorde()
 			Zombie->ZombieFSM->SetComponentTickEnabled(true);
 			Zombie->ZombieAnimInstance->EnableUpdateAnimation(true);
 			Zombie->GetCharacterMovement()->bUseRVOAvoidance = true;
-			Zombie->SetActorEnableCollision(true);
+			Zombie->GetMesh()->SetCollisionProfileName(TEXT("CharacterMesh"));
+			Zombie->GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+			Zombie->GetMesh()->SetSimulatePhysics(false);
+			Zombie->GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
+			// Zombie->SetActorEnableCollision(true);
 			
 			Zombie->InitStart();
 			Zombie->ZombieFSM->ChaseTarget = InitTarget;

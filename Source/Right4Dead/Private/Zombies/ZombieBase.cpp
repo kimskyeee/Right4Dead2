@@ -3,11 +3,13 @@
 #include "AIController.h"
 #include "BulletDamageType.h"
 #include "CommonZombieAIController.h"
+#include "ExplosionDamageType.h"
 #include "R4DHelper.h"
 #include "ShoveDamageType.h"
 #include "Survivor.h"
 #include "ZombieAnimInstance.h"
 #include "ZombieAudioComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -119,6 +121,12 @@ void AZombieBase::Tick(float DeltaSeconds)
 	}
 }
 
+void AZombieBase::HandleDieFromExplosion(const FVector& ExplosionOrigin, const float& Radius) const
+{
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->AddRadialImpulse(ExplosionOrigin, Radius, 150000, RIF_Linear);
+}
+
 float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                               class AController* EventInstigator, AActor* DamageCauser)
 {
@@ -151,6 +159,15 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 			{
 				ZombieAnimInstance->PlayHit();
 			}
+		}
+	}
+	else
+	{
+		if (DamageEvent.DamageTypeClass == UExplosionDamageType::StaticClass())
+		{
+			const FRadialDamageEvent* RadialDamageEvent = (FRadialDamageEvent*) &DamageEvent;
+			HandleDieFromExplosion(GetCharacterMovement()->GetFeetLocation() - FVector(0, 0, 100) + (GetActorForwardVector() * 100), 1000);
+			return FinalDamage;
 		}
 	}
 	
@@ -202,7 +219,9 @@ void AZombieBase::OnTakeRadialDamageHandler(AActor* DamagedActor, float Damage, 
 
 void AZombieBase::HandleDie()
 {
-	SetActorEnableCollision(false);
+	GetMesh()->SetCollisionProfileName(TEXT("DeadZombie"));
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("DeadZombie"));
+	// SetActorEnableCollision(false);
 }
 
 void AZombieBase::HandleNormalAttack()

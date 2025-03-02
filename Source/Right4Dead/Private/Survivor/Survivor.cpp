@@ -12,6 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "EWeaponType.h"
+#include "ExplosionDamageType.h"
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
@@ -1072,8 +1073,8 @@ void ASurvivor::ExplodeWeapon()
 	UGameplayStatics::ApplyRadialDamage(
 		this,500.f,
 		CurrentWeapon->GetActorLocation(),
-		500.f,
-		UDamageType::StaticClass(),
+		1000.f,
+		UExplosionDamageType::StaticClass(),
 		IgnoreActors,
 		this,
 		GetWorld()->GetFirstPlayerController(),

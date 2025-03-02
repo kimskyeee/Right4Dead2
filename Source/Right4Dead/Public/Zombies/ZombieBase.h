@@ -73,6 +73,8 @@ public:
 	FOnDismemberment OnDismemberment;
 	UPROPERTY(BlueprintAssignable)
 	FOnShove OnShove;
+	
+	void HandleDieFromExplosion(const FVector& ExplosionOrigin, const float& Radius) const;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	UFUNCTION()
 	void OnTakeAnyDamageHandler(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
