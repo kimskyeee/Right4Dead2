@@ -3,6 +3,7 @@
 
 #include "Survivor.h"
 
+#include "BulletDamageType.h"
 #include "CokeDelivery.h"
 #include "CommonDoor.h"
 #include "CommonZombie.h"
@@ -640,7 +641,7 @@ void ASurvivor::PrimaryWeaponAttack()
 			if (false == Hit.BoneName.IsNone())
 			{
 				const FVector HitFromDirection = (GetActorForwardVector() + FVector(0, 0, 0.5f)).GetSafeNormal();
-				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, HitFromDirection, Hit, nullptr, nullptr, UDamageType::StaticClass());
+				UGameplayStatics::ApplyPointDamage(Hit.GetActor(), 10, HitFromDirection, Hit, nullptr, nullptr, UBulletDamageType::StaticClass());
 			}
 		}
 
@@ -895,13 +896,16 @@ void ASurvivor::Sweep()
     	UGameplayStatics::PlaySound2D(this, SwingHitZombie, 1, 1);
     	PRINTLOGTOSCREEN(TEXT("ASurvivor::SwingHitZombie"));
     	
+    	//공격을 맞췄다는 변수 true
+    	bIsAttacked = true;
+    	AttackZombieUI->PlayAnimationByName(this);
+    	
 		// 한 액터(좀비)의 여러 부위(왼쪽팔, 머리, 오른쪽팔)가 박스 영역 안에 동시에 들어왔을때 분류 (한 번만 타격!)
         TMap<AActor*, TArray<FName>> HitMap;
 
         // HitResults에서 각각의 HitResult를 꺼내서 확인
         for (auto HitResult : HitResults)
         {
-        	PRINTLOGTOSCREEN(TEXT("ASurvivor::HitActorName : %s"), *HitResult.GetActor()->GetName());
 			// 만약 BoneName이 None이라면 SkeletalMesh가 아니라는 뜻이다. 스킵하자.
             FName BoneName = HitResult.BoneName;
             if (HitResult.BoneName.IsNone())
@@ -962,9 +966,6 @@ void ASurvivor::Sweep()
 	        HR.BoneName = HighPriorityBoneName;
 	        UGameplayStatics::ApplyPointDamage(Actor, 9999, GetActorRightVector() * -1.0f, HR, nullptr, nullptr, nullptr);
 
-        	//공격을 맞췄다는 변수 true
-	        bIsAttacked = true;
-        	AttackZombieUI->PlayAnimationByName(this);
         }
    }
 	else

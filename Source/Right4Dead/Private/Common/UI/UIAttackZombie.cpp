@@ -17,11 +17,12 @@ void UUIAttackZombie::PlayAnimationByName(ASurvivor* player)
 	// TODO: 팩토리에 할당하는거 까먹지마!!!!!!!
 	FString ImageName;
 
-	switch (player->AttackCount % 4) // 4넘으면 다시 0으로 순환한다...! 굳!
+	switch (player->AttackCount % 4) // 4넘으면 다시 0으로 순환한다...!
 	{
 		case 0:
 			CurrentAnimation=BD1;
 			ImageName=TEXT("Blood1");
+			UE_LOG(LogTemp,Warning,TEXT("first image"));
 			break;
 		case 1:
 			CurrentAnimation=BD2;

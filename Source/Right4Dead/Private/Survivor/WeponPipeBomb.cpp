@@ -4,6 +4,7 @@
 #include "WeponPipeBomb.h"
 
 #include "CommonZombie.h"
+#include "ExplosionDamageType.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -177,7 +178,7 @@ void AWeponPipeBomb::ExplodeWeapon()
 		this,500.f,
 		GetActorLocation(),
 		500.f,
-		UDamageType::StaticClass(),
+		UExplosionDamageType::StaticClass(),
 		IgnoreActors,
 		this,
 		GetWorld()->GetFirstPlayerController(),
