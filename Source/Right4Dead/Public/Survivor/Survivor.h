@@ -331,6 +331,7 @@ public:
 	class USoundWave* SwingMiss; //도끼휘두르기
 	class USoundWave* SwingHitZombie; //도끼가 좀비를 때리면
 	class USoundWave* SwingHitWorld; //도끼가 그냥 물체를 때리면
+	class USoundWave* Fire; //총을쏘면
 
 };
 

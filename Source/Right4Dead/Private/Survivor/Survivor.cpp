@@ -845,7 +845,6 @@ void ASurvivor::Sweep()
 {
 	// 스윕을 하면 사운드를 재생하고 싶다 (맞든 안맞든 재생할거임)
 	UGameplayStatics::PlaySound2D(this, SwingMiss, 1, 1);
-	PRINTLOGTOSCREEN(TEXT("ASurvivor::SwingMiss"));
 	
 	// 충돌을 위한 가상의 박스 생성
     auto BoxShape = FCollisionShape::MakeBox(FVector(100, 100, 5));
