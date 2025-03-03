@@ -173,7 +173,8 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 	
 	if (DamageEvent.DamageTypeClass == UBulletDamageType::StaticClass())
 	{
-		OnBulletHit.Broadcast();
+		const FPointDamageEvent* PointDamageEvent = (FPointDamageEvent*) &DamageEvent;
+		OnBulletHit.Broadcast(PointDamageEvent->HitInfo);
 	}
 	
 	return FinalDamage;
