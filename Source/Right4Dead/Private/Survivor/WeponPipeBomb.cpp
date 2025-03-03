@@ -37,7 +37,6 @@ void AWeponPipeBomb::BeginPlay()
 
 	// 플레이어 캐스팅
 	me = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	UE_LOG(LogTemp, Warning, TEXT("짜잔"));
 }
 
 // Called every frame
@@ -68,7 +67,6 @@ void AWeponPipeBomb::PipeBombInteraction()
 	{
 		me->CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
 		ThrowWeapon();
-		UE_LOG(LogTemp, Warning, TEXT("Throw Start, %p"), this);
 	}
 }
 
@@ -115,12 +113,12 @@ void AWeponPipeBomb::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor*
 	bHasLanded = true;
 	
 	//속도 멈추기
-	me->CurrentWeapon->Root->SetPhysicsLinearVelocity(FVector::ZeroVector);
-	me->CurrentWeapon->Root->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+	Root->SetPhysicsLinearVelocity(FVector::ZeroVector);
+	Root->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 
 	//마찰력을 증가시키자
-	me->CurrentWeapon->Root->SetLinearDamping(5.0f); //이속 감소
-	me->CurrentWeapon->Root->SetAngularDamping(5.0f); //회전 감소
+	Root->SetLinearDamping(5.0f); //이속 감소
+	Root->SetAngularDamping(5.0f); //회전 감소
 
 	//6초동안 sphere trace로 좀비 감지하기 (범위 3000이상)
 	//1초마다 loop
@@ -133,7 +131,7 @@ void AWeponPipeBomb::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor*
 void AWeponPipeBomb::PipeBombTraceZombies()
 {	
 	//Sphere Trace 실행
-	FVector TraceStart = me->CurrentWeapon->GetActorLocation();
+	FVector TraceStart = GetActorLocation();
 	FVector TraceEnd = TraceStart;
 	float TraceRadius = 3000.0f; //감지 범위
 
@@ -158,7 +156,7 @@ void AWeponPipeBomb::PipeBombTraceZombies()
 			ACommonZombie* Zombie = Cast<ACommonZombie>(HitActor);
 			if (Zombie)
 			{
-				Zombie->HandlePipeBombBeep(me->CurrentWeapon);
+				Zombie->HandlePipeBombBeep(this);
 			}
 		}
 	}
@@ -177,7 +175,7 @@ void AWeponPipeBomb::ExplodeWeapon()
 	//데미지 적용
 	UGameplayStatics::ApplyRadialDamage(
 		this,500.f,
-		me->CurrentWeapon->GetActorLocation(),
+		GetActorLocation(),
 		500.f,
 		UDamageType::StaticClass(),
 		IgnoreActors,
@@ -191,7 +189,7 @@ void AWeponPipeBomb::ExplodeWeapon()
 	{
 		DrawDebugSphere(
 			GetWorld(),           // World
-			me->CurrentWeapon->GetActorLocation(),    // Center
+			GetActorLocation(),    // Center
 			500.f,      // Radius
 			32,                   // Segments
 			FColor::Red,          // Color

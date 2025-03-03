@@ -44,7 +44,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float CurrentAggroTime = 0.0f;
 	
-
 	FTimerHandle PipeBombTraceTimerHandle;
 	FTimerHandle BeepSoundTimerHandle;
 	FTimerHandle ExplosionTimerHandle;
