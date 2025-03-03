@@ -235,7 +235,6 @@ ASurvivor::ASurvivor()
 	{
 		SwingHitZombie = TempSwingHitWorld.Object;
 	}
-	
 }
 
 //무기, 아이템과 박스가 오버랩 됐을때
@@ -336,9 +335,6 @@ void ASurvivor::BeginPlay()
 	ThirdPersonCameraComp->SetActive(false);
 	SpringArmComp->SetActive(false);
 
-	//BOX overlap시 발생할 이벤트
-	/*WeaponOverlapBox->OnComponentBeginOverlap.AddDynamic(this,&ASurvivor::OnWeaponOverlap);
-	WeaponOverlapBox->OnComponentEndOverlap.AddDynamic(this,&ASurvivor::OnWeaponEndOverlap);*/
 
 	// Inventory를 초기화 하고 싶다
 	// 슬롯 종류의 총 갯수만큼 Inventory를 늘리고 싶다.
@@ -347,6 +343,9 @@ void ASurvivor::BeginPlay()
 	{
 		Inventory.Add(static_cast<EWeaponType>(i), nullptr);
 	}
+
+	// 도끼 쿨타임 초기화 (시작해도 바로 공격할 수 있게)
+	LastSecondaryAttackTime = -1;
 }
 
 // Called every frame
@@ -670,6 +669,18 @@ void ASurvivor::PrimaryWeaponAttack()
 
 void ASurvivor::SecondaryWeaponAttack()
 {
+	if (!GetWorld()) return;
+
+	// 시간 계산
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	if (CurrentTime - LastSecondaryAttackTime < SecondaryAttackCooldown)
+	{
+		return;
+	}
+
+	// 공격 로직 실행
+	LastSecondaryAttackTime = CurrentTime;
+
 	//근접무기 휘두르기
 	Sweep();
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())

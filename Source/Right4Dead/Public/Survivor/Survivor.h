@@ -190,6 +190,12 @@ public:
 	//좌클릭 함수 추가
 	void Sweep();
 	FTimerHandle CylinderTimerHandle;
+
+	// 도끼공격 쿨타임을 만들거임
+	UPROPERTY(Editanywhere)
+	float LastSecondaryAttackTime; //마지막 도끼공격
+	UPROPERTY(Editanywhere)
+	float SecondaryAttackCooldown = 1.0f; //쿨타임
 	
 	UPROPERTY()
 	bool bHasLanded=false;
