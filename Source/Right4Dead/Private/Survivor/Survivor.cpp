@@ -987,6 +987,7 @@ void ASurvivor::Sweep()
 //장전
 void ASurvivor::WeaponReload(const struct FInputActionValue& InputValue)
 {
+	bIsReloading = true;
 	//총일때만 가능합니다
 	if (CurrentWeapon && CurrentWeapon->SlotType == EWeaponType::Primary)
 	{

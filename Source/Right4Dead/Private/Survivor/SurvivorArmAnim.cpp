@@ -26,6 +26,15 @@ void USurvivorArmAnim::AnimNotify_SpawnCylinder()
 	}
 }
 
+void USurvivorArmAnim::AnimNotify_ENDReloading()
+{
+	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	if (player)
+	{
+		player->bIsReloading = false;
+	}
+}
+
 void USurvivorArmAnim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
