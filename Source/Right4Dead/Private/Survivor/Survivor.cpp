@@ -23,6 +23,7 @@
 #include "UIAttackZombie.h"
 #include "UISurvivorCokeDelivery.h"
 #include "UISurvivorCrosshair.h"
+#include "UISurvivorIndicator.h"
 #include "UISurvivorMain.h"
 #include "UISurvivorMedKit.h"
 
@@ -42,6 +43,7 @@
 #include "Logging/LogTrace.h"
 #include "Right4Dead/Right4Dead.h"
 #include "Tests/AutomationCommon.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ASurvivor::ASurvivor()
@@ -241,6 +243,12 @@ ASurvivor::ASurvivor()
 	{
 		WeaponSwing = TempWeaponSwing.Object;
 	}
+	//맞았을때 사운드
+	const ConstructorHelpers::FObjectFinder<USoundCue>TempTakeDamage(TEXT("/Script/Engine.SoundCue'/Game/Assets/Sounds/Survivor/PlayerHurt.PlayerHurt'"));
+	if (TempTakeDamage.Succeeded())
+	{
+		TakeDamageSound = TempTakeDamage.Object;
+	}
 }
 
 //무기, 아이템과 박스가 오버랩 됐을때
@@ -335,6 +343,7 @@ void ASurvivor::BeginPlay()
 			CokeDeliveryUI->AddToViewport();
 		}
 	}
+	
 		
 	//카메라 설정
 	FirstCameraComp->SetActive(true);
@@ -541,6 +550,7 @@ void ASurvivor::OnDamaged(float Damage)
 	}
 	
 	bIsDamaged=true;
+	
 	//카메라 쉐이크
 	auto pc = GetWorld()->GetFirstPlayerController();
 	if (pc)
@@ -554,9 +564,13 @@ void ASurvivor::OnDamaged(float Damage)
 	}
 	//체력깎기
 	CurrentHP -= Damage;
+	//맞는 소리 재생
+	UGameplayStatics::PlaySound2D(this, TakeDamageSound, 1, 1);
+	
 	//0되면 ondie호출하기
 	if (CurrentHP <= 0)
 	{
+		CurrentHP = 0;
 		OnDie();
 	}
 }
@@ -1499,10 +1513,16 @@ void ASurvivor::DropWeapon()
 	}
 }
 
-
-
-
-
-
-
-
+void ASurvivor::DisplayIndicator(AActor* Causer)
+{
+	if (AttackIndicatorUIClass)
+	{
+		AttackIndicatorUI = CreateWidget<UUISurvivorIndicator>(GetWorld(), AttackIndicatorUIClass);
+		if (AttackIndicatorUI)
+		{
+			AttackIndicatorUI->AddToViewport();
+		}
+	}
+	
+	AttackIndicatorUI->HitLocation = Causer->GetActorLocation();
+}

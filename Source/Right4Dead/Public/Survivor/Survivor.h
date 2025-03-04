@@ -75,6 +75,11 @@ public:
 	class UUISurvivorCokeDelivery* CokeDeliveryUI;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
 	TSubclassOf<class UUISurvivorCokeDelivery> CokeDeliveryUIClass;
+	//인디케이터 UI캐싱
+	UPROPERTY()
+	class UUISurvivorIndicator* AttackIndicatorUI;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUISurvivorIndicator> AttackIndicatorUIClass;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -340,7 +345,10 @@ public:
 	class USoundWave* SwingHitZombie; //도끼가 좀비를 때리면
 	class USoundWave* SwingHitWorld; //도끼가 그냥 물체를 때리면
 	class USoundWave* WeaponSwing; //무기 있을때 스윙
+	class USoundCue* TakeDamageSound; //맞았을떄
 
+	UFUNCTION()
+	void DisplayIndicator(AActor* Causer);
 };
 
 
