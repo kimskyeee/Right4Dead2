@@ -747,8 +747,11 @@ void ASurvivor::HandleSingleClickAttack()
 
 void ASurvivor::HandleHoldAttack()
 {
-	/*if (bIsHoldingLeft) return;*/
-		
+	if (CurrentWeapon && CurrentWeapon->SlotType == EWeaponType::Primary)
+	{
+		GetWorld()->GetTimerManager().SetTimer(FiredTimer, this, &ASurvivor::PrimaryWeaponAttack, 0.1f, true);
+	}
+	
 	// 좌클릭을 꾹 누르고 있으면 시작
 	bIsHoldingLeft = true;
 	HoldTime = 0.0f;
@@ -796,9 +799,14 @@ void ASurvivor::HandleHoldAttack()
 
 void ASurvivor::HandleReleaseAttack()
 {
+	
 	// 5초 되기전 놓기
 	if (bIsHoldingLeft)
 	{
+		if (CurrentWeapon && CurrentWeapon->SlotType == EWeaponType::Primary)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(FiredTimer);
+		}
 		bIsHoldingLeft = false;
 		
 		if (HoldTime<HoldThresholdTime)

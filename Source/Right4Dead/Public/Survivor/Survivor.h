@@ -179,9 +179,12 @@ public:
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_SurReload;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings")
-	bool bIsReloading;
+	bool bIsReloading=false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings")
+	bool bIsFiring=false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings",meta=(ClampMin="0"));
 	float FireDamage = 10.0f;
+	FTimerHandle FiredTimer;
 	
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_SurFireHold;
