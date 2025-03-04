@@ -5,6 +5,7 @@
 
 #include "CommonZombie.h"
 #include "ExplosionDamageType.h"
+#include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -93,8 +94,13 @@ void AWeponPipeBomb::ThrowWeapon()
 {
 	TrailParticle->BeginTrails(TEXT("Socket"), TEXT("Socket0"), ETrailWidthMode_FromFirst, 1);
 	TrailParticle->BeginTrails(TEXT("Socket1"), TEXT("Socket2"), ETrailWidthMode_FromFirst, 1);
-	FVector StartLocation = me->GetActorLocation() + FVector(0, 0, 80); //캐릭터 머리정도
-	FVector TargetLocation = StartLocation + me->GetActorForwardVector()*1500;
+
+	FVector StartLocation = me->GetActorLocation() + FVector(0, 0, 80);
+
+	// 카메라 방향 반영
+	FVector CameraForwardVector = me->FirstCameraComp->GetForwardVector();  // 카메라의 Forward Vector 사용
+	FVector TargetLocation = StartLocation + CameraForwardVector * 1500; // 카메라 방향으로 목표 위치 설정
+	
 	//0~1사이 (포물선 궤적 높이라고 이해하자)
 	float arcValue = 0.75f;
 	FVector outVelocity = FVector::ZeroVector;
@@ -198,13 +204,13 @@ void AWeponPipeBomb::ExplodeWeapon()
 	UGameplayStatics::ApplyRadialDamage(
 		this,500.f,
 		GetActorLocation(),
-		500.f,
+		600.f,
 		UExplosionDamageType::StaticClass(),
 		IgnoreActors,
 		this,
 		GetWorld()->GetFirstPlayerController(),
 		true,
-		ECC_GameTraceChannel6);
+		ECC_Visibility);
 
 	//폭발 반경을 빨간색 구체로 표시 (2초간 유지)
 	if (me->bDebugPlay)
@@ -212,11 +218,11 @@ void AWeponPipeBomb::ExplodeWeapon()
 		DrawDebugSphere(
 			GetWorld(),           // World
 			GetActorLocation(),    // Center
-			500.f,      // Radius
+			600.f,      // Radius
 			32,                   // Segments
 			FColor::Red,          // Color
 			false,               // Persistent Lines
-			2.0f);                // Duration
+			5.0f);                // Duration
 	}
 
 	// 터지면 사운드를 재생하고 싶다
