@@ -564,9 +564,9 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 		/*case EWeaponType::CokeDelivery:
 			HandleHoldAttack();
 			break;*/
-		/*default:
+		case EWeaponType::None:
 			NoneAttack();
-			break;*/
+			break;
 		}
 	}
 	else
@@ -747,7 +747,13 @@ void ASurvivor::HandleSingleClickAttack()
 
 void ASurvivor::HandleHoldAttack()
 {
-	if (CurrentWeapon && CurrentWeapon->SlotType == EWeaponType::Primary)
+	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
+	if (false == CurrentWeaponSlot.IsSet())
+	{
+		return;
+	}
+	
+	if (CurrentWeapon->SlotType == EWeaponType::Primary)
 	{
 		GetWorld()->GetTimerManager().SetTimer(FiredTimer, this, &ASurvivor::PrimaryWeaponAttack, 0.1f, true);
 	}
@@ -797,13 +803,19 @@ void ASurvivor::HandleHoldAttack()
 	}
 }
 
+
 void ASurvivor::HandleReleaseAttack()
 {
+	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
+	if (false == CurrentWeaponSlot.IsSet())
+	{
+		return;
+	}
 	
-	// 5초 되기전 놓기
+	// 5초 되기전 놓으면~
 	if (bIsHoldingLeft)
 	{
-		if (CurrentWeapon && CurrentWeapon->SlotType == EWeaponType::Primary)
+		if (CurrentWeapon->SlotType == EWeaponType::Primary)
 		{
 			GetWorld()->GetTimerManager().ClearTimer(FiredTimer);
 		}
