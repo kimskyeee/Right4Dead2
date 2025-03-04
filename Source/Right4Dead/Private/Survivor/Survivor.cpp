@@ -235,6 +235,12 @@ ASurvivor::ASurvivor()
 	{
 		SwingHitZombie = TempSwingHitWorld.Object;
 	}
+	//무기 있을때 우클릭
+	const ConstructorHelpers::FObjectFinder<USoundWave>TempWeaponSwing(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/WeaponNAttack/swish_weaponswing_swipe5.swish_weaponswing_swipe5'"));
+	if (TempWeaponSwing.Succeeded())
+	{
+		WeaponSwing = TempWeaponSwing.Object;
+	}
 }
 
 //무기, 아이템과 박스가 오버랩 됐을때
@@ -838,6 +844,8 @@ void ASurvivor::NoneAttack()
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
 		AnimInstance->Montage_Play(ShoveMontage);
+		// 무기없을때 사운드 재생
+		UGameplayStatics::PlaySound2D(this, SwingMiss, 1, 1);
 	}
 }
 
@@ -1028,9 +1036,19 @@ void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CurrentWeapon nullptr"));
 	}
-
+	
+	//사운드를 재생하자
+	if (CurrentWeapon && CurrentWeapon->SlotType != EWeaponType::None)
+	{
+		// 무기 장착하면 짤그락
+		UGameplayStatics::PlaySound2D(this, WeaponSwing, 1, 1);
+	}
+	else
+	{
+		return;
+	}
+		
 	//TODO: 무기없을때 우클릭 모션 해결하기
-	//콜라의 우클릭 모션에도 노티파이 추가해야할것같다
 	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
 	{
 		auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);

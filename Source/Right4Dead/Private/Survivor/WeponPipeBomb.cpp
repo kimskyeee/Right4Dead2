@@ -8,6 +8,8 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Components/SpotLightComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
 
@@ -18,6 +20,12 @@ AWeponPipeBomb::AWeponPipeBomb()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
+	TrailParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Trail"));
+	TrailParticle->SetupAttachment(PrimaryWeapon);
+
+	BeepLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("BeepLight"));
+	BeepLight->SetupAttachment(PrimaryWeapon);
+	
 	//파이프폭탄 사운드 재생하자
 	const ConstructorHelpers::FObjectFinder<USoundWave>TempPipeBombBeep(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/WeaponNAttack/PipeBomb/pipebomb_beep.pipebomb_beep'"));
 	if (TempPipeBombBeep.Succeeded())
@@ -29,6 +37,14 @@ AWeponPipeBomb::AWeponPipeBomb()
 	{
 		PipeBombEnd = TempPipeBombEnd.Object;
 	}
+
+	//폭발 이펙트
+	ConstructorHelpers::FObjectFinder<UParticleSystem>TempExplosion(TEXT("/Script/Engine.ParticleSystem'/Game/Assets/StarterContent/Particles/P_Explosion.P_Explosion'"));
+	if (TempExplosion.Succeeded())
+	{
+		ExplosionEffect = TempExplosion.Object;
+	}
+
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +54,7 @@ void AWeponPipeBomb::BeginPlay()
 
 	// 플레이어 캐스팅
 	me = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	BeepLight->SetVisibility(false);
 }
 
 // Called every frame
@@ -58,6 +75,7 @@ void AWeponPipeBomb::PipeBombInteraction()
 	//몽타주 특정시점(추가필요)에서 무기해제 (던지고 나서도 손에 들고있으면 안됨)
 	me->CurrentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	bIsThrown = true;
+	
 	//몽타주 플레이
 	if (me->CurrentWeapon->WeaponData.WeaponFireMontage)
 	{
@@ -73,10 +91,12 @@ void AWeponPipeBomb::PipeBombInteraction()
 
 void AWeponPipeBomb::ThrowWeapon()
 {
+	TrailParticle->BeginTrails(TEXT("Socket"), TEXT("Socket0"), ETrailWidthMode_FromFirst, 1);
+	TrailParticle->BeginTrails(TEXT("Socket1"), TEXT("Socket2"), ETrailWidthMode_FromFirst, 1);
 	FVector StartLocation = me->GetActorLocation() + FVector(0, 0, 80); //캐릭터 머리정도
-	FVector TargetLocation = StartLocation + me->GetActorForwardVector()*1000;
+	FVector TargetLocation = StartLocation + me->GetActorForwardVector()*1500;
 	//0~1사이 (포물선 궤적 높이라고 이해하자)
-	float arcValue = 0.3f;
+	float arcValue = 0.75f;
 	FVector outVelocity = FVector::ZeroVector;
 	if (UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, outVelocity, StartLocation, TargetLocation, GetWorld()->GetGravityZ(),arcValue))
 	{
@@ -112,6 +132,7 @@ void AWeponPipeBomb::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor*
 
 	//바닥에 닿으면 속도를 0으로 만들자
 	bHasLanded = true;
+	BeepLight->SetVisibility(true);
 	
 	//속도 멈추기
 	Root->SetPhysicsLinearVelocity(FVector::ZeroVector);
@@ -200,6 +221,8 @@ void AWeponPipeBomb::ExplodeWeapon()
 
 	// 터지면 사운드를 재생하고 싶다
 	UGameplayStatics::PlaySound2D(this, PipeBombEnd, 1, 1);
+	// 이펙트도!
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
 
 	this->Destroy();
 }
