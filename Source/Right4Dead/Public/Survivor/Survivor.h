@@ -114,6 +114,14 @@ public:
 	float MaxHP=100.f;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
 	bool bIsDamaged=false;
+
+	//마우스 버튼을 꾹 누르고 있는지 판단하는 변수 추가
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	float CurrentLeftTime=0.f;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	float ChangeLeftTime=0.5f;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
+	bool bIsLeftPressed=false;
 	
 	//지금 화면에 피 애니메이션 실행중인지 체크하고
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
@@ -331,7 +339,7 @@ public:
 	class USoundWave* SwingMiss; //도끼휘두르기
 	class USoundWave* SwingHitZombie; //도끼가 좀비를 때리면
 	class USoundWave* SwingHitWorld; //도끼가 그냥 물체를 때리면
-	class USoundWave* Fire; //총을쏘면
+	class USoundWave* WeaponSwing; //무기 있을때 스윙
 
 };
 

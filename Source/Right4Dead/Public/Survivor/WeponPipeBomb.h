@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Survivor.h"
 #include "WeaponBase.h"
+#include "Components/SpotLightComponent.h"
 #include "WeponPipeBomb.generated.h"
 
 UCLASS()
@@ -24,6 +25,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UParticleSystemComponent* TrailParticle;  
+	
 	UPROPERTY()
 	ASurvivor* me;
 
@@ -61,8 +65,13 @@ public:
 	UFUNCTION()
 	void ExplodeWeapon();
 
-	UFUNCTION(CallInEditor,BlueprintImplementableEvent,Category="PipeBombSound")
+	UFUNCTION(CallInEditor,BlueprintImplementableEvent,Category="PipeBomb")
 	void PlayBeepSound(float DeltaTime);
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* ExplosionEffect;
+	UPROPERTY(EditAnywhere)
+	UPointLightComponent* BeepLight;
 	
 	class USoundWave* PipeBombBeep; //폭탄삐삡
 	class USoundWave* PipeBombEnd; //폭탄터짐
