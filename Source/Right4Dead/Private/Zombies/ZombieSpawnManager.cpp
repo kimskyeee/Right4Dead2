@@ -49,7 +49,7 @@ void AZombieSpawnManager::BeginPlay()
 	{
 		auto* Zombie = Cast<ACommonZombie>(Actor);
 		Zombie->SpawnManager = this;
-		Zombie->InitStart();
+		// Zombie->InitStart();
 		ActiveZombies.Add(Cast<ACommonZombie>(Actor));
 	}
 
