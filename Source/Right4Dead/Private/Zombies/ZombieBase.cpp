@@ -234,6 +234,10 @@ void AZombieBase::HandleNormalAttack()
 	if (IActorBase* Actor = Cast<IActorBase>(ZombieFSM->ChaseTarget))
 	{
 		Actor->OnDamaged(NormalAttackDamage);
+		if (ASurvivor* Survivor = Cast<ASurvivor>(Actor))
+		{
+			Survivor->DisplayIndicator(this);
+		}
 	}
 }
 

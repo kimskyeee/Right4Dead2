@@ -75,6 +75,11 @@ public:
 	class UUISurvivorCokeDelivery* CokeDeliveryUI;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
 	TSubclassOf<class UUISurvivorCokeDelivery> CokeDeliveryUIClass;
+	//인디케이터 UI캐싱
+	UPROPERTY()
+	class UUISurvivorIndicator* AttackIndicatorUI;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
+	TSubclassOf<class UUISurvivorIndicator> AttackIndicatorUIClass;
 
 	//외관추가
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -174,9 +179,12 @@ public:
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_SurReload;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings")
-	bool bIsReloading;
+	bool bIsReloading=false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings")
+	bool bIsFiring=false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,Category="Settings",meta=(ClampMin="0"));
 	float FireDamage = 10.0f;
+	FTimerHandle FiredTimer;
 	
 	UPROPERTY(EditAnywhere,Category="Input")
 	class UInputAction* IA_SurFireHold;
@@ -194,6 +202,7 @@ public:
 	void HandleSingleClickAttack();
 	void HandleHoldAttack();
 	void HandleReleaseAttack();
+	void HandleHoldComplete();
 	void NoneAttack();
 	//좌클릭 함수 추가
 	void Sweep();
@@ -210,7 +219,11 @@ public:
 	UPROPERTY()
 	bool bIsHoldingLeft=false;
 	UPROPERTY()
+	bool bIsHoldThresholdReached = false; // HoldThreshold를 넘었는지 여부
+	UPROPERTY()
 	float HoldTime;
+	UPROPERTY()
+	float HoldThresholdTime = 0.5f; //이 시간이 지나면 꾹 누른걸로 판정하자
 	UPROPERTY()
 	float MaxHoldTime = 5.0f;
 
@@ -340,17 +353,8 @@ public:
 	class USoundWave* SwingHitZombie; //도끼가 좀비를 때리면
 	class USoundWave* SwingHitWorld; //도끼가 그냥 물체를 때리면
 	class USoundWave* WeaponSwing; //무기 있을때 스윙
+	class USoundCue* TakeDamageSound; //맞았을떄
 
+	UFUNCTION()
+	void DisplayIndicator(AActor* Causer);
 };
-
-
-
-
-
-
-
-
-
-
-
-
