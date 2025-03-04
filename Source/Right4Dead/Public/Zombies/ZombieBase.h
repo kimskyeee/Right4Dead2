@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "ZombieBase.generated.h"
 
+class UZombieEffectComponent;
 class UZombieAudioComponent;
 class AZombieSpawnManager;
 enum class EZombieState : uint8;
@@ -14,7 +15,7 @@ class UZombieAnimInstance;
 class AAIController;
 class UZombieBaseFSM;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnBulletHit);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBulletHit, const FHitResult&, HitResult);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDismemberment);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShove);
 

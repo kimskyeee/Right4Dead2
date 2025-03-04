@@ -49,7 +49,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnNormalAttacked();
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnBulletHit();
+	void OnBulletHit(const FHitResult& HitInfo);
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnDismemberment();
 	UFUNCTION(BlueprintImplementableEvent)
