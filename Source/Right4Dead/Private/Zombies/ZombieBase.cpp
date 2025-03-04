@@ -308,6 +308,7 @@ void AZombieBase::OnDie()
 {
 	PRINT_CALLINFO();
 	ZombieFSM->HandleDie();
+	OnDead.Broadcast();
 }
 
 void AZombieBase::StartClimbing(const FTransform& Destination)

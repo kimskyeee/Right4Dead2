@@ -26,6 +26,7 @@ void UZombieEffectComponent::BeginPlay()
 	if (Owner)
 	{
 		Owner->OnBulletHit.AddDynamic(this, &UZombieEffectComponent::OnBulletHit);
+		Owner->OnDead.AddDynamic(this, &UZombieEffectComponent::OnDead);
 	}
 }
 

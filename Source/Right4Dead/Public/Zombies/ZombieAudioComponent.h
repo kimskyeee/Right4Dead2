@@ -54,4 +54,6 @@ public:
 	void OnDismemberment();
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnShove();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDead();
 };

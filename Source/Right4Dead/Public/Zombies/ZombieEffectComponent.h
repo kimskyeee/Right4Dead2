@@ -32,4 +32,6 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnBulletHit(const FHitResult& HitInfo);
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDead();
 };

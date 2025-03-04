@@ -4,6 +4,7 @@
 #include "Boomer.h"
 
 #include "Right4DeadGameInstance.h"
+#include "ZombieAudioComponent.h"
 #include "BoomerFSM.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -27,6 +28,12 @@ ABoomer::ABoomer()
 
 	SpecialZombieFSM = CreateDefaultSubobject<UBoomerFSM>(TEXT("SpecialZombieFSM"));
 	ZombieFSM = SpecialZombieFSM;
+	
+	static ConstructorHelpers::FClassFinder<UZombieAudioComponent> ZombieAudioComponentClass(TEXT("/Script/Engine.Blueprint'/Game/Blueprints/Zombies/Boomer/BP_BoomerAudioComponent.BP_BoomerAudioComponent_C'"));
+	if (ZombieAudioComponentClass.Succeeded())
+	{
+		ZombieAudioComponentFactory = ZombieAudioComponentClass.Class;
+	}
 }
 
 void ABoomer::BeginPlay()
