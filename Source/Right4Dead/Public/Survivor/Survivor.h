@@ -199,6 +199,7 @@ public:
 	void HandleSingleClickAttack();
 	void HandleHoldAttack();
 	void HandleReleaseAttack();
+	void HandleHoldComplete();
 	void NoneAttack();
 	//좌클릭 함수 추가
 	void Sweep();
@@ -215,7 +216,11 @@ public:
 	UPROPERTY()
 	bool bIsHoldingLeft=false;
 	UPROPERTY()
+	bool bIsHoldThresholdReached = false; // HoldThreshold를 넘었는지 여부
+	UPROPERTY()
 	float HoldTime;
+	UPROPERTY()
+	float HoldThresholdTime = 0.5f; //이 시간이 지나면 꾹 누른걸로 판정하자
 	UPROPERTY()
 	float MaxHoldTime = 5.0f;
 
@@ -350,15 +355,3 @@ public:
 	UFUNCTION()
 	void DisplayIndicator(AActor* Causer);
 };
-
-
-
-
-
-
-
-
-
-
-
-
