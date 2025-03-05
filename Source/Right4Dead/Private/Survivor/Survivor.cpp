@@ -600,7 +600,6 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 
 void ASurvivor::PrimaryWeaponAttack()
 {
-	UE_LOG(LogTemp,Warning,TEXT("Ammo:%d"),CurrentWeapon->WeaponData.CurrentAmmo);
 	// 총알이 있어야....
 	if (CurrentWeapon && CurrentWeapon->WeaponData.CurrentAmmo > 0)
 	{
@@ -657,7 +656,7 @@ void ASurvivor::PrimaryWeaponAttack()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("무기가 없습니다"));
+			return;
 		}
 
 		//카메라 쉐이크
@@ -783,7 +782,7 @@ void ASurvivor::HandleHoldAttack()
 		return;
 	}
 	
-	if (CurrentWeapon->SlotType == EWeaponType::Primary && CurrentWeapon->WeaponData.CurrentAmmo > 0)
+	if (CurrentWeapon->SlotType == EWeaponType::Primary)
 	{
 		GetWorld()->GetTimerManager().SetTimer(FiredTimer, this, &ASurvivor::PrimaryWeaponAttack, 0.1f, true);
 	}
@@ -1034,7 +1033,6 @@ void ASurvivor::Sweep()
     {
     	//좀비 사운드 재생하자
     	UGameplayStatics::PlaySound2D(this, SwingHitZombie, 1, 1);
-    	PRINTLOGTOSCREEN(TEXT("ASurvivor::SwingHitZombie"));
     	
     	//공격을 맞췄다는 변수 true
     	bIsAttacked = true;
