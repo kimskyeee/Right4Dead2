@@ -77,6 +77,7 @@ ASurvivor::ASurvivor()
 
 	Arms=CreateDefaultSubobject<USkeletalMeshComponent>("Arms");
 	Arms->SetupAttachment(FirstCameraComp);
+	Arms->SetRelativeLocationAndRotation(FVector(-5,0,-170), FRotator(0,-90,0));
 	
 	bFirstPerson = true;
 
@@ -828,7 +829,6 @@ void ASurvivor::HandleHoldAttack()
 		}
 	}
 }
-
 
 void ASurvivor::HandleReleaseAttack()
 {
