@@ -353,8 +353,13 @@ public:
 	class USoundWave* SwingHitZombie; //도끼가 좀비를 때리면
 	class USoundWave* SwingHitWorld; //도끼가 그냥 물체를 때리면
 	class USoundWave* WeaponSwing; //무기 있을때 스윙
-	class USoundCue* TakeDamageSound; //맞았을떄
+	class USoundCue* TakeDamageSound; //맞았을때 사운드
 
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	USoundWave* CokeDeliverySound; //콜라배달 사운드
+	UPROPERTY()
+	UAudioComponent* ColaDeliveryAudio; 
+	
 	UFUNCTION()
 	void DisplayIndicator(AActor* Causer);
 };
