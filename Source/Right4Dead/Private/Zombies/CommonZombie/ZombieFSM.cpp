@@ -48,7 +48,6 @@ void UZombieFSM::TickChase(const float DeltaTime)
 	CurrentChaseTime += DeltaTime;
 	if (CurrentChaseTime > StopChaseTime)
 	{
-		TriggerStopChase();
 		SetState(EZombieState::EZS_Idle);
 		return;
 	}
@@ -58,10 +57,6 @@ void UZombieFSM::TickChase(const float DeltaTime)
 	{
 		SetState(EZombieState::EZS_Attack);
 		return;
-	}
-	else
-	{
-		TriggerStartChase(ChaseTarget);
 	}
 	
 	// 타겟이 인지 거리 내에 있으면 추적 지속 시간을 초기화 한다.
@@ -128,7 +123,7 @@ void UZombieFSM::HandlePipeBombBeep(AActor* PipeBombActor)
 	}
 	if (EZombieState::EZS_Attack != State)
 	{
-		TriggerStopChase();
+		SetState(EZombieState::EZS_Idle);
 		ChaseTarget = PipeBombActor;
 	}
 }

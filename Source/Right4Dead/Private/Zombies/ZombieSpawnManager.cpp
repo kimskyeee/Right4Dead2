@@ -49,7 +49,7 @@ void AZombieSpawnManager::BeginPlay()
 	{
 		auto* Zombie = Cast<ACommonZombie>(Actor);
 		Zombie->SpawnManager = this;
-		Zombie->InitStart();
+		// Zombie->InitStart();
 		ActiveZombies.Add(Cast<ACommonZombie>(Actor));
 	}
 
@@ -131,21 +131,21 @@ void AZombieSpawnManager::CallHorde()
 			if (--Rem < 0) break;
 			auto* Zombie = DequeueZombie();
 			if (nullptr == Zombie) continue;
+
+			Zombie->GetMesh()->SetSimulatePhysics(false);
+            Zombie->GetMesh()->SetCollisionProfileName(TEXT("CharacterMesh"));
+            Zombie->GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
+			Zombie->GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
+			Zombie->GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
+			Zombie->InitStart();
+			Zombie->ZombieFSM->ChaseTarget = InitTarget;
+			Zombie->SetActorLocation(SpawnPoint->GetActorLocation(), false, nullptr, ETeleportType::TeleportPhysics);
+			Zombie->SetActorRotation(SpawnPoint->GetActorRotation(), ETeleportType::TeleportPhysics);
 			
 			Zombie->SetActorTickEnabled(true);
 			Zombie->ZombieFSM->SetComponentTickEnabled(true);
 			Zombie->ZombieAnimInstance->EnableUpdateAnimation(true);
 			Zombie->GetCharacterMovement()->bUseRVOAvoidance = true;
-			Zombie->GetMesh()->SetCollisionProfileName(TEXT("CharacterMesh"));
-			Zombie->GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
-			Zombie->GetMesh()->SetSimulatePhysics(false);
-			Zombie->GetMesh()->SetRelativeLocation(FVector(0, 0, -89));
-			// Zombie->SetActorEnableCollision(true);
-			
-			Zombie->InitStart();
-			Zombie->ZombieFSM->ChaseTarget = InitTarget;
-			Zombie->SetActorLocation(SpawnPoint->GetActorLocation(), false, nullptr, ETeleportType::TeleportPhysics);
-			Zombie->SetActorRotation(SpawnPoint->GetActorRotation(), ETeleportType::TeleportPhysics);
 		}
 	}
 }

@@ -1,8 +1,10 @@
 ﻿#include "ZombieBaseFSM.h"
 
+#include "AIController.h"
 #include "Survivor.h"
 #include "ZombieBase.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
 UZombieBaseFSM::UZombieBaseFSM()
@@ -98,7 +100,7 @@ void UZombieBaseFSM::SetState(const EZombieState NewState)
 #pragma region Idle
 void UZombieBaseFSM::StartIdle()
 {
-	// ChaseTarget = nullptr;
+	TriggerStopChase();
 }
 void UZombieBaseFSM::TickIdle(const float DeltaTime)
 {
@@ -152,6 +154,7 @@ void UZombieBaseFSM::EndIdle()
 #pragma region Chase
 void UZombieBaseFSM::StartChase()
 {
+	TriggerStartChase(ChaseTarget);
 }
 void UZombieBaseFSM::TickChase(const float DeltaTime)
 {
@@ -159,6 +162,11 @@ void UZombieBaseFSM::TickChase(const float DeltaTime)
 	{
 		SetState(EZombieState::EZS_Idle);
 		return;
+	}
+
+	if (Owner->AIController && Owner->AIController->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
+	{
+		TriggerStartChase(ChaseTarget);
 	}
 }
 void UZombieBaseFSM::EndChase()

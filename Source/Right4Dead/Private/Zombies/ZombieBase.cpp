@@ -89,7 +89,10 @@ void AZombieBase::BeginPlay()
 
 void AZombieBase::InitStart()
 {
-	ZombieFSM->SetState(EZombieState::EZS_Idle);
+	if (ZombieFSM)
+	{
+		ZombieFSM->SetState(EZombieState::EZS_Idle);
+	}
 	Hp = MaxHp;
 	bTakeDamaged = false;
 	// TODO: Bone 숨긴거 다시 표시
@@ -124,7 +127,7 @@ void AZombieBase::Tick(float DeltaSeconds)
 void AZombieBase::HandleDieFromExplosion(const FVector& ExplosionOrigin, const float& Radius) const
 {
 	GetMesh()->SetSimulatePhysics(true);
-	GetMesh()->AddRadialImpulse(ExplosionOrigin, Radius, 150000, RIF_Linear);
+	GetMesh()->AddRadialImpulse(ExplosionOrigin, Radius, 60000, RIF_Linear);
 }
 
 float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
@@ -166,7 +169,7 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 		if (DamageEvent.DamageTypeClass == UExplosionDamageType::StaticClass())
 		{
 			const FRadialDamageEvent* RadialDamageEvent = (FRadialDamageEvent*) &DamageEvent;
-			HandleDieFromExplosion(GetCharacterMovement()->GetFeetLocation() - FVector(0, 0, 100) + (GetActorForwardVector() * 100), 1000);
+			HandleDieFromExplosion(DamageCauser->GetActorLocation() + FVector(0, 0, -50), 1000);
 			return FinalDamage;
 		}
 	}
@@ -279,7 +282,7 @@ void AZombieBase::HandleShove(const FVector& FromLocation)
 
 void AZombieBase::HandleStartChase(const TObjectPtr<AActor>& Target) const
 {
-	if (nullptr != AIController && AIController->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
+	if (AIController && AIController->GetMoveStatus() == EPathFollowingStatus::Type::Idle)
 	{
 		AIController->MoveToActor(Target);
 	}
@@ -287,7 +290,7 @@ void AZombieBase::HandleStartChase(const TObjectPtr<AActor>& Target) const
 
 void AZombieBase::HandleStopChase() const
 {
-	if (AIController)
+	if (AIController && AIController->GetMoveStatus() == EPathFollowingStatus::Moving)
 	{
 		AIController->StopMovement();
 	}
@@ -309,6 +312,7 @@ void AZombieBase::OnDie()
 {
 	PRINT_CALLINFO();
 	ZombieFSM->HandleDie();
+	OnDead.Broadcast();
 }
 
 void AZombieBase::StartClimbing(const FTransform& Destination)

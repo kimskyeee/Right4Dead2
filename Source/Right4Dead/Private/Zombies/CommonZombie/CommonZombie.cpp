@@ -108,6 +108,7 @@ AStaticMeshActor* SpawnPartMesh(USkeletalMeshComponent* SkeletalMesh, FName Bone
 	auto* StaticMeshActor = SkeletalMesh->GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), Transform);
 	// 이동 가능하게
 	StaticMeshActor->SetMobility(EComponentMobility::Type::Movable);
+	StaticMeshActor->GetStaticMeshComponent()->SetCollisionProfileName(TEXT("DeadZombie"));
 	// 물리 시뮬레이트 활성화
 	StaticMeshActor->GetStaticMeshComponent()->SetSimulatePhysics(true);
 	StaticMeshActor->GetStaticMeshComponent()->SetStaticMesh(SpawnMesh);
