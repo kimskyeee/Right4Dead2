@@ -833,7 +833,7 @@ void ASurvivor::HandleHoldAttack()
 void ASurvivor::HandleReleaseAttack()
 {
 	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
-	if (false == CurrentWeaponSlot.IsSet())
+	if (nullptr == CurrentWeapon || false == CurrentWeaponSlot.IsSet())
 	{
 		return;
 	}

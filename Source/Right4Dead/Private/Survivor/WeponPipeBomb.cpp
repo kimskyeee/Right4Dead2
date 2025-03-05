@@ -85,7 +85,7 @@ void AWeponPipeBomb::PipeBombInteraction()
 	//SKYE: 프리셋 추가 설정
 	if (bIsThrown)
 	{
-		me->CurrentWeapon->WeaponData.WeaponName=EWeaponType::None;
+		me->CurrentWeapon = nullptr;
 		ThrowWeapon();
 	}
 }
@@ -118,15 +118,15 @@ void AWeponPipeBomb::ThrowWeapon()
 		UGameplayStatics::PredictProjectilePath(this, predictParams, predictResult);
 
 		//이제 날려보내자
-		me->CurrentWeapon->Root->SetSimulatePhysics(true);
-		me->CurrentWeapon->Root->SetPhysicsLinearVelocity(outVelocity);
+		Root->SetSimulatePhysics(true);
+		Root->SetPhysicsLinearVelocity(outVelocity);
 		//근데 바닥에 닿으면 멈춰야함!
-		me->CurrentWeapon->Root->OnComponentHit.AddDynamic(this, &AWeponPipeBomb::OnThrowWeaponHit);
-		me->CurrentWeapon->Root->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		me->CurrentWeapon->Root->SetCollisionResponseToAllChannels(ECR_Ignore);
-		me->CurrentWeapon->Root->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-		me->CurrentWeapon->Root->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-		me->CurrentWeapon->Root->SetNotifyRigidBodyCollision(true); //충돌이벤트 발생가능하게 설정
+		Root->OnComponentHit.AddDynamic(this, &AWeponPipeBomb::OnThrowWeaponHit);
+		Root->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Root->SetCollisionResponseToAllChannels(ECR_Ignore);
+		Root->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		Root->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+		Root->SetNotifyRigidBodyCollision(true); //충돌이벤트 발생가능하게 설정
 	}
 }
 
