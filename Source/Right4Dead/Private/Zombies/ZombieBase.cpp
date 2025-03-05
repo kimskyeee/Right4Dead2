@@ -4,6 +4,7 @@
 #include "BulletDamageType.h"
 #include "CommonZombieAIController.h"
 #include "ExplosionDamageType.h"
+#include "MeleeDamageType.h"
 #include "R4DHelper.h"
 #include "ShoveDamageType.h"
 #include "Survivor.h"
@@ -178,6 +179,11 @@ float AZombieBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 	{
 		const FPointDamageEvent* PointDamageEvent = (FPointDamageEvent*) &DamageEvent;
 		OnBulletHit.Broadcast(PointDamageEvent->HitInfo);
+	}
+	if (DamageEvent.DamageTypeClass == UMeleeDamageType::StaticClass())
+	{
+		const FPointDamageEvent* PointDamageEvent = (FPointDamageEvent*) &DamageEvent;
+		OnMeleeHit.Broadcast(GetMesh()->GetBoneLocation(PointDamageEvent->HitInfo.BoneName));
 	}
 	
 	return FinalDamage;

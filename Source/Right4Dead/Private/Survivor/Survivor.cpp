@@ -16,6 +16,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "ItemBase.h"
+#include "MeleeDamageType.h"
 #include "SafeDoor.h"
 #include "ShoveDamageType.h"
 #include "SurvivorArmAnim.h"
@@ -1067,8 +1068,7 @@ void ASurvivor::Sweep()
        		// 좀비는 포인트 데미지 주자
 	        FHitResult HR;
 	        HR.BoneName = HighPriorityBoneName;
-	        UGameplayStatics::ApplyPointDamage(Actor, 9999, GetActorRightVector() * -1.0f, HR, nullptr, nullptr, nullptr);
-
+	        UGameplayStatics::ApplyPointDamage(Actor, 9999, GetActorRightVector() * -1.0f, HR, GetController(), this, UMeleeDamageType::StaticClass());
         }
    }
 	else

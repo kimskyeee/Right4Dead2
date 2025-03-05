@@ -16,6 +16,7 @@ class AAIController;
 class UZombieBaseFSM;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBulletHit, const FHitResult&, HitResult);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMeleeHit, const FVector&, BoneLocation);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDismemberment);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnShove);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDead);
@@ -71,6 +72,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnBulletHit OnBulletHit;
+	UPROPERTY(BlueprintAssignable)
+	FOnMeleeHit OnMeleeHit;
 	UPROPERTY(BlueprintAssignable)
 	FOnDismemberment OnDismemberment;
 	UPROPERTY(BlueprintAssignable)

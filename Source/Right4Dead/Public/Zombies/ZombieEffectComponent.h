@@ -33,5 +33,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnBulletHit(const FHitResult& HitInfo);
 	UFUNCTION(BlueprintImplementableEvent)
+	void OnMeleeHit(const FVector& BoneLocation);
+	UFUNCTION(BlueprintImplementableEvent)
 	void OnDead();
 };
