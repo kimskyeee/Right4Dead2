@@ -35,25 +35,30 @@ void USurvivorArmAnim::AnimNotify_ENDReloading()
 	}
 }
 
-void USurvivorArmAnim::NativeUpdateAnimation(float DeltaSeconds)
+void USurvivorArmAnim::NativeBeginPlay()
 {
-	Super::NativeUpdateAnimation(DeltaSeconds);
+	Super::NativeBeginPlay();
 
 	//ABP소유하고 있는 pawn 얻어오기
 	auto ownerPawn = TryGetPawnOwner();
 	//player로 cast후 speed값설정
-	auto player = Cast<ASurvivor>(ownerPawn);
-	if (player)
+	Survivor = Cast<ASurvivor>(ownerPawn);
+}
+
+void USurvivorArmAnim::NativeUpdateAnimation(float DeltaSeconds)
+{
+	Super::NativeUpdateAnimation(DeltaSeconds);
+	if (IsValid(Survivor))
 	{
 		//방향, 속도
-		FVector velocity = player->GetVelocity();
-		FVector forward = player->GetActorForwardVector();
+		FVector velocity = Survivor->GetVelocity();
+		FVector forward = Survivor->GetActorForwardVector();
 		speed = FVector::DotProduct(velocity, forward);
 
-		FVector right = player->GetActorRightVector();
+		FVector right = Survivor->GetActorRightVector();
 		direction = FVector::DotProduct(velocity, right);
 		
 		//공중에 있는지 여부
-		bIsInAir = player->GetCharacterMovement()->IsFalling();
+		bIsInAir = Survivor->GetCharacterMovement()->IsFalling();
 	}
 }

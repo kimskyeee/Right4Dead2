@@ -45,6 +45,8 @@
 #include "Right4Dead/Right4Dead.h"
 #include "Tests/AutomationCommon.h"
 #include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
+#include "Storage/Nodes/FileEntry.h"
 
 // Sets default values
 ASurvivor::ASurvivor()
@@ -250,6 +252,23 @@ ASurvivor::ASurvivor()
 	{
 		TakeDamageSound = TempTakeDamage.Object;
 	}
+
+	//콜라배달 사운드
+	ColaDeliveryAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("ColaDeliveryAudio"));
+	ColaDeliveryAudio->bAutoActivate = false; // 자동 실행 방지코드라고 함
+	ColaDeliveryAudio->SetupAttachment(RootComponent);
+	
+	const ConstructorHelpers::FObjectFinder<USoundWave>TempCoke(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/Item/Coke/attach_cola_bottles_01.attach_cola_bottles_01'"));
+	if (TempCoke.Succeeded())
+	{
+		CokeDeliverySound = TempCoke.Object;
+	}
+	
+	if (CokeDeliverySound)
+	{
+		ColaDeliveryAudio->SetSound(CokeDeliverySound);
+	}
+	
 }
 
 //무기, 아이템과 박스가 오버랩 됐을때
@@ -576,8 +595,9 @@ void ASurvivor::LeftClickAttack(const struct FInputActionValue& InputValue)
 
 void ASurvivor::PrimaryWeaponAttack()
 {
+	UE_LOG(LogTemp,Warning,TEXT("Ammo:%d"),CurrentWeapon->WeaponData.CurrentAmmo);
 	// 총알이 있어야....
-	if (CurrentWeapon->WeaponData.CurrentAmmo > 0)
+	if (CurrentWeapon && CurrentWeapon->WeaponData.CurrentAmmo > 0)
 	{
 		//총무기 라인트레이스
 		//TODO: 나중에 따발총 추가되면 변수추가해서 바꿔야함
@@ -641,6 +661,10 @@ void ASurvivor::PrimaryWeaponAttack()
 		{
 			pc->PlayerCameraManager->StartCameraShake(GunCameraShake);
 		}
+	}
+	else
+	{
+		return;
 	}
 }
 
@@ -754,7 +778,7 @@ void ASurvivor::HandleHoldAttack()
 		return;
 	}
 	
-	if (CurrentWeapon->SlotType == EWeaponType::Primary)
+	if (CurrentWeapon->SlotType == EWeaponType::Primary && CurrentWeapon->WeaponData.CurrentAmmo > 0)
 	{
 		GetWorld()->GetTimerManager().SetTimer(FiredTimer, this, &ASurvivor::PrimaryWeaponAttack, 0.1f, true);
 	}
@@ -796,7 +820,9 @@ void ASurvivor::HandleHoldAttack()
 				CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
 				CokeDeliveryUI->AddToViewport();
 			}
-		
+
+			//콜라배달음
+			ColaDeliveryAudio->Play();
 			CurrentWeapon->PrimaryWeapon->SetVisibility(false);
 			// 콜라병을 든 상태에서 꾹 누르면 카메라를 3인칭으로 전환
 			SwitchCamera(true);
@@ -808,13 +834,13 @@ void ASurvivor::HandleHoldAttack()
 void ASurvivor::HandleReleaseAttack()
 {
 	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
-	if (false == CurrentWeaponSlot.IsSet())
+	if (nullptr == CurrentWeapon || false == CurrentWeaponSlot.IsSet())
 	{
 		return;
 	}
 	
 	// 5초 되기전 놓으면~
-	if (bIsHoldingLeft)
+	if (bIsHoldingLeft || CurrentWeapon->WeaponData.CurrentAmmo <= 0)
 	{
 		if (CurrentWeapon->SlotType == EWeaponType::Primary)
 		{
@@ -860,6 +886,7 @@ void ASurvivor::HandleReleaseAttack()
 					CokeDeliveryUI->SetVisibility(ESlateVisibility::Hidden);
 					CokeDeliveryUI->RemoveFromParent();
 				}
+				ColaDeliveryAudio->Stop();
 			}
 		}
 		
@@ -875,6 +902,11 @@ void ASurvivor::HandleReleaseAttack()
 void ASurvivor::HandleHoldComplete()
 {
 	auto* Heal = Cast<AWeaponHealKit>(CurrentWeapon);
+	auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
+	if (nullptr == Heal && nullptr == Coke)
+	{
+		return;
+	}
 	if (Heal)
 	{
 		// 잃은 체력의 80% 회복
@@ -894,7 +926,7 @@ void ASurvivor::HandleHoldComplete()
 		}
 	}
 
-	auto* Coke = Cast<AWeaponCoke>(CurrentWeapon);
+	
 	if (Coke)
 	{
 		if (CokeDeliveryUI)

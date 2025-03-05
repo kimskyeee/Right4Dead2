@@ -45,5 +45,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool bIsInAir=false;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category="FSM")
+	ASurvivor* Survivor = nullptr;
+	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 };
