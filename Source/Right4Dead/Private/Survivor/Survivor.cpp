@@ -516,6 +516,10 @@ float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& Damag
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	OnDamaged(DamageAmount);
+	if (false == bGod)
+	{
+		DisplayIndicator(DamageCauser);
+	}
 	return DamageAmount;
 }
 
