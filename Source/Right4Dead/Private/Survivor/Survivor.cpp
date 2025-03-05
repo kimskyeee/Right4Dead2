@@ -707,7 +707,7 @@ void ASurvivor::MeleeWeaponAttack()
 void ASurvivor::HandleSingleClickAttack()
 {
 	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
-	if (false == CurrentWeaponSlot.IsSet())
+	if (nullptr == CurrentWeapon || false == CurrentWeaponSlot.IsSet())
 	{
 		return;
 	}
@@ -777,10 +777,11 @@ void ASurvivor::HandleSingleClickAttack()
 void ASurvivor::HandleHoldAttack()
 {
 	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
-	if (false == CurrentWeaponSlot.IsSet())
+	if (nullptr == CurrentWeapon || false == CurrentWeaponSlot.IsSet())
 	{
 		return;
 	}
+
 	
 	if (CurrentWeapon->SlotType == EWeaponType::Primary)
 	{
@@ -1283,9 +1284,10 @@ void ASurvivor::EquipCokeBox(const struct FInputActionValue& InputValue)
 //무기 슬롯값 애니메이션 구분하기
 int32 ASurvivor::GetCurrentWeaponSlotIndex() const
 {
-	if (!CurrentWeaponSlot.IsSet())
+	// 만약, 무기를 들고 있지 않다면 아무것도 하지 않는다.
+	if (nullptr == CurrentWeapon || false == CurrentWeaponSlot.IsSet())
 	{
-		return -1; // 장착된 무기가 없을 경우 -1 반환
+		return -1;
 	}
 
 	const FWeaponData& CurrentWeaponData = CurrentWeaponSlot.GetValue();
@@ -1438,6 +1440,7 @@ void ASurvivor::PickUpWeapon(AWeaponBase* NewWeapon)
 
 void ASurvivor::SwitchWeaponSlot(EWeaponType SlotType)
 {
+	HoldTime = 0;
 	// 현재 무기를 들고 있고,
 	// TODO:콜라가 아니라면 무기를 장착 해제해라
 	bool bIsNotCoke = CurrentWeapon->SlotType != EWeaponType::CokeDelivery;
