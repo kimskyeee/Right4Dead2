@@ -57,7 +57,7 @@ void AZombieSpawnManager::BeginPlay()
 	{
 		FActorSpawnParameters SpawnParams;
         SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		auto* Zombie = GetWorld()->SpawnActor<ACommonZombie>(ZombieFactory, FVector(0, 0, -9999), FRotator::ZeroRotator, SpawnParams);
+		auto* Zombie = GetWorld()->SpawnActor<ACommonZombie>(ZombieFactory, FVector(-2000, 2000, 100), FRotator::ZeroRotator, SpawnParams);
 		Zombie->SpawnManager = this;
 		ActiveZombies.Add(Zombie);
 		EnqueueZombie(Zombie);
