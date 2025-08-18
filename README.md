@@ -71,7 +71,7 @@ https://github.com/user-attachments/assets/54b24535-b0e7-4d0f-86e2-f7dbef61c1c7
 
 <img width="912" height="816" alt="스크린샷 2025-06-12 142950" src="https://github.com/user-attachments/assets/e3f0d3d5-00dc-4cbc-8f8c-1aeca6647aee" />
 
-1. SpawnCylinder() 를 통해 실린더 메쉬를 생성하고 Overlap 감지
+1. `SpawnCylinder()` 를 통해 실린더 메쉬를 생성하고 Overlap 감지
 2. Overlap액터 판단
    
    2-1. 좀비가 맞았는가?
