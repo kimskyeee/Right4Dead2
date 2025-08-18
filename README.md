@@ -45,7 +45,7 @@ Right4Dead는 FPS 게임 **Left 4 Dead 2**의 플레이어와 무기 시스템�
 
 ### 무기 교체
 
-- TraceForWeapon()에서 카메라 전방 300cm 캡슐 트레이스로 무기 액터 탐색후 무기 장
+- `TraceForWeapon()`에서 카메라 전방 300cm 캡슐 트레이스로 무기 액터 탐색후 무기 장
 - Weapon SlotType을 기준으로 슬롯에 등록하고 무기 줍기 몽타주 실행
   
 https://github.com/user-attachments/assets/3c8160b0-1d96-4810-9000-438296df2d3b
@@ -98,7 +98,7 @@ https://github.com/user-attachments/assets/49b204f1-bff5-420a-9850-171beefb2384
 
 ### 투척무기: 폭탄 폭발
 
-- SuggestProjectileVelocity_CustomArc과 PredictProjectilePath로 카메라 방향 기반 투척 궤적을 계산합니다.
+- `SuggestProjectileVelocity_CustomArc`과 `PredictProjectilePath`로 카메라 방향 기반 투척 궤적을 계산합니다.
 - 이후 일정 반경 내의 좀비를 유인 후 폭발 시 데미지를 적용합니다.
 
 https://github.com/user-attachments/assets/2a8f8ddc-6005-41e0-a359-ee9048479a6c
@@ -118,7 +118,7 @@ https://github.com/user-attachments/assets/3dafe6b0-a61b-4c58-ba0f-4e4eaf56f630
 ## 3. 피격 방향 인디케이터 UI
 
 - 플레이어가 피격 당했을때, 피격 방향을 알려주는 Indicator UI를 제작하였습니다.
-- GetPlayerCameraManager 에서 forward 벡터 확보하여 각도를 계산합니다.
+- `GetPlayerCameraManager`에서 Forward 벡터 확보하여 각도를 계산합니다.
 
 https://github.com/user-attachments/assets/cec32120-50c9-4bb0-8972-6b7293b26700
 
