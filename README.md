@@ -45,7 +45,11 @@ Right4Dead는 FPS 게임 **Left 4 Dead 2**의 플레이어와 무기 시스템�
 
 ### 무기 교체
 
-(영상넣기)
+- TraceForWeapon()에서 카메라 전방 300cm 캡슐 트레이스로 무기 액터 탐색후 무기 장
+- Weapon SlotType을 기준으로 슬롯에 등록하고 무기 줍기 몽타주 실행
+  
+https://github.com/user-attachments/assets/3c8160b0-1d96-4810-9000-438296df2d3b
+
 
 <br>
 
