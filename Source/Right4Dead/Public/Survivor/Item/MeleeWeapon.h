@@ -23,17 +23,22 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void HandleUse(EUsingType Phase, float ElapsedHold) override;
-	void MeleeAttack();
-
 	//TMap
 	UPROPERTY(VisibleAnywhere)
 	TMap<FName, int> BoneMap;
-	
-	UPROPERTY(Editanywhere)
-	float LastSecondaryAttackTime; // 마지막 도끼공격
-	UPROPERTY(Editanywhere)
-	float SecondaryAttackCooldown = 1.0f; // 쿨타임
+
+	UPROPERTY(EditDefaultsOnly, Category="Use")
+	float CooldownSec = 1.0f;
 
 	void InitBoneMap();
+
+protected:
+	UPROPERTY(Transient)
+	float NextReadyTime = 0.f;
+
+	virtual void OnTap(float Elapsed) override;
+	virtual void OnHoldBegan() override;
+	virtual void OnHoldTick(float Elapsed) override;
+	
+	void MeleeAttack();
 };

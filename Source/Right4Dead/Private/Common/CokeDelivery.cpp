@@ -15,7 +15,6 @@ ACokeDelivery::ACokeDelivery()
 void ACokeDelivery::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

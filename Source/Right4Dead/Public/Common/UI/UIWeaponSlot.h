@@ -10,6 +10,7 @@
  * 
  */
 
+enum class ESlotType : uint8;
 // 무기 슬롯 UI 관련 정보를 저장하는 구조체 선언
 USTRUCT(BlueprintType)
 struct FWeaponSlotUI
@@ -69,11 +70,16 @@ public:
 	class UTextBlock* CurrentAmmo;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* MaxAmmo;
-
-	// 슬롯 UI 데이터 배열
-	TArray<FWeaponSlotUI> WeaponSlots;
-
-	void SetAmmoText();
-	virtual void NativeConstruct() override;
+	
+	virtual void NativeOnInitialized() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	UFUNCTION()
+	void SetAmmoText();
+	
+	/*FUNCTION()
+	void HandleSlotItemChanged(ESlotType Slot, UTexture2D* Icon);
+
+	UFUNCTION()
+	void HandleInHandsChanged(ESlotType Slot, UTexture2D* Icon); // 필요 시*/
 };

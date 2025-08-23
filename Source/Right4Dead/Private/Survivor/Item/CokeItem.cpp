@@ -21,7 +21,7 @@ ACokeItem::ACokeItem()
 void ACokeItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	AttachSocket = TEXT("HandleSocket");
 }
 
 // Called every frame

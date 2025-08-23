@@ -31,42 +31,41 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	class UItemSpec* Spec = nullptr;
+	TObjectPtr<class UItemSpec> Spec = nullptr;
 
 	// 장착/해제
-	virtual void OnEquipped(class ASurvivor* OwnerChar);
+	virtual void OnEquipped(ASurvivor* NewOwner, USceneComponent* Parent, FName Socket);
 	virtual void OnUnequipped();
 
+	FName AttachSocket = TEXT("WeaponSocket");
+	FName GetAttachSocketName() const { return AttachSocket; }
+
 	// 픽업/드랍
-	virtual void OnPickedUp()
-	{
-		SetActorHiddenInGame(true);
-		SetActorEnableCollision(false);
-	}
-	
-	virtual void OnDropped()
-	{
-		SetActorHiddenInGame(false);
-		SetActorEnableCollision(true);
-		if (auto* Prim = FindComponentByClass<UPrimitiveComponent>())
-		{
-			Prim->SetSimulatePhysics(true);
-		}
-	}
+	virtual void OnPickedUp(ASurvivor* NewOwner);	
+	virtual void OnDropped();
+
+	virtual void StopPhysicsAndZeroVelocity();
+	virtual void SetWorldVisible(bool bVisible);
 	
 	// 사용(탭/홀드 Phase 전달): 캐릭터는 Phase만 전달한다
-	virtual void HandleUse(EUsingType Phase, float ElapsedHold) {}
+	virtual void HandleUse(EUsingType Phase, float ElapsedHold);
 	virtual void RightAttack();
 
 	// 소모 시 브로드캐스트(Thrown/HandleObject 등)
 	UPROPERTY(BlueprintAssignable)
 	FOnItemConsumed OnConsumed;
 
-protected:
+	// Slot 업데이트
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TObjectPtr<UTexture2D> UIIcon = nullptr;
+
+	UTexture2D* GetUIIcon() const { return UIIcon; }
+
+public:
 	UPROPERTY()
-	TWeakObjectPtr<ACharacter> CachedOwner;
+	TWeakObjectPtr<ASurvivor> CachedOwner;
 	UPROPERTY()
-	TWeakObjectPtr<UAnimInstance> CachedAnim;
+	mutable TWeakObjectPtr<class USurvivorArmAnim> CachedAnim;
 
 	// 공통적으로 쓸 수 있는 몽타주 슬롯들(필요한 것만 사용)
 	UPROPERTY(EditDefaultsOnly, Category="Anim")
@@ -80,22 +79,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Anim")
 	TObjectPtr<UAnimMontage> Montage_Use_Release;
 	UPROPERTY(EditDefaultsOnly, Category="Anim")
+	TObjectPtr<UAnimMontage> Montage_Shove;
+	UPROPERTY(EditDefaultsOnly, Category="Anim")
 	TObjectPtr<UAnimMontage> Montage_UnEquip;
-
-	// 재생
-	bool PlayItemMontage(UAnimMontage* ItemMontage) const
-	{
-		if (!CachedAnim.IsValid() || !ItemMontage) return false;
-		
-		const float Len = CachedAnim->Montage_Play(ItemMontage);
-		
-		return (Len > 0.f);
-	}
-
-	bool IsPlaying(UAnimMontage* ItemMontage) const
-	{
-		return CachedAnim.IsValid() && ItemMontage && CachedAnim->Montage_IsPlaying(ItemMontage);
-	}
 
 	// 실린더 소환
 	FTimerHandle CylinderTimerHandle;
@@ -112,7 +98,20 @@ protected:
 	void SpawnShoveCylinder();
 	void DestroyShoveCylinder();
 
-	//외관
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USphereComponent* RootSphere = nullptr;
+protected:
+	bool bUseActive = false;
+	bool bHoldTriggered = false;  // 임계값 통과 여부
+
+	class USurvivorArmAnim* GetArmAnim() const;
+	void PlayMontageOnce(UAnimMontage* Montage, float Rate = 1.f);
+	void EnsureLoopMontage(UAnimMontage* LoopMontage);
+	void StopMontageIfPlaying(UAnimMontage* Montage, float BlendOut = 0.1f);
+
+	// 가상 훅: 파생 무기/소비형에서 오버라이드
+	virtual void OnUseStart(); // 눌린 그 프레임에 
+	virtual void OnTap(float Elapsed); // 짧게 눌렀다 뗐을 때만
+	virtual void OnHoldBegan(); // 임계값 통과 순간 1회
+	virtual void OnHoldTick(float Elapsed); // 임계값 통과 후 매 프레임
+	virtual void OnHoldReleased(float Elapsed); // 홀드 후 뗐을 때
+	virtual void OnUseFinish(bool bCanceled); // 정리
 };

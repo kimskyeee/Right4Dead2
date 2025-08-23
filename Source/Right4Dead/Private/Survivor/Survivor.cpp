@@ -11,6 +11,7 @@
 #include "InputActionValue.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "SurvivorArmAnim.h"
 #include "UIAttackZombie.h"
 #include "UISurvivorCokeDelivery.h"
 #include "UISurvivorCrosshair.h"
@@ -28,6 +29,7 @@
 #include "Item/ItemBase.h"
 #include "Item/SlotComponent.h"
 
+class USurvivorArmAnim;
 // Sets default values
 ASurvivor::ASurvivor()
 {
@@ -65,52 +67,58 @@ ASurvivor::ASurvivor()
 	bIsThirdPerson = false; // 시작은 1인칭
 
 	// Input데이터 할당하기
-	ConstructorHelpers::FObjectFinder<UInputMappingContext> TempIMC(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Survivor.IMC_Survivor'"));
+	ConstructorHelpers::FObjectFinder<UInputMappingContext> TempIMC(TEXT("/Game/Input/IMC_Survivor.IMC_Survivor"));
 	if (TempIMC.Succeeded())
 	{
 		IMC_Survivor = TempIMC.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIAMove(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurMove.IA_SurMove'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAMove(TEXT("/Game/Input/IA_SurMove.IA_SurMove"));
 	if (TempIAMove.Succeeded())
 	{
 		IA_Move = TempIAMove.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIATurn(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurTurn.IA_SurTurn'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIATurn(TEXT("/Game/Input/IA_SurTurn.IA_SurTurn"));
 	if (TempIATurn.Succeeded())
 	{
 		IA_Turn = TempIATurn.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIALook(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurLook.IA_SurLook'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIALook(TEXT("/Game/Input/IA_SurLook.IA_SurLook"));
 	if (TempIALook.Succeeded())
 	{
 		IA_Look = TempIALook.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIAJump(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurJump.IA_SurJump'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAJump(TEXT("/Game/Input/IA_SurJump.IA_SurJump"));
 	if (TempIALook.Succeeded())
 	{
 		IA_Jump = TempIAJump.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIACrouch(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurCrouch.IA_SurCrouch'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIACrouch(TEXT("/Game/Input/IA_SurCrouch.IA_SurCrouch"));
 	if (TempIACrouch.Succeeded())
 	{
 		IA_Crouch = TempIACrouch.Object;
 	}
 	
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIARelaod(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurReload.IA_SurReload'"));
-	if (TempIARelaod.Succeeded())
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIaReload(TEXT("/Game/Input/IA_SurReload.IA_SurReload"));
+	if (TempIaReload.Succeeded())
 	{
-		IA_Reload = TempIARelaod.Object;
+		IA_Reload = TempIaReload.Object;
 	}
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIARight(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurRight.IA_SurRight'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIARight(TEXT("/Game/Input/IA_SurRight.IA_SurRight"));
 	if (TempIARight.Succeeded())
 	{
 		IA_RightClick = TempIARight.Object;
 	}
 	
-	ConstructorHelpers::FObjectFinder<UInputAction> TempIAPickUp(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_SurPickUp.IA_SurPickUp'"));
+	ConstructorHelpers::FObjectFinder<UInputAction> TempIAPickUp(TEXT("/Game/Input/IA_SurPickUp.IA_SurPickUp"));
 	if (TempIAPickUp.Succeeded())
 	{
 		IA_PickUp = TempIAPickUp.Object;
+	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction> TempUseWeapon(TEXT("/Game/Input/IA_UseWeapon.IA_UseWeapon"));
+	if (TempUseWeapon.Succeeded())
+	{
+		IA_UseWeapon = TempUseWeapon.Object;
 	}
 
 	// 사운드 재생
@@ -367,8 +375,10 @@ void ASurvivor::PickUpWeapon()
 
 	if (FocusedPickup.IsValid())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("PickUpWeapon, FocusedPickup.IsValid()"));
 		if (SlotComp->TryPickup(FocusedPickup.Get()))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("PickUpWeapon, TryPickup"));
 			// 성공 → 포커스 비움
 			ClearPickupFocus();
 		}
@@ -403,6 +413,7 @@ void ASurvivor::OnDamaged(float Damage)
 	{
 		TakeDamageUI->PlayAnimationByName();
 	}
+	
 	//체력깎기
 	CurrentHP -= Damage;
 	UGameplayStatics::PlaySound2D(this, TakeDamageSound, 1, 1);
@@ -421,7 +432,7 @@ void ASurvivor::OnDie()
 
 void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
 {
-	if (!SlotComp->CurrentInHands.IsValid())
+	if (!SlotComp->CurrentInHands.IsValid()) return;
 	
 	if (SlotComp)
 	{
@@ -445,6 +456,11 @@ void ASurvivor::DisplayIndicator(AActor* Causer)
 	AttackIndicatorUI->HitLocation = Causer->GetActorLocation();
 }
 
+EItemType ASurvivor::GetCurrentItemType()
+{
+	return SlotComp ? SlotComp->GetActiveItemType() : EItemType::None;
+}
+
 void ASurvivor::TraceForPickup()
 {
 	FVector Start = FirstCameraComp->GetComponentLocation(); // 카메라 위치
@@ -462,8 +478,10 @@ void ASurvivor::TraceForPickup()
 	TArray<AActor*> ActorsToIgnore;
 	if (SlotComp && SlotComp->CurrentInHands.IsValid())
 	{
-		// 현재 들고 있는 무기면 무시하자
+		// 현재 들고 있는 무기, 또는 나 자신이면 무시하자
 		ActorsToIgnore.Add(SlotComp->CurrentInHands.Get());
+		ActorsToIgnore.Add(GetOwner());
+		ActorsToIgnore.Add(this);
 	}
 
 	FHitResult Hit;
@@ -476,111 +494,76 @@ void ASurvivor::TraceForPickup()
 
 	if (bHit)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Trace] Hit Actor=%s Comp=%s ObjType=%d"),
-			*GetNameSafe(Hit.GetActor()),
-			*GetNameSafe(Hit.GetComponent()),
-			Hit.Component.IsValid() ? (int32)Hit.Component->GetCollisionObjectType() : -1);
 		AItemBase* NewTrace = Cast<AItemBase>(Hit.GetActor()); // 아이템 맞는지 확인
 
 		SetPickupFocus(NewTrace);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Trace] NoHit"));
 		SetPickupFocus(nullptr);
 	}
 }
 
 void ASurvivor::SetPickupFocus(AItemBase* NewFocus)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[Focus] Enter New=%s Old=%s"),
-		*GetNameSafe(NewFocus),
-		*GetNameSafe(FocusedPickup.Get()));
-
 	AItemBase* Old = FocusedPickup.Get();
-	if (Old == NewFocus)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Focus] EarlyReturn (Old == New) : %s"),
-			*GetNameSafe(NewFocus));
-		return;
-	}
+	if (Old == NewFocus) return;
 
 	if (Old)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Focus] Unfocus: %s"), *GetNameSafe(Old));
 		Old->ClearOverlayMaterial();
 	}
 
 	FocusedPickup = NewFocus;
 
-	UE_LOG(LogTemp, Warning, TEXT("[Focus] NewFocus set: %s"), *GetNameSafe(NewFocus));
 	if (FocusedPickup.IsValid())
 	{
 		FocusedPickup->SetOverlayMaterial(OverlayMaterial);
-
-		if (UMeshComponent* Visual = FocusedPickup->FindComponentByClass<UMeshComponent>())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[Focus] VisualComp: %s"), *GetNameSafe(Visual));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[Focus] VisualComp NOT FOUND"));
-		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Focus] Cleared (nullptr)"));
 	}
-
-	/*// 이전 포커스를 저장
-	AItemBase* OldFocus = FocusedPickup.Get();
-
-	// 같은 액터면 변경할 필요 없음
-	if (OldFocus == NewFocus) return;
-	
-	// 이전 포커스가 있었다면 해제
-	if (OldFocus && OldFocus->IsValidLowLevelFast())
-	{
-		OldFocus->ClearOverlayMaterial();
-	}
-
-	// 새 포커스 설정
-	FocusedPickup = NewFocus;
-
-	// 새 포커스가 있다면 하이라이트 적용
-	if (FocusedPickup.IsValid())
-	{
-		FocusedPickup->SetOverlayMaterial(OverlayMaterial);
-	}*/
 }
 
 void ASurvivor::ClearPickupFocus()
 {
 	if (FocusedPickup.IsValid())
 	{
+		FocusedPickup->ClearOverlayMaterial();
 		FocusedPickup = nullptr;
 	}
 }
 
 void ASurvivor::OnUseStarted()
 {
+	if (!SlotComp || !SlotComp->CurrentInHands.IsValid()) return;
+	UE_LOG(LogTemp, Warning, TEXT("[OnUseStarted]"));
+	
 	ElapsedHold = 0.f;
 	SlotComp->HandleUse(EUsingType::Started, ElapsedHold);
 }
 
 void ASurvivor::OnUseTriggered()
 {
+	if (!SlotComp || !SlotComp->CurrentInHands.IsValid()) return;
+	
 	ElapsedHold += GetWorld()->GetDeltaSeconds();
 	SlotComp->HandleUse(EUsingType::Ongoing, ElapsedHold);
 }
 
 void ASurvivor::OnUseCompleted()
 {
+	if (!SlotComp || !SlotComp->CurrentInHands.IsValid()) return;
+	
 	SlotComp->HandleUse(EUsingType::Completed, ElapsedHold);
+	ElapsedHold = 0.f; // Started에서 이미 해주긴함
 }
 
 void ASurvivor::OnUseCanceled()
 {
+	if (!SlotComp || !SlotComp->CurrentInHands.IsValid()) return;
+	
 	SlotComp->HandleUse(EUsingType::Canceled, ElapsedHold);
 	ElapsedHold = 0.f;
 }

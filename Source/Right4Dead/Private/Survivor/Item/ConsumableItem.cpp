@@ -27,15 +27,32 @@ void AConsumableItem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AConsumableItem::HandleUse(EUsingType Phase, float ElapsedHold)
+void AConsumableItem::ApplyItemEffect()
 {
+}
+
+void AConsumableItem::OnTap(float Elapsed)
+{
+	// 동작하지 말자
+}
+
+void AConsumableItem::OnHoldBegan()
+{
+	Super::OnHoldBegan();
+
+	// 진행도 UI 시작
+	
+	if (!Char) return;
+	Char->SwitchCamera(true);
+}
+
+void AConsumableItem::OnHoldReleased(float Elapsed)
+{
+	Super::OnHoldReleased(Elapsed);
+	
 	if (!Char) return;
 
-	if (Phase == EUsingType::Ongoing)
-	{
-		Char->SwitchCamera(true);
-	}
-	if (Phase == EUsingType::Completed && ElapsedHold >= NeedHold)
+	if (Elapsed >= NeedHold)
 	{
 		Char->SwitchCamera(false);
 		
@@ -45,6 +62,3 @@ void AConsumableItem::HandleUse(EUsingType Phase, float ElapsedHold)
 	}
 }
 
-void AConsumableItem::ApplyItemEffect()
-{
-}

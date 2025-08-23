@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Survivor.h"
 #include "Animation/AnimInstance.h"
+#include "Item/ItemInfo.h"
 #include "SurvivorArmAnim.generated.h"
 
 /**
@@ -15,26 +16,26 @@ class RIGHT4DEAD_API USurvivorArmAnim : public UAnimInstance
 {
 	GENERATED_BODY()
 public:
-	//Notify Event
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category="Char")
+	TWeakObjectPtr<class ASurvivor> OwnerChar = nullptr;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category="SlotComp")
+	TWeakObjectPtr<class USlotComponent> SlotComp = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category="Anim")
+	FName ArmsSlotName = TEXT("DefaultSlot");
+	
+	virtual void NativeBeginPlay() override;
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	
 	UFUNCTION()
 	void AnimNotify_AxeCameraShake();
 	UFUNCTION()
 	void AnimNotify_SpawnCylinder();
 	UFUNCTION()
 	void AnimNotify_ENDReloading();
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
-	bool bIsEquippedWeapon=false;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
-	bool PrimaryWeapon;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
-	bool SecondaryWeapon;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
-	bool MeleeWeapon;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
-	bool HandleObject;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
-	bool CokeDelivery;
+
+	UPROPERTY(BlueprintReadOnly, Category="Anim")
+	EItemType CurrentType = EItemType::None;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	float speed = 0;
@@ -43,8 +44,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool bIsInAir=false;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category="FSM")
-	ASurvivor* Survivor = nullptr;
-	virtual void NativeBeginPlay() override;
-	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
+	bool bIsEquipping = false;
+
+	UFUNCTION()
+	void BindDelegates();
+	UFUNCTION()
+	void UnbindDelegates();
+	
+	UFUNCTION()
+	void HandleInHandsChanged(class AItemBase* NewItem);
+	UFUNCTION()
+	void PlayEquipMontageForItem(class AItemBase* NewItem);
 };

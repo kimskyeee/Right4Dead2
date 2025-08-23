@@ -23,7 +23,10 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	virtual void HandleUse(EUsingType Phase, float ElapsedHold) override;
+	
 	virtual void ApplyItemEffect();
+
+	virtual void OnTap(float Elapsed) override;
+	virtual void OnHoldBegan() override;
+	virtual void OnHoldReleased(float Elapsed) override;
 };

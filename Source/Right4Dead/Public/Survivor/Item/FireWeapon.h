@@ -10,13 +10,16 @@ UCLASS()
 class RIGHT4DEAD_API AFireWeapon : public AWeaponItem
 {
 	GENERATED_BODY()
-	float FireCooldown = 0.09f;
-	float Accum = 0.f;
-	bool bHolding = false;
+	
 	
 public:
 	// Sets default values for this actor's properties
 	AFireWeapon();
+
+	UPROPERTY(EditDefaultsOnly)
+	float RateOfFire = 10.f; // 초당 10발
+	UPROPERTY(Transient)
+	float NextShotTime = 0.0f;
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,16 +29,26 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void HandleUse(EUsingType Phase, float ElapsedHold) override;
+	UPROPERTY(EditDefaultsOnly, Category="Anim")
+	TObjectPtr<UAnimMontage> Montage_Reload;
 	
-	UFUNCTION() void FireAttack();
+	UFUNCTION() void FireOnce();
 	UFUNCTION() void DecreaseAmmoCount();
 	UFUNCTION() void Reload();
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 CurrentAmmo = 0;
+	int32 CurrentAmmo = 50;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 MaxAmmo = 0;
+	int32 MaxAmmo = 50;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	int32 MaxAmmoAmount = 0;
+	int32 MaxAmmoAmount = 650;
+
+	UPROPERTY()
+	bool bFiredThisPress = false; // 중복방지
+
+	virtual void OnUseStart() override;
+	virtual void OnTap(float Elapsed) override;
+	virtual void OnHoldBegan() override;
+	virtual void OnHoldTick(float Elapsed) override;
+	virtual void OnHoldReleased(float Elapsed) override;
 };

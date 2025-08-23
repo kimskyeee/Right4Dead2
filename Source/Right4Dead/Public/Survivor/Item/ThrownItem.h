@@ -24,9 +24,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void HandleUse(EUsingType Phase, float ElapsedHold) override;
 	void ThrownAttack();
 
+	// 알 수 없는 이유로...
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class USphereComponent* RootSphere = nullptr;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UParticleSystemComponent* TrailParticle;  
 
@@ -85,4 +88,6 @@ public:
 	
 	class USoundWave* PipeBombBeep; //폭탄삐삡
 	class USoundWave* PipeBombEnd; //폭탄터짐
+
+	virtual void OnUseStart() override;
 };

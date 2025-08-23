@@ -4,10 +4,13 @@
 #include "Item/FireWeapon.h"
 
 #include "BulletDamageType.h"
+#include "Survivor.h"
+#include "SurvivorArmAnim.h"
 #include "Item/ItemSpec.h"
 #include "Kismet/GameplayStatics.h"
 
 
+class USurvivorArmAnim;
 // Sets default values
 AFireWeapon::AFireWeapon()
 {
@@ -28,40 +31,13 @@ void AFireWeapon::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AFireWeapon::HandleUse(EUsingType Phase, float ElapsedHold)
-{
-	const bool bAuto = Spec && Spec->bAutoFireWhenHeld;
-	
-	if (Phase == EUsingType::Started)
-	{
-		// 한번 발사 (단발)
-		bHolding = true;
-		FireAttack();
-		Accum = 0.f;
-	}
-	else if (Phase == EUsingType::Ongoing && bAuto && bHolding) 
-	{
-		// 지속 발사면 (연발)
-		Accum += GetWorld()->GetDeltaSeconds();
-		if (Accum >= FireCooldown)
-		{
-			FireAttack();
-			Accum = 0.f;
-		}
-	}
-	else if (Phase == EUsingType::Completed)
-	{
-		// 홀드 끝내기
-		bHolding = false;
-	}
-}
-
-void AFireWeapon::FireAttack()
+void AFireWeapon::FireOnce()
 {
 	// 단발 기준 로직
-	
-	// 총알이 있어야....
 	if (CurrentAmmo < 0) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("[FireOnce] this=%p &CurrentAmmo=%p Value=%d"),
+	this, &CurrentAmmo, CurrentAmmo);
 	
 	//총무기 라인트레이스
 	FHitResult Hit;
@@ -91,31 +67,36 @@ void AFireWeapon::FireAttack()
 	//총알 개수 줄이자
 	DecreaseAmmoCount();
 
-	/*//몽타주 플레이
-	if (CurrentWeapon->WeaponData.WeaponFireMontage)
+	UAnimInstance* AnimInst = Char->Arms->GetAnimInstance();
+	if (!AnimInst) return;
+			
+	USurvivorArmAnim* ArmAnimInst = Cast<USurvivorArmAnim>(AnimInst);
+	if (!ArmAnimInst) return;
+
+	if (UAnimMontage* Montage = Montage_Use_Tap)
 	{
-		Arms->GetAnimInstance()->Montage_Play(CurrentWeapon->WeaponData.WeaponFireMontage);
-	}
-	else
-	{
-		return;
+		ArmAnimInst->Montage_Play(Montage);
 	}
 
 	//카메라 쉐이크
 	auto PC = GetWorld()->GetFirstPlayerController();
 	if (PC)
 	{
-		PC->PlayerCameraManager->StartCameraShake(GunCameraShake);
-	}*/
-	
+		PC->PlayerCameraManager->StartCameraShake(Char->GunCameraShake);
+	}
 }
 
 void AFireWeapon::DecreaseAmmoCount()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[Dec] this=%p &CurrentAmmo=%p Before=%d"),
+		this, &CurrentAmmo, CurrentAmmo);
+	
 	if (CurrentAmmo > 0)
 	{
 		CurrentAmmo--;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[Dec] After=%d"), CurrentAmmo);
 }
 
 void AFireWeapon::Reload()
@@ -131,11 +112,62 @@ void AFireWeapon::Reload()
 		CurrentAmmo += AmmoToLoad;
 		MaxAmmoAmount -= AmmoToLoad;
 
-		/*// 몽타주 플레이
-		if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
+		UAnimInstance* AnimInst = Char->Arms->GetAnimInstance();
+		if (!AnimInst) return;
+			
+		USurvivorArmAnim* ArmAnimInst = Cast<USurvivorArmAnim>(AnimInst);
+		if (!ArmAnimInst) return;
+
+		if (UAnimMontage* Montage = Montage_Reload)
 		{
-			AnimInstance->Montage_Play(CurrentWeapon->WeaponData.WeaponReloadMontage);
-		}*/
+			ArmAnimInst->Montage_Play(Montage);
+		}
 	}
+}
+
+void AFireWeapon::OnUseStart()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnUseStart"));
+	const float Now = GetWorld()->GetTimeSeconds();
+	if (RateOfFire <= 0.f) return;
+	if (Now < NextShotTime) return;
+	if (CurrentAmmo <= 0)   return;
+
+	FireOnce();
+	NextShotTime = Now + 1.f / RateOfFire;
+}
+
+void AFireWeapon::OnTap(float Elapsed)
+{
+
+}
+
+void AFireWeapon::OnHoldBegan()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnHoldBegan"));
+	EnsureLoopMontage(Montage_Use_HoldLoop);
+}
+
+void AFireWeapon::OnHoldTick(float Elapsed)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnHoldTick Now=%.3f Next=%.3f Ammo=%d"),
+	  Elapsed, NextShotTime, CurrentAmmo);
+	
+	const float Now = GetWorld()->GetTimeSeconds();
+	if (RateOfFire <= 0.f) return;
+	
+	while (Now >= NextShotTime)
+	{
+		if (CurrentAmmo <= 0) return; // 탄약 없음
+		FireOnce();
+		NextShotTime += 1.f / RateOfFire;
+	}
+	EnsureLoopMontage(Montage_Use_HoldLoop);
+}
+
+void AFireWeapon::OnHoldReleased(float Elapsed)
+{
+	StopMontageIfPlaying(Montage_Use_HoldLoop);
+	bFiredThisPress = false;
 }
 

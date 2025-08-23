@@ -6,6 +6,7 @@
 #include "ActorBase.h"
 
 #include "GameFramework/Character.h"
+#include "Item/ItemInfo.h"
 #include "Survivor.generated.h"
 
 class AWeaponBase;
@@ -241,6 +242,9 @@ public:
 public:
 	UPROPERTY()
 	float ElapsedHold = 0.0f;
+
+	UFUNCTION()
+	EItemType GetCurrentItemType();
 
 protected:
 	//아이템 발견 (trace)

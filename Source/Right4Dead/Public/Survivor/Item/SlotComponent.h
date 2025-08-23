@@ -7,6 +7,14 @@
 #include "Components/ActorComponent.h"
 #include "SlotComponent.generated.h"
 
+// UI용
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUIInHandsChanged, ESlotType, Slot, UTexture2D*, Icon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUISlotItemChanged, ESlotType, Slot, UTexture2D*, Icon);
+
+// 게임플레이/애님용
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInHandsItemChanged, class AItemBase* NewItem);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotItemChanged, ESlotType Slot, class AItemBase* Item);
+
 USTRUCT()
 struct FEquipSlot { GENERATED_BODY()
 	UPROPERTY() TWeakObjectPtr<class AItemBase> Item;
@@ -43,8 +51,13 @@ public:
 	bool TryPickup(AItemBase* Item); // E키
 	UFUNCTION()
 	bool EquipSlot(ESlotType Slot); // 숫자키/Q/휠
+
 	UFUNCTION()
 	void Drop(AItemBase* Item);
+	UFUNCTION()
+	void RemoveItemFromSlot(AItemBase* Item);
+	UFUNCTION()
+	AItemBase* GetFallBackItem(const AItemBase* Old) const;
 	
 	UFUNCTION()
 	void HandleUse(EUsingType Phase, float Elapsed); // 캐릭터에게 현재 아이템 전달
@@ -89,4 +102,24 @@ private:
 public:
 	UFUNCTION()
 	bool CycleFilled(int32 Dir);
+
+	UFUNCTION()
+	EItemType GetActiveItemType();
+
+public:
+	UPROPERTY(BlueprintAssignable, Category="UI")
+	FOnUIInHandsChanged OnUIInHandsChanged;
+	UPROPERTY(BlueprintAssignable, Category="UI")
+	FOnUISlotItemChanged OnUISlotItemChanged;
+	
+	FOnInHandsItemChanged OnInHandsItemChanged;
+	FOnSlotItemChanged OnSlotItemChanged; 
+
+	// 초기 동기화를 위한 헬퍼
+	UFUNCTION(BlueprintCallable, Category="UI")
+	bool GetSlotIcon(ESlotType Slot, UTexture2D*& OutIcon) const;
+
+private:
+	void NotifySlotChanged(ESlotType Slot, AItemBase* Item);
+	void NotifyInHandsChanged(AItemBase* Item);
 };

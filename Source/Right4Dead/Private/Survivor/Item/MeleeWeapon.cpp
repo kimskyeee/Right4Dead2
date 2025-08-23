@@ -18,7 +18,7 @@ AMeleeWeapon::AMeleeWeapon()
 	
 	InitBoneMap();
 	// 도끼 쿨타임 초기화 (시작해도 바로 공격할 수 있게)
-	LastSecondaryAttackTime = -1;
+	NextReadyTime = -1;
 }
 
 // Called when the game starts or when spawned
@@ -32,23 +32,6 @@ void AMeleeWeapon::BeginPlay()
 void AMeleeWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void AMeleeWeapon::HandleUse(EUsingType Phase, float ElapsedHold)
-{
-	if (Phase == EUsingType::Started)
-	{
-		// 시간 계산
-		const float CurrentTime = GetWorld()->GetTimeSeconds();
-		if (CurrentTime - LastSecondaryAttackTime < SecondaryAttackCooldown)
-		{
-			return;
-		}
-
-		// 공격 로직 실행
-		LastSecondaryAttackTime = CurrentTime;
-		MeleeAttack();
-	}
 }
 
 void AMeleeWeapon::MeleeAttack()
@@ -207,3 +190,37 @@ void AMeleeWeapon::InitBoneMap()
 	BoneMap.Add(TEXT("ball_r"), 3);
 }
 
+void AMeleeWeapon::OnTap(float Elapsed)
+{
+	const float Now = GetWorld()->GetTimeSeconds();
+	
+	if (Now < NextReadyTime)
+	{
+		return;
+	}
+
+	// 공격 실행
+	MeleeAttack();
+
+	// 몽타주(중복 재생 방지)
+	PlayMontageOnce(Montage_Use_Tap);
+
+	// 다음 사용 가능 시각 갱신
+	NextReadyTime = Now + CooldownSec;
+}
+
+void AMeleeWeapon::OnHoldBegan()
+{
+	
+}
+
+void AMeleeWeapon::OnHoldTick(float Elapsed)
+{
+	const float Now = GetWorld()->GetTimeSeconds();
+	if (Now >= NextReadyTime)
+	{
+		MeleeAttack();
+		EnsureLoopMontage(Montage_Use_Tap);
+		NextReadyTime = Now + CooldownSec;
+	}
+}

@@ -21,7 +21,20 @@ AThrownItem::AThrownItem()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+	
 
+	RootSphere = CreateDefaultSubobject<USphereComponent>(FName("RootSphere"));
+	SetRootComponent(RootSphere);
+	RootSphere->SetGenerateOverlapEvents(true);
+	RootSphere->SetCollisionProfileName(TEXT("WorldWeapon"));
+	RootSphere->SetCanEverAffectNavigation(false);
+
+	StaticMesh->SetupAttachment(Root);
+	StaticMesh->CastShadow = false;
+
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	StaticMesh->bDisallowNanite = true;
+	
 	TrailParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Trail"));
 	TrailParticle->SetupAttachment(StaticMesh);
 
@@ -62,43 +75,19 @@ void AThrownItem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// 던져지고 나서
-	if (bIsThrown==true)
+	if (bIsThrown)
 	{
 		PlayBeepSound(DeltaTime);
 	}
 }
 
-void AThrownItem::HandleUse(EUsingType Phase, float ElapsedHold)
-{
-	if (Phase == EUsingType::Started)
-	{
-		bArmed = true;
-		ThrownAttack();
-	}
-	else if (Phase == EUsingType::Completed)
-	{
-		// 던지고 나면 없애기
-		bArmed = false;
-		OnConsumed.Broadcast(this);
-		Destroy();
-	}
-}
-
 void AThrownItem::ThrownAttack()
 {
-	//투척
-	//몽타주 특정시점(추가필요)에서 무기해제 (던지고 나서도 손에 들고있으면 안됨)
 	Char->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	bIsThrown = true;
 	
-	//몽타주 플레이
-	// if (me->CurrentWeapon->WeaponData.WeaponFireMontage)
-	{
-		// me->Arms->GetAnimInstance()->Montage_Play(me->CurrentWeapon->WeaponData.WeaponFireMontage);
-	}
 	if (bIsThrown)
 	{
-		// me->CurrentWeapon = nullptr;
 		ThrowWeapon();
 	}
 }
@@ -221,5 +210,12 @@ void AThrownItem::ExplodeWeapon()
 	UGameplayStatics::PlaySound2D(this, PipeBombEnd, 1, 1);
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
 
-	Destroy();
+	this->Destroy();
+}
+
+void AThrownItem::OnUseStart()
+{
+	Super::OnUseStart();
+	ThrownAttack();
+	OnConsumed.Broadcast(this);
 }
