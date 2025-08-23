@@ -3,7 +3,6 @@
 
 #include "Item/WeaponItem.h"
 
-#include "Components/SphereComponent.h"
 
 
 // Sets default values
@@ -13,19 +12,9 @@ AWeaponItem::AWeaponItem()
 	PrimaryActorTick.bCanEverTick = true;
 
 	//외관
-	Root = CreateDefaultSubobject<USphereComponent>(TEXT("Root"));
-	SetRootComponent(Root);
-	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("WeaponMesh");
-	WeaponMesh->SetupAttachment(RootComponent);
-	WeaponMesh->CastShadow = false;
 	Muzzle=CreateDefaultSubobject<USceneComponent>("Muzzle");
-	Muzzle->SetupAttachment(WeaponMesh);
+	Muzzle->SetupAttachment(StaticMesh);
 	Muzzle->SetRelativeLocationAndRotation(FVector(0,57,-2.5),FRotator(0,90,0));
-
-	//충돌체 설정
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	Root->SetGenerateOverlapEvents(true);
-	Root->SetCanEverAffectNavigation(false);
 }
 
 // Called when the game starts or when spawned
@@ -40,9 +29,3 @@ void AWeaponItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-void AWeaponItem::SetOverlayMaterial()
-{
-	WeaponMesh->SetOverlayMaterial(OverlayMaterial);
-}
-

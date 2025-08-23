@@ -30,8 +30,6 @@ public:
 	TObjectPtr<USoundWave> AlarmSound = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> AlarmLocation = nullptr;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> Root = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> LeftHinge = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -76,6 +74,6 @@ public:
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, BlueprintCallable, Category = "Debugging")
 	void StopAlarm();
 
-	virtual void SetOverlayMaterial() override;
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
 	virtual void ClearOverlayMaterial() override;
 };

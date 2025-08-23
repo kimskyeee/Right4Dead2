@@ -23,15 +23,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> Root = nullptr;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> Bell = nullptr;
-
 	virtual void Interaction() override;
-	virtual void SetOverlayMaterial() override;
-	virtual void ClearOverlayMaterial() override;
-
+	
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionBell();
 };

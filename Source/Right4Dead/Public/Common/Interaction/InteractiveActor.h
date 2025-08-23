@@ -24,12 +24,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> Root = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> StaticMesh = nullptr;
 	
 	// 발견 (trace 해서)
-	class UMaterialInterface* OverlayMaterial;
-
-	virtual void SetOverlayMaterial();
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial);
 	virtual void ClearOverlayMaterial();
 	
 	virtual void Interaction();

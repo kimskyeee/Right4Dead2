@@ -9,11 +9,9 @@ ACommonDoor::ACommonDoor()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	SetRootComponent(Root);
 	
-	Frame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Frame"));
-	Frame->SetupAttachment(GetRootComponent());
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Frame"));
+	StaticMesh->SetupAttachment(GetRootComponent());
 
 	Hinge = CreateDefaultSubobject<USceneComponent>(TEXT("Hinge"));
 	Hinge->SetupAttachment(GetRootComponent());
@@ -45,7 +43,7 @@ void ACommonDoor::Interaction()
 	InteractionCommonDoor();
 }
 
-void ACommonDoor::SetOverlayMaterial()
+void ACommonDoor::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
 {
 	// 아무것도 하지 않음
 }

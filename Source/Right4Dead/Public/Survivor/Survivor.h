@@ -247,7 +247,10 @@ protected:
 	UPROPERTY()
 	TWeakObjectPtr<class AItemBase> FocusedPickup;
 
+	UPROPERTY(EditAnywhere, Category = "Overlay")
+	UMaterialInterface* OverlayMaterial;
+
 	UFUNCTION() void TraceForPickup();
-	UFUNCTION() void SetPickupFocus(AItemBase* NewFocus);
+	UFUNCTION() void SetPickupFocus(class AItemBase* NewFocus);
 	UFUNCTION() void ClearPickupFocus();
 };

@@ -157,6 +157,13 @@ ASurvivor::ASurvivor()
 	{
 		ColaDeliveryAudio->SetSound(CokeDeliverySound);
 	}
+
+	//overlap되면 Material Instance (Overlay 설정)
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> TempWeaponOverlay(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/Blueprints/Survivor/Materials/M_Outline_Inst.M_Outline_Inst'"));
+	if (TempWeaponOverlay.Succeeded())
+	{
+		OverlayMaterial = TempWeaponOverlay.Object;
+	}
 }
 
 void ASurvivor::OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -166,8 +173,7 @@ void ASurvivor::OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* 
 	// 상호작용 아이템이 오버랩 되면, 테두리 생성
 	if (AInteractiveActor* InteractiveActor = Cast<AInteractiveActor>(OtherActor))
 	{
-		InteractiveActor->SetOverlayMaterial();
-		
+		// InteractiveActor->SetOverlayMaterial(OverlayMaterial);
 	}
 }
 
@@ -177,7 +183,7 @@ void ASurvivor::OnEndOverlapItem(UPrimitiveComponent* OverlappedComponent, AActo
 	// 해제 되면 테두리 해제
 	if (AInteractiveActor* InteractiveActor = Cast<AInteractiveActor>(OtherActor))
 	{
-		InteractiveActor->ClearOverlayMaterial();
+		// InteractiveActor->ClearOverlayMaterial();
 	}
 }
 
@@ -447,14 +453,16 @@ void ASurvivor::TraceForPickup()
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
-	
+
+
+	// ObjectType이 WorldWeapon인 물체만 감지하고 싶다.
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
 	
 	TArray<AActor*> ActorsToIgnore;
 	if (SlotComp && SlotComp->CurrentInHands.IsValid())
 	{
-		// 현재 들고 있는 무기면 무기
+		// 현재 들고 있는 무기면 무시하자
 		ActorsToIgnore.Add(SlotComp->CurrentInHands.Get());
 	}
 
@@ -466,23 +474,84 @@ void ASurvivor::TraceForPickup()
 		Hit, true
 	);
 
-	AItemBase* NewTrace = (bHit ? Cast<AItemBase>(Hit.GetActor()) : nullptr);
-	SetPickupFocus(NewTrace);
+	if (bHit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Trace] Hit Actor=%s Comp=%s ObjType=%d"),
+			*GetNameSafe(Hit.GetActor()),
+			*GetNameSafe(Hit.GetComponent()),
+			Hit.Component.IsValid() ? (int32)Hit.Component->GetCollisionObjectType() : -1);
+		AItemBase* NewTrace = Cast<AItemBase>(Hit.GetActor()); // 아이템 맞는지 확인
+
+		SetPickupFocus(NewTrace);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Trace] NoHit"));
+		SetPickupFocus(nullptr);
+	}
 }
 
 void ASurvivor::SetPickupFocus(AItemBase* NewFocus)
 {
-	if (FocusedPickup.Get() == NewFocus) return;
+	UE_LOG(LogTemp, Warning, TEXT("[Focus] Enter New=%s Old=%s"),
+		*GetNameSafe(NewFocus),
+		*GetNameSafe(FocusedPickup.Get()));
 
+	AItemBase* Old = FocusedPickup.Get();
+	if (Old == NewFocus)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Focus] EarlyReturn (Old == New) : %s"),
+			*GetNameSafe(NewFocus));
+		return;
+	}
+
+	if (Old)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Focus] Unfocus: %s"), *GetNameSafe(Old));
+		Old->ClearOverlayMaterial();
+	}
+
+	FocusedPickup = NewFocus;
+
+	UE_LOG(LogTemp, Warning, TEXT("[Focus] NewFocus set: %s"), *GetNameSafe(NewFocus));
 	if (FocusedPickup.IsValid())
 	{
-		FocusedPickup = nullptr;
+		FocusedPickup->SetOverlayMaterial(OverlayMaterial);
+
+		if (UMeshComponent* Visual = FocusedPickup->FindComponentByClass<UMeshComponent>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Focus] VisualComp: %s"), *GetNameSafe(Visual));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Focus] VisualComp NOT FOUND"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Focus] Cleared (nullptr)"));
 	}
 
-	if (NewFocus)
+	/*// 이전 포커스를 저장
+	AItemBase* OldFocus = FocusedPickup.Get();
+
+	// 같은 액터면 변경할 필요 없음
+	if (OldFocus == NewFocus) return;
+	
+	// 이전 포커스가 있었다면 해제
+	if (OldFocus && OldFocus->IsValidLowLevelFast())
 	{
-		FocusedPickup = NewFocus;
+		OldFocus->ClearOverlayMaterial();
 	}
+
+	// 새 포커스 설정
+	FocusedPickup = NewFocus;
+
+	// 새 포커스가 있다면 하이라이트 적용
+	if (FocusedPickup.IsValid())
+	{
+		FocusedPickup->SetOverlayMaterial(OverlayMaterial);
+	}*/
 }
 
 void ASurvivor::ClearPickupFocus()

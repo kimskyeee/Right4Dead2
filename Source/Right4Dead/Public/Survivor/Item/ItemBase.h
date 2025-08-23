@@ -102,12 +102,17 @@ protected:
 	
 	//콜리전박스 생성
 	UPROPERTY(EditAnywhere, Category = "Shove Attack")
-	UStaticMesh* CylinderMesh;
+	TObjectPtr<UStaticMesh> CylinderMesh = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision", meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* ShoveCollisionCylinder;
+	TObjectPtr<UStaticMeshComponent> ShoveCollisionCylinder= nullptr;
+
 	UFUNCTION()
 	void OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 						const FHitResult& SweepResult);
 	void SpawnShoveCylinder();
 	void DestroyShoveCylinder();
+
+	//외관
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class USphereComponent* RootSphere = nullptr;
 };

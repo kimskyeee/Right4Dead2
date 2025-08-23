@@ -22,11 +22,7 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> Root = nullptr;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> Frame = nullptr;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<USceneComponent> Hinge = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -43,6 +39,6 @@ public:
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
 	void InteractionCommonDoor();
 
-	virtual void SetOverlayMaterial() override;
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
 	virtual void ClearOverlayMaterial() override;
 };

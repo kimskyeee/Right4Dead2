@@ -23,13 +23,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//외관
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USphereComponent* Root = nullptr;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class UStaticMeshComponent* WeaponMesh = nullptr;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	class USceneComponent* Muzzle = nullptr;
-
-	virtual void SetOverlayMaterial() override;
+	TObjectPtr<USceneComponent> Muzzle = nullptr;
 };

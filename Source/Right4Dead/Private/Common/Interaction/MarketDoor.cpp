@@ -20,7 +20,6 @@ AMarketDoor::AMarketDoor()
 		AlarmSound->bLooping = true;
 	}
 	AlarmLocation = CreateDefaultSubobject<USceneComponent>(TEXT("AlarmLocation"));
-	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	LeftHinge = CreateDefaultSubobject<USceneComponent>(TEXT("LeftHinge"));
 	RightHinge = CreateDefaultSubobject<USceneComponent>(TEXT("RightHinge"));
 	Frame = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Frame"));
@@ -135,7 +134,7 @@ void AMarketDoor::Interaction()
 	InteractionDoor();
 }
 
-void AMarketDoor::SetOverlayMaterial()
+void AMarketDoor::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
 {
 	// 아무것도 하지 않음
 }

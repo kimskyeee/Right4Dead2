@@ -26,7 +26,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	bool bIsCokeDelivery = true;
 	
-	virtual void SetOverlayMaterial() override;
+	virtual void SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial) override;
 	virtual void ClearOverlayMaterial() override;
 	
 	virtual void Interaction() override;

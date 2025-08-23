@@ -7,6 +7,7 @@
 #include "ShoveDamageType.h"
 #include "Survivor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -23,6 +24,18 @@ AItemBase::AItemBase()
 	{
 		CylinderMesh = CylinderMeshAsset.Object;
 	}
+
+	RootSphere = CreateDefaultSubobject<USphereComponent>(TEXT("RootSphere"));
+	SetRootComponent(RootSphere);
+	StaticMesh->SetupAttachment(RootSphere);
+	StaticMesh->CastShadow = false;
+
+	//충돌체 설정
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	StaticMesh->bDisallowNanite = true;
+	RootSphere->SetGenerateOverlapEvents(true);
+	RootSphere->SetCollisionProfileName(TEXT("WorldWeapon"));
+	RootSphere->SetCanEverAffectNavigation(false);
 }
 
 // Called when the game starts or when spawned
@@ -133,5 +146,4 @@ void AItemBase::SpawnShoveCylinder()
 	ShoveCollisionCylinder->SetVisibility(false);
 	GetWorld()->GetTimerManager().SetTimer(CylinderTimerHandle, this, &AItemBase::DestroyShoveCylinder, 0.1f, false);
 }
-
 

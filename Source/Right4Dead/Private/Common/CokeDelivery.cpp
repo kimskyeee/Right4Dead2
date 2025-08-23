@@ -30,10 +30,10 @@ void ACokeDelivery::Interaction()
 	InteractionDelivery();
 }
 
-void ACokeDelivery::SetOverlayMaterial()
+void ACokeDelivery::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
 {
 	bIsCokeDelivery = true;
-	Door->SetOverlayMaterial(OverlayMaterial);
+	Door->SetOverlayMaterial(MyOverlayMaterial);
 }
 
 void ACokeDelivery::ClearOverlayMaterial()

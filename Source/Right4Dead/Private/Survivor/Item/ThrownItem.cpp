@@ -23,10 +23,10 @@ AThrownItem::AThrownItem()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	TrailParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Trail"));
-	TrailParticle->SetupAttachment(WeaponMesh);
+	TrailParticle->SetupAttachment(StaticMesh);
 
 	BeepLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("BeepLight"));
-	BeepLight->SetupAttachment(WeaponMesh);
+	BeepLight->SetupAttachment(StaticMesh);
 	
 	//파이프폭탄 사운드
 	const ConstructorHelpers::FObjectFinder<USoundWave>TempPipeBombBeep(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/WeaponNAttack/PipeBomb/pipebomb_beep.pipebomb_beep'"));
@@ -127,15 +127,15 @@ void AThrownItem::ThrowWeapon()
 		UGameplayStatics::PredictProjectilePath(this, PredictParams, PredictResult);
 
 		//이제 날려보내자
-		Root->SetSimulatePhysics(true);
-		Root->SetPhysicsLinearVelocity(OutVelocity);
+		RootSphere->SetSimulatePhysics(true);
+		RootSphere->SetPhysicsLinearVelocity(OutVelocity);
 		//근데 바닥에 닿으면 멈춰야함!
-		Root->OnComponentHit.AddDynamic(this, &AThrownItem::OnThrowWeaponHit);
-		Root->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		Root->SetCollisionResponseToAllChannels(ECR_Ignore);
-		Root->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-		Root->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-		Root->SetNotifyRigidBodyCollision(true); //충돌이벤트 발생가능하게 설정
+		RootSphere->OnComponentHit.AddDynamic(this, &AThrownItem::OnThrowWeaponHit);
+		RootSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		RootSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
+		RootSphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+		RootSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+		RootSphere->SetNotifyRigidBodyCollision(true); //충돌이벤트 발생가능하게 설정
 	}
 }
 
@@ -150,12 +150,12 @@ void AThrownItem::OnThrowWeaponHit(UPrimitiveComponent* HitComponent, AActor* Ot
 	BeepLight->SetVisibility(true);
 	
 	//속도 멈추기
-	Root->SetPhysicsLinearVelocity(FVector::ZeroVector);
-	Root->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+	RootSphere->SetPhysicsLinearVelocity(FVector::ZeroVector);
+	RootSphere->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 
 	//마찰력을 증가시키자
-	Root->SetLinearDamping(Damping); //이속 감소
-	Root->SetAngularDamping(Damping); //회전 감소
+	RootSphere->SetLinearDamping(Damping); //이속 감소
+	RootSphere->SetAngularDamping(Damping); //회전 감소
 
 	//6초동안 sphere trace로 좀비 감지하기 (범위 3000이상)
 	//1초마다 loop
