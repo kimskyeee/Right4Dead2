@@ -9,10 +9,10 @@ void UUISurvivorCokeDelivery::NativeTick(const FGeometry& MyGeometry, float InDe
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 	
-	ASurvivor* player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	if (player)
+	ASurvivor* Player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	if (Player)
 	{
-		float percent = player->HoldTime / player->MaxHoldTime;
-		CokeProgressBar->SetPercent(percent);
+		// float Percent = Player->HoldTime / Player->MaxHoldTime;
+		// CokeProgressBar->SetPercent(Percent);
 	}
 }

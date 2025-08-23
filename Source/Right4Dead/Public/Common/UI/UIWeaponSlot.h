@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "WeaponBase.h"
 #include "Blueprint/UserWidget.h"
 #include "UIWeaponSlot.generated.h"
 
@@ -29,8 +28,6 @@ class RIGHT4DEAD_API UUIWeaponSlot : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void UpdateSlot(AWeaponBase* EquippedWeapon, const TMap<EWeaponType, AWeaponBase*>& Inventory);
-
 	// Image
 	UPROPERTY(meta = (BindWidget))
 	class UImage* FirstBGImage;
@@ -72,15 +69,6 @@ public:
 	class UTextBlock* CurrentAmmo;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* MaxAmmo;
-
-	// // Animation
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidgetAnim), Transient)
-	// class UWidgetAnimation* UZI_Anim;
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidgetAnim), Transient)
-	// class UWidgetAnimation* Axe_Anim;
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(BindWidgetAnim), Transient)
-	// class UWidgetAnimation* Pipe_Anim;
-
 
 	// 슬롯 UI 데이터 배열
 	TArray<FWeaponSlotUI> WeaponSlots;

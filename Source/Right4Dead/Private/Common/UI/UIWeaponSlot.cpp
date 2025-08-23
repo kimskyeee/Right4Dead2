@@ -12,7 +12,7 @@
 //TArray는 동적배열
 //AWeaponBase 타입의 객체를 저장하는 배열이고
 //& Inventory 참조를 통해 함수에서도 원본 배열을 직접 수정할 수 있다
-void UUIWeaponSlot::UpdateSlot(AWeaponBase* EquippedWeapon, const TMap<EWeaponType, AWeaponBase*>& Inventory)
+/*void UUIWeaponSlot::UpdateSlot(AWeaponBase* EquippedWeapon, const TMap<EWeaponType, AWeaponBase*>& Inventory)
 {
 	// 각 슬롯의 기본 이미지 배열 (초기 UI 상태)
 	TArray<UImage*> DefaultImages = { FirstBGImage, SecondBGImage, ThirdBGImage, FourthBGImage, FifthBGImage };
@@ -51,11 +51,11 @@ void UUIWeaponSlot::UpdateSlot(AWeaponBase* EquippedWeapon, const TMap<EWeaponTy
 		// 최종적으로 i번째 슬롯의 무기 이미지를 업데이트 (Brush를 Texture로 변경)
 		WeaponSlots[i].WeaponImage->SetBrushFromTexture(Texture);
 	}
-}
+}*/
 
 void UUIWeaponSlot::SetAmmoText()
 {
-	auto player = Cast<ASurvivor>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
+	/*auto player = Cast<ASurvivor>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
 	if (player && player->CurrentWeapon)
 	{
 		FText CurrentAmmoCount = FText::AsNumber(player->CurrentWeapon->WeaponData.CurrentAmmo);
@@ -67,7 +67,7 @@ void UUIWeaponSlot::SetAmmoText()
 			CurrentAmmo->SetText(CurrentAmmoCount);
 			MaxAmmo->SetText(MaxAmmoAmount);
 		}
-	}
+	}*/
 }
 
 void UUIWeaponSlot::NativeConstruct()

@@ -8,21 +8,21 @@
 void USurvivorArmAnim::AnimNotify_AxeCameraShake()
 {
 	//카메라 쉐이크 재생?
-	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	auto pc = GetWorld()->GetFirstPlayerController();
-	if (pc)
+	auto Player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	auto PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
 	{
-		pc->PlayerCameraManager->StartCameraShake(player->SweepCameraShake);
+		PC->PlayerCameraManager->StartCameraShake(Player->SweepCameraShake);
 	}
 }
 
 void USurvivorArmAnim::AnimNotify_SpawnCylinder()
 {
 	// 실린더 스윕 발생
-	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	if (player)
+	auto Player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	if (Player)
 	{
-		player->spawnShoveCylinder();
+		// Player->SpawnShoveCylinder();
 	}
 }
 
@@ -31,7 +31,7 @@ void USurvivorArmAnim::AnimNotify_ENDReloading()
 	auto player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
 	if (player)
 	{
-		player->bIsReloading = false;
+		// player->bIsReloading = false;
 	}
 }
 

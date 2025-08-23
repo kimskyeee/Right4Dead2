@@ -33,5 +33,5 @@ public:
 	class UMaterialInstanceDynamic* Material; // 동적 인스턴스는 런타임에서 직접 할당해야합니다
 	
 	UPROPERTY(EditAnywhere)
-	class ASurvivor* player;
+	class ASurvivor* Char;
 };

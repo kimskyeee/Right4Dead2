@@ -14,9 +14,6 @@ class RIGHT4DEAD_API USurvivorThirdPersonAnim : public UAnimInstance
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon")
-	EWeaponType CurrentWeapon;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool bIsEquippedWeapon=false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")

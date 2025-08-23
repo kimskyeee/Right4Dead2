@@ -3,17 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interaction/CommonDoor.h"
-#include "CokeDelivery.generated.h"
+#include "InteractiveActor.h"
+#include "WhitekerBell.generated.h"
 
 UCLASS()
-class RIGHT4DEAD_API ACokeDelivery : public ACommonDoor
+class RIGHT4DEAD_API AWhitekerBell : public AInteractiveActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	ACokeDelivery();
+	AWhitekerBell();
 
 protected:
 	// Called when the game starts or when spawned
@@ -23,13 +23,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bIsCokeDelivery = true;
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> Root = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UStaticMeshComponent> Bell = nullptr;
+
+	virtual void Interaction() override;
 	virtual void SetOverlayMaterial() override;
 	virtual void ClearOverlayMaterial() override;
-	
-	virtual void Interaction() override;
+
 	UFUNCTION(CallInEditor, BlueprintImplementableEvent, Category = "Debugging")
-	void InteractionDelivery();
+	void InteractionBell();
 };

@@ -12,7 +12,7 @@ void UUISurvivorMedKit::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 	ASurvivor* player = Cast<ASurvivor>(GetWorld()->GetFirstPlayerController()->GetPawn());
 	if (player)
 	{
-		float percent = player->HoldTime / player->MaxHoldTime;
-		MedKitProgressBar->SetPercent(percent);
+		// float percent = player->HoldTime / player->MaxHoldTime;
+		// MedKitProgressBar->SetPercent(percent);
 	}
 }

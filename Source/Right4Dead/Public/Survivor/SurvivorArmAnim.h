@@ -22,9 +22,7 @@ public:
 	void AnimNotify_SpawnCylinder();
 	UFUNCTION()
 	void AnimNotify_ENDReloading();
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon")
-	EWeaponType CurrentWeapon;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
 	bool bIsEquippedWeapon=false;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="FSM")
