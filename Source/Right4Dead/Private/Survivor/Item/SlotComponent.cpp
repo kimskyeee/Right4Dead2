@@ -381,22 +381,13 @@ bool USlotComponent::GetSlotIcon(ESlotType Slot, UTexture2D*& OutIcon) const
 	return (OutIcon != nullptr);
 }
 
-void USlotComponent::NotifySlotChanged(ESlotType Slot, AItemBase* Item)
-{
-	// 1) 게임플레이/애님 알림
-	OnSlotItemChanged.Broadcast(Slot, Item);
-
-	// 2) UI 알림
-	UTexture2D* Icon = Item ? Item->GetUIIcon() : nullptr;
-	OnUISlotItemChanged.Broadcast(Slot, Icon);
-}
 
 void USlotComponent::NotifyInHandsChanged(AItemBase* Item)
 {
-	// 1) 게임플레이/애님 알림
+	// 게임플레이/애님 알림
 	OnInHandsItemChanged.Broadcast(Item);
 
-	// 2) UI 알림
+	// UI 알림
 	ESlotType Slot = ESlotType::None;
 	if (Item && Item->Spec && Item->Spec->bOccupiesSlot)
 	{
@@ -406,3 +397,12 @@ void USlotComponent::NotifyInHandsChanged(AItemBase* Item)
 	OnUIInHandsChanged.Broadcast(Slot, Icon);
 }
 
+void USlotComponent::NotifySlotChanged(ESlotType Slot, AItemBase* Item)
+{
+	// 게임플레이/애님 알림
+	OnSlotItemChanged.Broadcast(Slot, Item);
+
+	// UI 알림
+	UTexture2D* Icon = Item ? Item->GetUIIcon() : nullptr;
+	OnUISlotItemChanged.Broadcast(Slot, Icon);
+}

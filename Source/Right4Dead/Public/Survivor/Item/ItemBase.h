@@ -58,8 +58,11 @@ public:
 	// Slot 업데이트
 	UPROPERTY(EditDefaultsOnly, Category="UI")
 	TObjectPtr<UTexture2D> UIIcon = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TObjectPtr<UTexture2D> UnEquipUIIcon = nullptr;
 
 	UTexture2D* GetUIIcon() const { return UIIcon; }
+	UTexture2D* GetUnEquipUIIcon() const { return UnEquipUIIcon; }
 
 public:
 	UPROPERTY()

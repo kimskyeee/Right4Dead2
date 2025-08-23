@@ -10,10 +10,10 @@
 // UI용
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUIInHandsChanged, ESlotType, Slot, UTexture2D*, Icon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUISlotItemChanged, ESlotType, Slot, UTexture2D*, Icon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSlotItemChanged, ESlotType, Slot, class AItemBase*, Item);
 
 // 게임플레이/애님용
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnInHandsItemChanged, class AItemBase* NewItem);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlotItemChanged, ESlotType Slot, class AItemBase* Item);
 
 USTRUCT()
 struct FEquipSlot { GENERATED_BODY()
@@ -64,6 +64,8 @@ public:
 	UFUNCTION()
 	void RightClickUse();
 
+	AItemBase* GetInHandsRaw() const { return CurrentInHands.Get(); }
+
 private:
 	UPROPERTY()
 	int32 SlotSize = 5;
@@ -111,15 +113,16 @@ public:
 	FOnUIInHandsChanged OnUIInHandsChanged;
 	UPROPERTY(BlueprintAssignable, Category="UI")
 	FOnUISlotItemChanged OnUISlotItemChanged;
+	UPROPERTY(BlueprintAssignable, Category="UI")
+	FOnSlotItemChanged OnSlotItemChanged; 
 	
 	FOnInHandsItemChanged OnInHandsItemChanged;
-	FOnSlotItemChanged OnSlotItemChanged; 
 
 	// 초기 동기화를 위한 헬퍼
 	UFUNCTION(BlueprintCallable, Category="UI")
 	bool GetSlotIcon(ESlotType Slot, UTexture2D*& OutIcon) const;
 
 private:
-	void NotifySlotChanged(ESlotType Slot, AItemBase* Item);
 	void NotifyInHandsChanged(AItemBase* Item);
+	void NotifySlotChanged(ESlotType Slot, AItemBase* Item);
 };

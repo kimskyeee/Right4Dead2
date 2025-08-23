@@ -6,6 +6,8 @@
 #include "WeaponItem.h"
 #include "FireWeapon.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FAmmoChanged, int32, Cur, int32, Max);
+
 UCLASS()
 class RIGHT4DEAD_API AFireWeapon : public AWeaponItem
 {
@@ -30,7 +32,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditDefaultsOnly, Category="Anim")
-	TObjectPtr<UAnimMontage> Montage_Reload;
+	TObjectPtr<UAnimMontage> Montage_Reload;;
 	
 	UFUNCTION() void FireOnce();
 	UFUNCTION() void DecreaseAmmoCount();
@@ -51,4 +53,10 @@ public:
 	virtual void OnHoldBegan() override;
 	virtual void OnHoldTick(float Elapsed) override;
 	virtual void OnHoldReleased(float Elapsed) override;
+
+	UPROPERTY(BlueprintAssignable)
+	FAmmoChanged OnAmmoChanged;
+
+	int32 GetCurrentAmmo() const { return CurrentAmmo; }
+	int32 GetMaxAmmoAmount() const { return MaxAmmoAmount; }
 };

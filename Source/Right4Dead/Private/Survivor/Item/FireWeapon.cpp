@@ -88,15 +88,12 @@ void AFireWeapon::FireOnce()
 
 void AFireWeapon::DecreaseAmmoCount()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[Dec] this=%p &CurrentAmmo=%p Before=%d"),
-		this, &CurrentAmmo, CurrentAmmo);
-	
 	if (CurrentAmmo > 0)
 	{
 		CurrentAmmo--;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("[Dec] After=%d"), CurrentAmmo);
+	
+	OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmoAmount);
 }
 
 void AFireWeapon::Reload()
