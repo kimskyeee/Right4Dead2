@@ -5,7 +5,6 @@
 
 #include "Survivor.h"
 #include "Components/Border.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 

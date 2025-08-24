@@ -233,6 +233,9 @@ public:
 	// 피해 인디케이터
 	UFUNCTION()	void DisplayIndicator(AActor* Causer);
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bCanDeliveryCola = false;
+
 public:
 	UPROPERTY()
 	float ElapsedHold = 0.0f;

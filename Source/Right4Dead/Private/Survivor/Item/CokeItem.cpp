@@ -60,7 +60,7 @@ void ACokeItem::ApplyItemEffect()
 void ACokeItem::CheckDeliveryPos()
 {
 	// 배달 위치 범위 내에 있는지 체크
-	if (!bCanDeliveryCola) return;
+	if (!Char->bCanDeliveryCola) return;
 	
 	auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
 	CokeDelivery->bIsCanOpen = true;
