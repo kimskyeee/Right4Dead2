@@ -6,6 +6,9 @@
 #include "Item/ItemBase.h"
 #include "ConsumableItem.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnHoldStarted, class AConsumableItem*, float Duration, double StartTime);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHoldSimple,  AConsumableItem*);
+
 UCLASS()
 class RIGHT4DEAD_API AConsumableItem : public AItemBase
 {
@@ -42,8 +45,26 @@ protected:
 	virtual void CancelConsume(); // 5초 미만에서 뗐을 때 호출
 
 public:
+	FOnHoldStarted OnHoldStarted;
+	FOnHoldSimple OnHoldCanceled;
+	FOnHoldSimple OnHoldCompleted;
+	
 	virtual void OnTap(float Elapsed) override;
 	virtual void OnHoldBegan() override;
 	virtual void OnHoldTick(float Elapsed) override;
 	virtual void OnHoldReleased(float Elapsed) override;
+
+public:
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TObjectPtr<UTexture2D> SimpleIcon = nullptr;   // 아이템별 아이콘(드롭다운)
+
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	FText SimpleLabel;                             // 아이템별 텍스트
+
+	UFUNCTION(BlueprintCallable)
+	void GetSimpleUI(UTexture2D*& OutIcon, FText& OutLabel) const
+	{
+		OutIcon  = SimpleIcon;
+		OutLabel = SimpleLabel;
+	}
 };

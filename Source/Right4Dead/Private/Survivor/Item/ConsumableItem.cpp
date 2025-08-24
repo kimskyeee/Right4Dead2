@@ -4,7 +4,6 @@
 #include "Item/ConsumableItem.h"
 
 #include "Survivor.h"
-#include "Item/ItemInfo.h"
 
 
 // Sets default values
@@ -36,7 +35,8 @@ void AConsumableItem::CompleteConsume()
 	Char->SwitchCamera(false);
 
 	ApplyItemEffect(); // 효과 적용
-
+	
+	OnHoldCompleted.Broadcast(this);
 	OnConsumed.Broadcast(this);
 	bHoldActive  = false;
 	bInUseGuard = false;
@@ -60,9 +60,12 @@ void AConsumableItem::OnHoldBegan()
 	if (!Char) return;
 	if (bInUseGuard) return;
 	bInUseGuard  = true;
+
+	const double Now = FPlatformTime::Seconds();
+	OnHoldStarted.Broadcast(this, NeedHold, Now);
 	
-	bHoldActive  = true;
-	bCompleted   = false;
+	bHoldActive = true;
+	bCompleted = false;
 	
 	Char->SwitchCamera(true);
 }
@@ -71,10 +74,6 @@ void AConsumableItem::OnHoldTick(float Elapsed)
 {
 	// 동작하지 말자
 	if (!bHoldActive || bCompleted) return;
-
-	// 진행도 UI
-	const float Progress = FMath::Clamp(Elapsed / NeedHold, 0.f, 1.f);
-	// UpdateProgressUI(Progress);
 
 	if (Elapsed >= NeedHold)
 	{
@@ -91,6 +90,7 @@ void AConsumableItem::OnHoldReleased(float Elapsed)
 	if (!bCompleted)
 	{
 		CancelConsume(); // 5초 미만 취소 루트
+		OnHoldCanceled.Broadcast(this);
 	}
 	// 5초 이상이면 CompleteConsume에서 이미 처리 완료
 	bHoldActive = false;

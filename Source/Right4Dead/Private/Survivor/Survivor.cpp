@@ -242,24 +242,6 @@ void ASurvivor::BeginPlay()
 			AttackIndicatorUI->AddToViewport();
 		}
 	}
-	if (MedKitUIClass)
-	{
-		MedKitUI = CreateWidget<UUISurvivorMedKit>(GetWorld(), MedKitUIClass);
-		if (MedKitUI)
-		{
-			MedKitUI->SetVisibility(ESlateVisibility::Hidden);
-			MedKitUI->AddToViewport();
-		}
-	}
-	if (CokeDeliveryUIClass)
-	{
-		CokeDeliveryUI = CreateWidget<UUISurvivorCokeDelivery>(GetWorld(), CokeDeliveryUIClass);
-		if (CokeDeliveryUI)
-		{
-			CokeDeliveryUI->SetVisibility(ESlateVisibility::Hidden);
-			CokeDeliveryUI->AddToViewport();
-		}
-	}
 		
 	//카메라 설정
 	FirstCameraComp->SetActive(true);

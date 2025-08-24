@@ -65,19 +65,25 @@ void ACokeItem::CheckDeliveryPos()
 	auto* CokeDelivery = Cast<ACokeDelivery>(UGameplayStatics::GetActorOfClass(GetWorld(), ACokeDelivery::StaticClass()));
 	CokeDelivery->bIsCanOpen = true;
 	CokeDelivery->InteractionDelivery();
-	/*if (CokeDeliveryUI)
-	{
-		CokeDeliveryUI->SetVisibility(ESlateVisibility::Visible);
-		CokeDeliveryUI->AddToViewport();
-	}*/
 
 	//콜라배달음
 	ColaDeliveryAudio->Play();
 }
 
-void ACokeItem::OnTap(float Elapsed)
+void ACokeItem::OnHoldBegan()
 {
-	Super::OnTap(Elapsed);
+	if (!Char) return;
+	if (bInUseGuard) return;
+	if (!Char->bCanDeliveryCola) return;
+	bInUseGuard  = true;
+
+	const double Now = FPlatformTime::Seconds();
+	OnHoldStarted.Broadcast(this, NeedHold, Now);
+	
+	bHoldActive = true;
+	bCompleted = false;
+	
+	Char->SwitchCamera(true);
 }
 
 void ACokeItem::CompleteConsume()

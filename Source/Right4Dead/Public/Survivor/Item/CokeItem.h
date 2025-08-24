@@ -25,7 +25,7 @@ public:
 
 	virtual void ApplyItemEffect() override;
 	void CheckDeliveryPos();
-
-	virtual void OnTap(float Elapsed) override;
+	
+	virtual void OnHoldBegan() override;
 	virtual void CompleteConsume() override;
 };

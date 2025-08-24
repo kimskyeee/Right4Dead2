@@ -97,16 +97,6 @@ public:
 	TSubclassOf<class UUIAttackZombie> AttackZombieUIClass;
 	UPROPERTY()
 	class UUIAttackZombie* AttackZombieUI;
-
-	UPROPERTY()
-	class UUISurvivorMedKit* MedKitUI;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
-	TSubclassOf<class UUISurvivorMedKit> MedKitUIClass;
-	
-	UPROPERTY()
-	class UUISurvivorCokeDelivery* CokeDeliveryUI;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")
-	TSubclassOf<class UUISurvivorCokeDelivery> CokeDeliveryUIClass;
 	
 	UPROPERTY()
 	class UUISurvivorIndicator* AttackIndicatorUI;
@@ -126,14 +116,6 @@ public:
 	float Speed = 700.f;
 	UPROPERTY()
 	FVector Direction;
-
-	//마우스 버튼을 꾹 누르고 있는지 판단하는 변수 추가
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
-	float CurrentLeftTime=0.f;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
-	float ChangeLeftTime=0.5f;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")
-	bool bIsLeftPressed=false;
 
 	// UI
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Settings")

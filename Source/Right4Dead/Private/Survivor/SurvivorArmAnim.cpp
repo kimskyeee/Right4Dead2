@@ -78,7 +78,7 @@ void USurvivorArmAnim::BindDelegates()
 {
 	if (SlotComp.IsValid())
 	{
-		SlotComp->OnInHandsItemChanged.AddUObject(this, &USurvivorArmAnim::HandleInHandsChanged);
+		SlotComp->OnInHandsItemChanged.AddDynamic(this, &USurvivorArmAnim::HandleInHandsChanged);
 	}
 }
 

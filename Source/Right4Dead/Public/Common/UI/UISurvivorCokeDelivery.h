@@ -14,9 +14,29 @@ class RIGHT4DEAD_API UUISurvivorCokeDelivery : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+	float  DurationSec   = 0.f;
+	double StartTimeSec  = 0.0;
+	bool   bActive       = false;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* ProgressBar = nullptr;
+	UPROPERTY(meta=(BindWidget))
+	class UImage* Img_CurrentState = nullptr;
+	UPROPERTY(meta=(BindWidget))
+	class UTextBlock* Text_CurrentState = nullptr;
+	
 public:
+	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	
-	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* CokeProgressBar;
+	UFUNCTION(BlueprintCallable)
+	void SetSimpleVisual(UTexture2D* Icon, const FText& Label);
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	void StartProgress(float InDurationSec, double InStartTimeSec);
+
+	UFUNCTION(BlueprintCallable)
+	void StopProgress();
 };

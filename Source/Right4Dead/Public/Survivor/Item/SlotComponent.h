@@ -11,9 +11,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUIInHandsChanged, ESlotType, Slot, UTexture2D*, Icon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUISlotItemChanged, ESlotType, Slot, UTexture2D*, Icon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSlotItemChanged, ESlotType, Slot, class AItemBase*, Item);
-
-// 게임플레이/애님용
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnInHandsItemChanged, class AItemBase* NewItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInHandsItemChanged, AItemBase*, Item);
 
 USTRUCT()
 struct FEquipSlot { GENERATED_BODY()
@@ -118,7 +116,7 @@ public:
 	FOnUISlotItemChanged OnUISlotItemChanged;
 	UPROPERTY(BlueprintAssignable, Category="UI")
 	FOnSlotItemChanged OnSlotItemChanged; 
-	
+	UPROPERTY(BlueprintAssignable)
 	FOnInHandsItemChanged OnInHandsItemChanged;
 
 	// 초기 동기화를 위한 헬퍼

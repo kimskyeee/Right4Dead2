@@ -34,11 +34,5 @@ void AHandleItem::ApplyItemEffect()
 	// 채력 회복
 	// 잃은 체력의 80% 회복
 	Char->CurrentHP += 0.8f * (Char->MaxHP - Char->CurrentHP);
-	
-	if (Char->MedKitUI)
-	{
-		Char->MedKitUI->SetVisibility(ESlateVisibility::Hidden);
-		Char->MedKitUI->RemoveFromParent();
-	}
 }
 
