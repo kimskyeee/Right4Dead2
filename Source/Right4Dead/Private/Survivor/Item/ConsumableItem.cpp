@@ -38,8 +38,10 @@ void AConsumableItem::CompleteConsume()
 	
 	OnHoldCompleted.Broadcast(this);
 	OnConsumed.Broadcast(this);
-	bHoldActive  = false;
+	bHoldActive = false;
 	bInUseGuard = false;
+	
+	Destroy();
 }
 
 void AConsumableItem::CancelConsume()
