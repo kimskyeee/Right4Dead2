@@ -109,16 +109,9 @@ void AFireWeapon::Reload()
 		CurrentAmmo += AmmoToLoad;
 		MaxAmmoAmount -= AmmoToLoad;
 
-		UAnimInstance* AnimInst = Char->Arms->GetAnimInstance();
-		if (!AnimInst) return;
-			
-		USurvivorArmAnim* ArmAnimInst = Cast<USurvivorArmAnim>(AnimInst);
-		if (!ArmAnimInst) return;
+		OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmoAmount);
 
-		if (UAnimMontage* Montage = Montage_Reload)
-		{
-			ArmAnimInst->Montage_Play(Montage);
-		}
+		PlayMontageOnce(Montage_Reload);
 	}
 }
 

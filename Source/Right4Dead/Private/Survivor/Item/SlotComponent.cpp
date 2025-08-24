@@ -39,10 +39,17 @@ void USlotComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 bool USlotComponent::TryPickup(AItemBase* Item)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[TryPickup] Item=%s OwnerIsMe=%d InHands?=%d"),
+	   *GetNameSafe(Item),
+	   Item && Item->GetOwner()==GetOwner(),
+	   CurrentInHands.Get()==Item);
+	
 	// 무기 줍기 함수
 	if (!Item || !Item->Spec) return false;
-	
 	ASurvivor* OwnerChar = Cast<ASurvivor>(GetOwner());
+
+	if (Item->GetOwner() == OwnerChar) return false;
+	if (CurrentInHands.IsValid() && CurrentInHands.Get() == Item) return false;
 	
 	const bool bHasSlot = (Item->Spec->bOccupiesSlot) && (Item->Spec->PreferredSlot != ESlotType::None);
 	if (!bHasSlot)
@@ -74,21 +81,22 @@ bool USlotComponent::TryPickup(AItemBase* Item)
 bool USlotComponent::EquipSlot(ESlotType Slot)
 {
 	// 슬롯 선택
-	// 비슬롯 퀘스트 -> 무기로 변경시 콜라는 월드에 Drop
-	if (CurrentInHands.IsValid() && CurrentInHands->Spec && !CurrentInHands->Spec->bOccupiesSlot)
-	{
-		Drop(CurrentInHands.Get(), true);
-	}
-
 	const int32 idx = Index(Slot);
 	if (idx < 0 || idx >= Slots.Num()) return false;
 	if (!Slots[idx].Item.IsValid()) return false;
-
+	
+	// 비슬롯 퀘스트 -> 무기로 변경시 콜라는 월드에 Drop
+	if (CurrentInHands.IsValid() && CurrentInHands->Spec && !CurrentInHands->Spec->bOccupiesSlot)
+	{
+		Drop(CurrentInHands.Get(), false);
+	}
+	
 	// 현재 슬롯과 다르면, 현재 아이템 보관 또는 드롭
 	if (CurrentInHands.IsValid() && CurrentInHands != Slots[idx].Item)
 	{
 		ReturnCurrentToItsPlaceOrDrop();
 	}
+	else if (CurrentInHands == Slots[idx].Item) return false;
 
 	EquipItemInHands(Slots[idx].Item.Get());
 	return true;
@@ -98,10 +106,15 @@ void USlotComponent::EquipItemInHands(AItemBase* NewItem)
 {
 	// 무기를 손에 장착하는 함수
 	if (!NewItem || !NewItem->Spec) return;
+	if (CurrentInHands.Get() == NewItem)return;
 
+	if (bIsEquipping) return;
+	TGuardValue<bool> Guard(bIsEquipping, true);
+	
 	ASurvivor* OwnerChar = Cast<ASurvivor>(GetOwner());
 	if (!OwnerChar) return;
-	USceneComponent* Parent = OwnerChar ? OwnerChar->Arms : OwnerChar->GetMesh();
+	USceneComponent* Parent = (OwnerChar->Arms ? static_cast<USceneComponent*>(OwnerChar->Arms)
+										   : static_cast<USceneComponent*>(OwnerChar->GetMesh()));
 	const FName Socket = NewItem->GetAttachSocketName();
 
 	TWeakObjectPtr<AItemBase> Prev = CurrentInHands;
@@ -262,12 +275,10 @@ void USlotComponent::ReturnCurrentToItsPlaceOrDrop()
 				// 손에서만 내려놓고 슬롯에는 남겨둠(또는 비어있으면 채움)
 				BindConsumption(Item, false);
 				CurrentInHands = nullptr;
-
 				if (bSlotEmpty)
 				{
-					Slots[PrevIdx].Item = Item; // 선점
+					Slots[PrevIdx].Item = Item;
 				}
-
 				Item->OnUnequipped();
 
 				NotifyInHandsChanged(nullptr);
@@ -278,7 +289,7 @@ void USlotComponent::ReturnCurrentToItsPlaceOrDrop()
 		}
 	}
 
-	// 여기로 오면 진짜 '본래 자리에 둘 수 없는' 경우 → Drop
+	// 여기로 오면 진짜 본래 자리에 둘 수 없는 경우 → Drop
 	Drop(Item, true);
 }
 

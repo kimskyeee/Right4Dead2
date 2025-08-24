@@ -92,12 +92,18 @@ void AItemBase::OnEquipped(ASurvivor* NewOwner, USceneComponent* Parent, FName S
 
 void AItemBase::OnUnequipped()
 {
-	StopPhysicsAndZeroVelocity();
-	
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	
-	StaticMesh->SetCollisionProfileName(TEXT("SlotWeapon"));
 	SetWorldVisible(false);
+	StopPhysicsAndZeroVelocity();
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	StaticMesh->SetCollisionProfileName(TEXT("SlotWeapon"));
+
+	// 수납
+	if (ASurvivor* Survivor = Cast<ASurvivor>(GetOwner()))
+	{
+		USceneComponent* Anchor = Survivor->InventoryAnchor ? (USceneComponent*)Survivor->InventoryAnchor
+													 : Survivor->GetRootComponent();
+		AttachToComponent(Anchor, FAttachmentTransformRules::KeepRelativeTransform);
+	}
 	
 	CachedAnim = nullptr;
 }

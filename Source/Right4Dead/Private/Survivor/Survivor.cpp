@@ -27,7 +27,9 @@
 #include "Sound/SoundCue.h"
 #include "Components/AudioComponent.h"
 #include "Interaction/InteractiveActor.h"
+#include "Item/FireWeapon.h"
 #include "Item/ItemBase.h"
+#include "Item/ItemSpec.h"
 #include "Item/SlotComponent.h"
 
 class USurvivorArmAnim;
@@ -39,6 +41,9 @@ ASurvivor::ASurvivor()
 
 	Head = CreateDefaultSubobject<USkeletalMeshComponent>("Head");
 	Head->SetupAttachment(GetMesh());
+
+	InventoryAnchor = CreateDefaultSubobject<USceneComponent>("Inventory");
+	InventoryAnchor->SetupAttachment(RootComponent);
 
 	// 기본 카메라 설정
 	FirstCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstCameraComp"));
@@ -179,49 +184,12 @@ ASurvivor::ASurvivor()
 	{
 		TakeDamageSound = TempTakeDamage.Object;
 	}
-
-	//콜라배달 사운드
-	ColaDeliveryAudio = CreateDefaultSubobject<UAudioComponent>(TEXT("ColaDeliveryAudio"));
-	ColaDeliveryAudio->bAutoActivate = false; // 자동 실행 방지코드라고 함
-	ColaDeliveryAudio->SetupAttachment(RootComponent);
 	
-	const ConstructorHelpers::FObjectFinder<USoundWave>TempCoke(TEXT("/Script/Engine.SoundWave'/Game/Assets/Sounds/Item/Coke/attach_cola_bottles_01.attach_cola_bottles_01'"));
-	if (TempCoke.Succeeded())
-	{
-		CokeDeliverySound = TempCoke.Object;
-	}
-	
-	if (CokeDeliverySound)
-	{
-		ColaDeliveryAudio->SetSound(CokeDeliverySound);
-	}
-
 	//overlap되면 Material Instance (Overlay 설정)
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> TempWeaponOverlay(TEXT("/Script/Engine.MaterialInstanceConstant'/Game/Blueprints/Survivor/Materials/M_Outline_Inst.M_Outline_Inst'"));
 	if (TempWeaponOverlay.Succeeded())
 	{
 		OverlayMaterial = TempWeaponOverlay.Object;
-	}
-}
-
-void ASurvivor::OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-	const FHitResult& SweepResult)
-{
-	// 상호작용 아이템이 오버랩 되면, 테두리 생성
-	if (AInteractiveActor* InteractiveActor = Cast<AInteractiveActor>(OtherActor))
-	{
-		// InteractiveActor->SetOverlayMaterial(OverlayMaterial);
-	}
-}
-
-void ASurvivor::OnEndOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	// 해제 되면 테두리 해제
-	if (AInteractiveActor* InteractiveActor = Cast<AInteractiveActor>(OtherActor))
-	{
-		// InteractiveActor->ClearOverlayMaterial();
 	}
 }
 
@@ -266,6 +234,14 @@ void ASurvivor::BeginPlay()
 			AttackZombieUI->AddToViewport();
 		}
 	}
+	if (AttackIndicatorUIClass)
+	{
+		AttackIndicatorUI = CreateWidget<UUISurvivorIndicator>(GetWorld(), AttackIndicatorUIClass);
+		if (AttackIndicatorUI)
+		{
+			AttackIndicatorUI->AddToViewport();
+		}
+	}
 	if (MedKitUIClass)
 	{
 		MedKitUI = CreateWidget<UUISurvivorMedKit>(GetWorld(), MedKitUIClass);
@@ -303,6 +279,14 @@ void ASurvivor::Tick(float DeltaTime)
 	// 트레이스 
 	TraceForPickup();
 
+	if (auto* PC =Cast<APlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		if (PC->WasInputKeyJustPressed(EKeys::Six))
+		{
+			UGameplayStatics::ApplyDamage(this, 10.f, GetController(), this, UDamageType::StaticClass());
+		}
+	}
+
 	// 조준선 UI 업데이트
 	float Value = UKismetMathLibrary::VSize(GetVelocity());
 	if (CrosshairUI)
@@ -331,7 +315,8 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EIC->BindAction(IA_UseWeapon, ETriggerEvent::Triggered, this, &ASurvivor::OnUseTriggered);
 		EIC->BindAction(IA_UseWeapon, ETriggerEvent::Completed, this, &ASurvivor::OnUseCompleted);
 		EIC->BindAction(IA_UseWeapon, ETriggerEvent::Canceled, this, &ASurvivor::OnUseCanceled);
-		
+
+		EIC->BindAction(IA_Reload, ETriggerEvent::Started, this, &ASurvivor::OnReload);
 		EIC->BindAction(IA_RightClick, ETriggerEvent::Started, this, &ASurvivor::RightClickAttack);
 
 		EIC->BindAction(IA_EquipSlot1, ETriggerEvent::Started, this, &ASurvivor::OnEquipSlot1);
@@ -356,7 +341,6 @@ void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 		ThirdPersonCameraComp->SetActive(false);
 		SpringArmComp->SetActive(false);
 		Arms->SetVisibility(true);
-		SlotComp->CurrentInHands->SetHidden(false);
 		ThirdPerson->SetVisibility(false);
 	}
 	else
@@ -366,7 +350,6 @@ void ASurvivor::SwitchCamera(const bool& bThirdPerson)
 		ThirdPersonCameraComp->SetActive(true);
 		SpringArmComp->SetActive(true);
 		Arms->SetVisibility(false);
-		SlotComp->CurrentInHands->SetHidden(true);
 		ThirdPerson->SetVisibility(true);
 	}
 }
@@ -403,6 +386,11 @@ void ASurvivor::SurvivorJump(const struct FInputActionValue& InputValue)
 void ASurvivor::PickUpWeapon()
 {
 	if (!SlotComp) return;
+	
+	UE_LOG(LogTemp, Warning, TEXT("[E] Focus=%s Owned=%d InHands=%s"),
+	   *GetNameSafe(FocusedPickup.Get()),
+	   FocusedPickup.IsValid() ? (FocusedPickup->GetOwner()==this) : -1,
+	   *GetNameSafe(SlotComp ? SlotComp->GetInHandsRaw() : nullptr));
 
 	if (FocusedPickup.IsValid())
 	{
@@ -410,6 +398,7 @@ void ASurvivor::PickUpWeapon()
 		{
 			// 성공 → 포커스 비움
 			ClearPickupFocus();
+			return;
 		}
 	}
 
@@ -427,6 +416,7 @@ void ASurvivor::PickUpWeapon()
 			if (!IA->IsA<AItemBase>())
 			{
 				IA->Interaction();
+				return;
 			}
 		}
 	}
@@ -435,25 +425,24 @@ void ASurvivor::PickUpWeapon()
 float ASurvivor::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                             class AController* EventInstigator, AActor* DamageCauser)
 {
-	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	const float SuperRet = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
 	OnDamaged(DamageAmount);
-	if (false == bGod)
-	{
-		DisplayIndicator(DamageCauser);
-	}
+	DisplayIndicator(DamageCauser);
+		
 	return DamageAmount;
 }
 
 void ASurvivor::OnDamaged(float Damage)
 {
 	if (bGod) return;
-	
 	bIsDamaged=true;
+	UE_LOG(LogTemp, Warning, TEXT("OnDamaged"));
 	
-	auto pc = GetWorld()->GetFirstPlayerController();
-	if (pc)
+	auto PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
 	{
-		pc->PlayerCameraManager->StartCameraShake(DamagedCameraShake);
+		PC->PlayerCameraManager->StartCameraShake(DamagedCameraShake);
 	}
 	// 위젯 애니메이션 재생
 	if (TakeDamageUI)
@@ -489,18 +478,22 @@ void ASurvivor::RightClickAttack(const struct FInputActionValue& InputValue)
 	}
 }
 
+void ASurvivor::OnReload()
+{
+	if (!SlotComp) return;
+	if (!SlotComp->CurrentInHands.IsValid()) return;
+
+	if (AFireWeapon* Gun = Cast<AFireWeapon>(SlotComp->CurrentInHands.Get()))
+	{
+		Gun->Reload();
+	}
+}
+
 void ASurvivor::DisplayIndicator(AActor* Causer)
 {
-	if (AttackIndicatorUIClass)
-	{
-		AttackIndicatorUI = CreateWidget<UUISurvivorIndicator>(GetWorld(), AttackIndicatorUIClass);
-		if (AttackIndicatorUI)
-		{
-			AttackIndicatorUI->AddToViewport();
-		}
-	}
-	
+	if (!AttackIndicatorUI) return;
 	AttackIndicatorUI->HitLocation = Causer->GetActorLocation();
+	AttackIndicatorUI->PlayHitAnimation();
 }
 
 EItemType ASurvivor::GetCurrentItemType()
@@ -602,7 +595,6 @@ void ASurvivor::OnUseCompleted()
 	if (!SlotComp || !SlotComp->CurrentInHands.IsValid()) return;
 	
 	SlotComp->HandleUse(EUsingType::Completed, ElapsedHold);
-	ElapsedHold = 0.f; // Started에서 이미 해주긴함
 }
 
 void ASurvivor::OnUseCanceled()
@@ -610,7 +602,6 @@ void ASurvivor::OnUseCanceled()
 	if (!SlotComp || !SlotComp->CurrentInHands.IsValid()) return;
 	
 	SlotComp->HandleUse(EUsingType::Canceled, ElapsedHold);
-	ElapsedHold = 0.f;
 }
 
 void ASurvivor::OnEquipSlot1()

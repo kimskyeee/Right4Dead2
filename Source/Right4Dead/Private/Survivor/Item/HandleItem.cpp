@@ -20,6 +20,7 @@ void AHandleItem::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	AttachSocket = TEXT("KitSocket");
 }
 
 // Called every frame
@@ -30,14 +31,6 @@ void AHandleItem::Tick(float DeltaTime)
 
 void AHandleItem::ApplyItemEffect()
 {
-	Super::ApplyItemEffect();
-
-	/*// 한번만 눌렀을때 실행되어야하는 내용
-	if (UAnimInstance* AnimInstance = Arms->GetAnimInstance())
-	{
-		AnimInstance->Montage_Play(ShoveMontage);
-	}*/
-	
 	// 채력 회복
 	// 잃은 체력의 80% 회복
 	Char->CurrentHP += 0.8f * (Char->MaxHP - Char->CurrentHP);

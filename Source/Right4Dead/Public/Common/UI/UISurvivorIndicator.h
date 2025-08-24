@@ -23,6 +23,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UBorder* Indicator;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidgetAnim), Transient)
+	class UWidgetAnimation* IndicatorAnim;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector HitLocation = FVector::ZeroVector;
@@ -31,6 +33,11 @@ public:
 	class UMaterialInterface* BaseMaterial; // 기반 머티리얼 참조
 	UPROPERTY()
 	class UMaterialInstanceDynamic* Material; // 동적 인스턴스는 런타임에서 직접 할당해야합니다
+
+	UFUNCTION()
+	void PlayHitAnimation();
+	UPROPERTY()
+	float LastHitTime = 0;
 	
 	UPROPERTY(EditAnywhere)
 	class ASurvivor* Char;

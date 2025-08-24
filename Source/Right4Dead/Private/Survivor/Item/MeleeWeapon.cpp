@@ -25,7 +25,8 @@ AMeleeWeapon::AMeleeWeapon()
 void AMeleeWeapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	AttachSocket = TEXT("AxeSocket");
 }
 
 // Called every frame

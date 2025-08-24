@@ -108,6 +108,9 @@ public:
 	UFUNCTION()
 	EItemType GetActiveItemType();
 
+	UPROPERTY()
+	bool bIsEquipping = false;
+
 public:
 	UPROPERTY(BlueprintAssignable, Category="UI")
 	FOnUIInHandsChanged OnUIInHandsChanged;

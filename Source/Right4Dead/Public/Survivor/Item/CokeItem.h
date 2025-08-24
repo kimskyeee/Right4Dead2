@@ -23,6 +23,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bCanDeliveryCola = false;
+
 	virtual void ApplyItemEffect() override;
 	void CheckDeliveryPos();
+
+	virtual void OnTap(float Elapsed) override;
+	virtual void CompleteConsume() override;
 };

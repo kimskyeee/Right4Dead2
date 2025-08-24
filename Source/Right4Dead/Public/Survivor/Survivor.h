@@ -21,11 +21,6 @@ public:
 	ASurvivor();
 
 protected:
-	UFUNCTION()
-	void OnOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-	                     const FHitResult& SweepResult);
-	UFUNCTION()
-	void OnEndOverlapItem(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -42,6 +37,9 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USkeletalMeshComponent* Arms;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	class USceneComponent* InventoryAnchor;
+	
 	// 3인칭일때 메쉬
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	class USkeletalMeshComponent* ThirdPerson;
@@ -196,6 +194,7 @@ public:
 
 	UFUNCTION() void PickUpWeapon(); // E 키
 	UFUNCTION() void RightClickAttack(const struct FInputActionValue& InputValue); // 우클릭 (밀쳐내기)
+	UFUNCTION() void OnReload();
 	
 	UFUNCTION() void OnUseStarted();
 	UFUNCTION() void OnUseTriggered();
@@ -231,11 +230,6 @@ public:
 	class USoundWave* WeaponSwing; //무기 있을때 스윙
 	class USoundCue* TakeDamageSound; //맞았을때 사운드
 
-	UPROPERTY(EditAnywhere, Category = "Sound")
-	USoundWave* CokeDeliverySound; //콜라배달 사운드
-	UPROPERTY()
-	UAudioComponent* ColaDeliveryAudio; 
-
 	// 피해 인디케이터
 	UFUNCTION()	void DisplayIndicator(AActor* Causer);
 
@@ -245,6 +239,9 @@ public:
 
 	UFUNCTION()
 	EItemType GetCurrentItemType();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void FinishedDeliveryCoke();
 
 protected:
 	//아이템 발견 (trace)

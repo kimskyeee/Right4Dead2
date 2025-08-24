@@ -31,34 +31,69 @@ void AConsumableItem::ApplyItemEffect()
 {
 }
 
+void AConsumableItem::CompleteConsume()
+{
+	Char->SwitchCamera(false);
+
+	ApplyItemEffect(); // 효과 적용
+
+	OnConsumed.Broadcast(this);
+	bHoldActive  = false;
+	bInUseGuard = false;
+}
+
+void AConsumableItem::CancelConsume()
+{
+	// 시간 초기화 + 1인칭 복귀 + 아이템 다시 보이기
+	Char->SwitchCamera(false);
+
+	bCompleted  = false;
+	bInUseGuard = false;
+}
+
 void AConsumableItem::OnTap(float Elapsed)
 {
-	// 동작하지 말자
 }
 
 void AConsumableItem::OnHoldBegan()
 {
-	Super::OnHoldBegan();
-
-	// 진행도 UI 시작
-	
 	if (!Char) return;
+	if (bInUseGuard) return;
+	bInUseGuard  = true;
+	
+	bHoldActive  = true;
+	bCompleted   = false;
+	
 	Char->SwitchCamera(true);
+}
+
+void AConsumableItem::OnHoldTick(float Elapsed)
+{
+	// 동작하지 말자
+	if (!bHoldActive || bCompleted) return;
+
+	// 진행도 UI
+	const float Progress = FMath::Clamp(Elapsed / NeedHold, 0.f, 1.f);
+	// UpdateProgressUI(Progress);
+
+	if (Elapsed >= NeedHold)
+	{
+		bCompleted = true;
+		CompleteConsume();
+	}
 }
 
 void AConsumableItem::OnHoldReleased(float Elapsed)
 {
-	Super::OnHoldReleased(Elapsed);
-	
-	if (!Char) return;
+	// 홀드를 끝냈을 때 분기
+	if (!bHoldActive) return;
 
-	if (Elapsed >= NeedHold)
+	if (!bCompleted)
 	{
-		Char->SwitchCamera(false);
-		
-		ApplyItemEffect();
-		OnConsumed.Broadcast(this);
-		Destroy();
+		CancelConsume(); // 5초 미만 취소 루트
 	}
+	// 5초 이상이면 CompleteConsume에서 이미 처리 완료
+	bHoldActive = false;
+	bInUseGuard = false;
 }
 

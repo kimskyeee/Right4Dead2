@@ -109,9 +109,8 @@ protected:
 	void PlayMontageOnce(UAnimMontage* Montage, float Rate = 1.f);
 	void EnsureLoopMontage(UAnimMontage* LoopMontage);
 	void StopMontageIfPlaying(UAnimMontage* Montage, float BlendOut = 0.1f);
-
-	// 가상 훅: 파생 무기/소비형에서 오버라이드
-	virtual void OnUseStart(); // 눌린 그 프레임에 
+	
+	virtual void OnUseStart(); // 눌린 그 프레임에 즉시
 	virtual void OnTap(float Elapsed); // 짧게 눌렀다 뗐을 때만
 	virtual void OnHoldBegan(); // 임계값 통과 순간 1회
 	virtual void OnHoldTick(float Elapsed); // 임계값 통과 후 매 프레임

@@ -13,6 +13,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Right4Dead/Right4Dead.h"
 
@@ -239,7 +240,12 @@ void AZombieBase::HandleNormalAttack()
 	ZombieAnimInstance->PlayAttack();
 	if (IActorBase* Actor = Cast<IActorBase>(ZombieFSM->ChaseTarget))
 	{
-		Actor->OnDamaged(NormalAttackDamage);
+		if (AActor* Target = Cast<AActor>(ZombieFSM->ChaseTarget))
+		{
+			UGameplayStatics::ApplyDamage(Target,
+				   NormalAttackDamage, GetController(), this,
+				   UMeleeDamageType::StaticClass());
+		}
 	}
 }
 
@@ -253,7 +259,6 @@ void AZombieBase::HandleShove(const FVector& FromLocation)
 	
 	if (ZombieAnimInstance)
 	{
-		
 		const FVector LocationA = Owner->GetActorLocation();
 		const FVector ForwardVectorA = Owner->GetActorForwardVector();
 		
