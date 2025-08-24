@@ -19,6 +19,7 @@
 #include "UISurvivorMain.h"
 #include "UISurvivorMedKit.h"
 #include "UITakeDamage.h"
+#include "UIWeaponSlot.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -215,6 +216,8 @@ void ASurvivor::BeginPlay()
 	if (SurvivorMainUI)
 	{
 		SurvivorMainUI->AddToViewport();
+		SurvivorMainUI->WeaponSlot->SetupSlotComponent(SlotComp);
+		
 		CurrentHP=MaxHP;
 		CrosshairUI = Cast<UUISurvivorCrosshair>(SurvivorMainUI->Crosshair);
 	}

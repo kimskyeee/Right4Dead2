@@ -80,6 +80,10 @@ public:
 	
     UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<class USlotComponent> SlotComp;
+
+	UFUNCTION(BlueprintCallable)
+	void SetupSlotComponent(USlotComponent* InComp);
+	
 	// 탄약 델리게이트 중복 방지용
 	TWeakObjectPtr<class AFireWeapon> BoundFire = nullptr;
 

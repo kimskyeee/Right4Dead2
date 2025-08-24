@@ -160,6 +160,7 @@ void USlotComponent::OnItemConsumed(AItemBase* Used)
 		if (idx > 0 && idx < Slots.Num() && Slots[idx].Item.Get() == Used)
 		{
 			Slots[idx].Item = nullptr;
+			RemoveItemFromSlot(Used);
 			NotifySlotChanged(Used->Spec->PreferredSlot, nullptr);
 		}
 	}
@@ -403,6 +404,10 @@ void USlotComponent::NotifySlotChanged(ESlotType Slot, AItemBase* Item)
 	OnSlotItemChanged.Broadcast(Slot, Item);
 
 	// UI 알림
-	UTexture2D* Icon = Item ? Item->GetUIIcon() : nullptr;
+	UTexture2D* Icon = nullptr;
+	if (Item)
+	{
+		Icon = Item->GetUnEquipUIIcon() ? Item->GetUnEquipUIIcon() : Item->GetUIIcon();
+	}
 	OnUISlotItemChanged.Broadcast(Slot, Icon);
 }

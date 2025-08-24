@@ -16,6 +16,14 @@ void UUIWeaponSlot::NativeConstruct()
 
 	InitUISlot();
 
+	if (!SlotComp)
+	{
+		if (APawn* Pawn = GetOwningPlayerPawn())
+		{
+			SlotComp = Pawn->FindComponentByClass<USlotComponent>();
+		}
+	}
+
 	// 델리게이트 연결
 	BindAll();
 }
@@ -24,6 +32,16 @@ void UUIWeaponSlot::NativeDestruct()
 {
 	UnbindAll();
 	Super::NativeDestruct();
+}
+
+void UUIWeaponSlot::SetupSlotComponent(USlotComponent* InComp)
+{
+	if (SlotComp == InComp) return;
+	UnbindAll();
+	SlotComp = InComp;
+	BindAll();
+	// 최초 1회 UI 동기화 (만약 기본 아이템 있다면)
+	// HandleInHandsChanged(SlotComp->GetActiveSlot(), SlotComp->GetActiveIcon());
 }
 
 void UUIWeaponSlot::InitUISlot()
@@ -83,6 +101,11 @@ void UUIWeaponSlot::HandleInHandsChanged(ESlotType ActiveSlot, UTexture2D* Activ
 			UnbindPrimaryAmmo();
 		}
 	}
+	else
+	{
+		// 슬롯 외 아이템(콜라 등) → 전부 normal, 탄약 언바인드
+		UnbindPrimaryAmmo();
+	}
 }
 
 void UUIWeaponSlot::HandleSlotIconChanged(ESlotType NewSlot, UTexture2D* NewIcon)
@@ -96,10 +119,10 @@ void UUIWeaponSlot::HandleSlotIconChanged(ESlotType NewSlot, UTexture2D* NewIcon
 		// 프라이머리 캐시 갱신
 		Slots[1].CachedUnequipIcon = NewIcon;
 
-		// 현재 비활성 상태라면 즉시 갱신
-		if (Slots[1].BGGreen && Slots[1].BGGreen->GetVisibility() != ESlateVisibility::Visible)
+		if (ActiveIdx != 1 && Slots[1].P_IconNormal)
 		{
-			ApplyActive(1, false);
+			UTexture2D* Tex = NewIcon ? NewIcon : Slots[1].DefaultNormalIcon;
+			if (Tex) Slots[1].P_IconNormal->SetBrushFromTexture(Tex);
 		}
 	}
 	else
@@ -143,10 +166,8 @@ void UUIWeaponSlot::ApplyActive(int32 Idx, bool bActive)
 	if (!Slots.IsValidIndex(Idx)) return;
     FSlotView& SlotView = Slots[Idx];
 
-    if (SlotView.BGGreen)
-    {
-        SlotView.BGGreen->SetVisibility(bActive ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-    }
+	if (SlotView.BGGreen) SlotView.BGGreen->SetVisibility(bActive ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	if (SlotView.BGWhite) SlotView.BGWhite->SetVisibility(bActive ? ESlateVisibility::Hidden  : ESlateVisibility::Visible);
 
     if (Idx == 1)
     {
@@ -155,7 +176,7 @@ void UUIWeaponSlot::ApplyActive(int32 Idx, bool bActive)
         {
             if (SlotView.P_IconEquip) SlotView.P_IconEquip->SetVisibility(ESlateVisibility::Visible);
             if (SlotView.P_IconNormal) SlotView.P_IconNormal->SetVisibility(ESlateVisibility::Hidden);
-            if (SlotView.TextCur) SlotView.TextCur->SetVisibility(ESlateVisibility::Hidden);
+            if (SlotView.TextCur) SlotView.TextCur->SetVisibility(ESlateVisibility::Visible);
             if (SlotView.TextMax) SlotView.TextMax->SetVisibility(ESlateVisibility::Visible);
         }
         else
@@ -176,14 +197,11 @@ void UUIWeaponSlot::ApplyActive(int32 Idx, bool bActive)
     }
     else
     {
-    	if (SlotView.IconNormal)
+    	if (!bActive)
     	{
-    		if (!bActive && SlotView.DefaultNormalIcon)
-    		{
-    			SlotView.IconNormal->SetBrushFromTexture(SlotView.DefaultNormalIcon);
-    		}
-    		SlotView.IconNormal->SetVisibility(ESlateVisibility::Visible);
+    		SlotView.IconNormal->SetBrushFromTexture(SlotView.DefaultNormalIcon);
     	}
+    	SlotView.IconNormal->SetVisibility(ESlateVisibility::Visible);
     }
 }
 
@@ -257,14 +275,10 @@ void UUIWeaponSlot::BindPrimaryAmmo()
 
 void UUIWeaponSlot::UnbindPrimaryAmmo()
 {
-	if (AItemBase* Item = SlotComp->GetInHandsRaw())
+	if (AFireWeapon* Fire = BoundFire.Get())
 	{
-		if (auto* Fire = Cast<AFireWeapon>(Item))
-		{
-			Fire->OnAmmoChanged.RemoveDynamic(this, &UUIWeaponSlot::OnAmmoChanged);
-		}
+		Fire->OnAmmoChanged.RemoveDynamic(this, &UUIWeaponSlot::OnAmmoChanged);
 	}
-	
 	BoundFire = nullptr;
 }
 
