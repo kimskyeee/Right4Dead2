@@ -79,18 +79,13 @@ void AItemBase::OnEquipped(ASurvivor* NewOwner, USceneComponent* Parent, FName S
 		CachedAnim = nullptr;
 	}
 	
-	if (USurvivorArmAnim* Arm = GetArmAnim())
-	{
-		if (UAnimMontage* Montage = Montage_Equip)
-		{
-			Arm->Montage_Play(Montage);
-		}
-	}
+	PlayMontageOnce(Montage_Equip);
 	
 	// 손 소켓에 부착
 	const FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, true);
-	// TODO: 인자 수정
-	AttachToComponent(NewOwner->Arms, Rules, Socket);
+	AttachToComponent(Parent, Rules, Socket);
+	this->SetActorRelativeRotation(FRotator(0, 0, 0));
+	this->SetActorRelativeLocation(FVector(0, 0, 0));
 
 	SetWorldVisible(true);
 }

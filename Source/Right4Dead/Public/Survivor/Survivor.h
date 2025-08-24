@@ -250,6 +250,8 @@ protected:
 	//아이템 발견 (trace)
 	UPROPERTY()
 	TWeakObjectPtr<class AItemBase> FocusedPickup;
+	UPROPERTY()
+	TWeakObjectPtr<class AInteractiveActor> FocusedActor;
 
 	UPROPERTY(EditAnywhere, Category = "Overlay")
 	UMaterialInterface* OverlayMaterial;

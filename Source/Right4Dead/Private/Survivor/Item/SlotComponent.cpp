@@ -60,7 +60,7 @@ bool USlotComponent::TryPickup(AItemBase* Item)
 	if (Slots[idx].Item.IsValid())
 	{
 		// 같은 슬롯에 이미 아이템 있다면 기존에 있던 아이템은 드롭
-		Drop(Slots[idx].Item.Get());
+		Drop(Slots[idx].Item.Get(), true);
 	}
 
 	// 다시 슬롯 채우기
@@ -75,9 +75,9 @@ bool USlotComponent::EquipSlot(ESlotType Slot)
 {
 	// 슬롯 선택
 	// 비슬롯 퀘스트 -> 무기로 변경시 콜라는 월드에 Drop
-	if (CurrentInHands.IsValid() && CurrentInHands->Spec && CurrentInHands->Spec->PreferredSlot == ESlotType::None)
+	if (CurrentInHands.IsValid() && CurrentInHands->Spec && !CurrentInHands->Spec->bOccupiesSlot)
 	{
-		Drop(CurrentInHands.Get());
+		Drop(CurrentInHands.Get(), true);
 	}
 
 	const int32 idx = Index(Slot);
@@ -97,15 +97,28 @@ bool USlotComponent::EquipSlot(ESlotType Slot)
 void USlotComponent::EquipItemInHands(AItemBase* NewItem)
 {
 	// 무기를 손에 장착하는 함수
-	if (!NewItem) return;
+	if (!NewItem || !NewItem->Spec) return;
+
+	ASurvivor* OwnerChar = Cast<ASurvivor>(GetOwner());
+	if (!OwnerChar) return;
+	USceneComponent* Parent = OwnerChar ? OwnerChar->Arms : OwnerChar->GetMesh();
+	const FName Socket = NewItem->GetAttachSocketName();
 
 	TWeakObjectPtr<AItemBase> Prev = CurrentInHands;
+	UItemSpec* PrevSpec = (Prev.IsValid() ? Prev->Spec : nullptr);
+
+	const bool bNewIsSlot = NewItem->Spec->bOccupiesSlot; // 새로운 무기 슬롯형인가요?
+	const bool bNewConsumable = NewItem->Spec->bConsumesOnUse; // 새로운 무기 소비형 인가요?
+	const bool bPrevIsNonSlot = (Prev.IsValid() && PrevSpec && !PrevSpec->bOccupiesSlot); // 이전무기가 비슬롯인가요?
 	
-	const bool bNewConsumable = (NewItem->Spec && NewItem->Spec->bConsumesOnUse); // 소비형
-	const bool bNewIsNonSlot  = !NewItem->Spec->bOccupiesSlot; // 비슬롯
-	
+	if (bPrevIsNonSlot && bNewIsSlot)
+	{
+		Drop(Prev.Get(), false);
+		Prev = nullptr;
+	}
+
 	// 소모형/비슬롯을 들 때만 이전무기를 스택에 보관
-	if ((bNewIsNonSlot || bNewConsumable) && Prev.IsValid())
+	if ((!bNewIsSlot || bNewConsumable) && Prev.IsValid())
 	{
 		if (PreviousItem.Num() == 0 || PreviousItem.Last() != Prev)
 		{
@@ -121,15 +134,11 @@ void USlotComponent::EquipItemInHands(AItemBase* NewItem)
 	}
 
 	CurrentInHands = NewItem;
-
-	if (ASurvivor* OwnerChar = Cast<ASurvivor>(GetOwner()))
-	{
-		NewItem->OnEquipped(OwnerChar, OwnerChar->GetMesh(), NewItem->GetAttachSocketName());
-	}
+	NewItem->OnEquipped(OwnerChar, Parent, Socket);
 	BindConsumption(NewItem, true);
 
 	NotifyInHandsChanged(NewItem);
-	if (NewItem->Spec->bOccupiesSlot)
+	if (bNewIsSlot)
 	{
 		NotifySlotChanged(NewItem->Spec->PreferredSlot, NewItem);
 	}
@@ -233,45 +242,59 @@ void USlotComponent::ReturnCurrentToItsPlaceOrDrop()
 
 	AItemBase* Item = CurrentInHands.Get();
 
-	// 슬롯 점유 아이템이면
 	if (Item->Spec->bOccupiesSlot)
 	{
 		const int32 PrevIdx = Index(Item->Spec->PreferredSlot);
-		if (PrevIdx > 0 && PrevIdx < Slots.Num() && !Slots[PrevIdx].Item.IsValid())
+		if (PrevIdx > 0 && PrevIdx < Slots.Num())
 		{
-			BindConsumption(Item, false);
-			CurrentInHands = nullptr;
+			const bool bSlotEmpty    = !Slots[PrevIdx].Item.IsValid();
+			const bool bSlotHasSelf  = (Slots[PrevIdx].Item.Get() == Item);
 
-			Slots[PrevIdx].Item = Item;
-			
-			// TODO: 확인필요 (교체될때랑 중복되는지 확인)
-			Item->OnUnequipped();
-			
-			NotifyInHandsChanged(nullptr);
-			NotifySlotChanged(Item->Spec->PreferredSlot, Item);
-			
-			return;
+			UE_LOG(LogTemp, Warning, TEXT("[ReturnOrDrop] item=%s slot=%d slotPtr=%s self?=%d empty?=%d"),
+				*GetNameSafe(Item),
+				PrevIdx,
+				*GetNameSafe(Slots[PrevIdx].Item.Get()),
+				Slots[PrevIdx].Item.Get() == Item,
+				!Slots[PrevIdx].Item.IsValid());
+
+			if (bSlotEmpty || bSlotHasSelf)
+			{
+				// 손에서만 내려놓고 슬롯에는 남겨둠(또는 비어있으면 채움)
+				BindConsumption(Item, false);
+				CurrentInHands = nullptr;
+
+				if (bSlotEmpty)
+				{
+					Slots[PrevIdx].Item = Item; // 선점
+				}
+
+				Item->OnUnequipped();
+
+				NotifyInHandsChanged(nullptr);
+				// 슬롯 내용은 동일하지만 UI 갱신이 필요하면 유지
+				NotifySlotChanged(Item->Spec->PreferredSlot, Item);
+				return;
+			}
 		}
 	}
-	
-	// 슬롯이 없거나, 제자리가 이미 차있으면 Drop
-	Drop(Item);
+
+	// 여기로 오면 진짜 '본래 자리에 둘 수 없는' 경우 → Drop
+	Drop(Item, true);
 }
 
-void USlotComponent::Drop(AItemBase* Item)
+void USlotComponent::Drop(AItemBase* Item, bool bAllowFallBack)
 {
 	// 버리기
 	if (!Item) return;
 
 	// 손에서 드롭하는 경우 미리 fallback 후보 확보
 	AItemBase* Fallback = nullptr;
-	if (CurrentInHands.Get() == Item)
+	if (bAllowFallBack && CurrentInHands.Get() == Item)
 	{
 		Fallback = GetFallBackItem(Item);
 	}
 
 	RemoveItemFromSlot(Item);
-	
 	// 손에서 분리 및 물리 활성
 	Item->OnDropped();
 

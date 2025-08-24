@@ -35,3 +35,13 @@ void AWhitekerBell::Interaction()
 	Super::Interaction();
 	InteractionBell();
 }
+
+void AWhitekerBell::SetOverlayMaterial(UMaterialInterface* MyOverlayMaterial)
+{
+	Super::SetOverlayMaterial(MyOverlayMaterial);
+}
+
+void AWhitekerBell::ClearOverlayMaterial()
+{
+	Super::ClearOverlayMaterial();
+}

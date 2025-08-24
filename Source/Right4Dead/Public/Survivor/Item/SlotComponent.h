@@ -53,7 +53,7 @@ public:
 	bool EquipSlot(ESlotType Slot); // 숫자키/Q/휠
 
 	UFUNCTION()
-	void Drop(AItemBase* Item);
+	void Drop(AItemBase* Item, bool bAllowFallBack);
 	UFUNCTION()
 	void RemoveItemFromSlot(AItemBase* Item);
 	UFUNCTION()

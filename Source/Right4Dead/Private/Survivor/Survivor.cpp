@@ -98,6 +98,37 @@ ASurvivor::ASurvivor()
 	{
 		IA_Crouch = TempIACrouch.Object;
 	}
+
+	ConstructorHelpers::FObjectFinder<UInputAction> TempQuip1(TEXT("/Game/Input/IA_EquipSlot1.IA_EquipSlot1"));
+	if (TempQuip1.Succeeded())
+	{
+		IA_EquipSlot1 = TempQuip1.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempQuip2(TEXT("/Game/Input/IA_EquipSlot2.IA_EquipSlot2"));
+	if (TempQuip2.Succeeded())
+	{
+		IA_EquipSlot2 = TempQuip2.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempQuip3(TEXT("/Game/Input/IA_EquipSlot3.IA_EquipSlot3"));
+	if (TempQuip3.Succeeded())
+	{
+		IA_EquipSlot3 = TempQuip3.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempQuip4(TEXT("/Game/Input/IA_EquipSlot4.IA_EquipSlot4"));
+	if (TempQuip4.Succeeded())
+	{
+		IA_EquipSlot4 = TempQuip4.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempWeaponMouse(TEXT("/Game/Input/IA_ChangeWeaponMouse.IA_ChangeWeaponMouse"));
+	if (TempWeaponMouse.Succeeded())
+	{
+		IA_ScrollSlotAxis = TempWeaponMouse.Object;
+	}
+	ConstructorHelpers::FObjectFinder<UInputAction> TempWeaponQ(TEXT("/Game/Input/IA_ChangeWeaponQ.IA_ChangeWeaponQ"));
+	if (TempWeaponQ.Succeeded())
+	{
+		IA_CycleNext = TempWeaponQ.Object;
+	}
 	
 	ConstructorHelpers::FObjectFinder<UInputAction> TempIaReload(TEXT("/Game/Input/IA_SurReload.IA_SurReload"));
 	if (TempIaReload.Succeeded())
@@ -109,13 +140,11 @@ ASurvivor::ASurvivor()
 	{
 		IA_RightClick = TempIARight.Object;
 	}
-	
 	ConstructorHelpers::FObjectFinder<UInputAction> TempIAPickUp(TEXT("/Game/Input/IA_SurPickUp.IA_SurPickUp"));
 	if (TempIAPickUp.Succeeded())
 	{
 		IA_PickUp = TempIAPickUp.Object;
 	}
-
 	ConstructorHelpers::FObjectFinder<UInputAction> TempUseWeapon(TEXT("/Game/Input/IA_UseWeapon.IA_UseWeapon"));
 	if (TempUseWeapon.Succeeded())
 	{
@@ -311,7 +340,6 @@ void ASurvivor::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EIC->BindAction(IA_EquipSlot4, ETriggerEvent::Started, this, &ASurvivor::OnEquipSlot4);
 
 		EIC->BindAction(IA_CycleNext, ETriggerEvent::Started, this, &ASurvivor::OnCycleNext);
-		
 		EIC->BindAction(IA_ScrollSlotAxis, ETriggerEvent::Triggered, this, &ASurvivor::OnSlotScroll);
 	}
 }
@@ -378,12 +406,28 @@ void ASurvivor::PickUpWeapon()
 
 	if (FocusedPickup.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PickUpWeapon, FocusedPickup.IsValid()"));
 		if (SlotComp->TryPickup(FocusedPickup.Get()))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("PickUpWeapon, TryPickup"));
 			// 성공 → 포커스 비움
 			ClearPickupFocus();
+		}
+	}
+
+	// 아이템이 아니라면 상호작용 체크(최소 수정: 라인트레이스 1회)
+	FHitResult Hit;
+	const FVector Start = FirstCameraComp->GetComponentLocation();
+	const FVector End   = Start + FirstCameraComp->GetForwardVector() * 300.f;
+
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(OnInteractTrace), false, this);
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, Params))
+	{
+		if (AInteractiveActor* IA = Cast<AInteractiveActor>(Hit.GetActor()))
+		{
+			if (!IA->IsA<AItemBase>())
+			{
+				IA->Interaction();
+			}
 		}
 	}
 }
@@ -472,8 +516,7 @@ void ASurvivor::TraceForPickup()
 
 	const float CapsuleRadius = 30.0f; // 캡슐의 반지름 설정
 	const float CapsuleHalfHeight = 50.0f; // 캡슐의 반 높이 설정
-
-
+	
 	// ObjectType이 WorldWeapon인 물체만 감지하고 싶다.
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
@@ -498,7 +541,6 @@ void ASurvivor::TraceForPickup()
 	if (bHit)
 	{
 		AItemBase* NewTrace = Cast<AItemBase>(Hit.GetActor()); // 아이템 맞는지 확인
-
 		SetPickupFocus(NewTrace);
 	}
 	else
