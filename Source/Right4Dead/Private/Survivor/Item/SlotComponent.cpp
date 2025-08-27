@@ -225,13 +225,13 @@ bool USlotComponent::CycleFilled(int32 Dir)
 	const int32 Last = FMath::Min(4, Slots.Num()-1);
 
 	// 시작점: 현재 손에 든 슬롯(없으면 1)
-	int32 start = 1;
+	int32 Start = 1;
 	if (CurrentInHands.IsValid() && CurrentInHands->Spec && CurrentInHands->Spec->bOccupiesSlot)
 	{
-		start = FMath::Clamp(Index(CurrentInHands->Spec->PreferredSlot), 1, Last);
+		Start = FMath::Clamp(Index(CurrentInHands->Spec->PreferredSlot), 1, Last);
 	}
 
-	int32 idx = start;
+	int32 idx = Start;
 	for (int step = 0; step < Last; ++step)
 	{
 		// 다음 인덱스로 이동(래핑 수동 처리)
@@ -260,8 +260,8 @@ void USlotComponent::ReturnCurrentToItsPlaceOrDrop()
 		const int32 PrevIdx = Index(Item->Spec->PreferredSlot);
 		if (PrevIdx > 0 && PrevIdx < Slots.Num())
 		{
-			const bool bSlotEmpty    = !Slots[PrevIdx].Item.IsValid();
-			const bool bSlotHasSelf  = (Slots[PrevIdx].Item.Get() == Item);
+			const bool bSlotEmpty = !Slots[PrevIdx].Item.IsValid();
+			const bool bSlotHasSelf = (Slots[PrevIdx].Item.Get() == Item);
 
 			UE_LOG(LogTemp, Warning, TEXT("[ReturnOrDrop] item=%s slot=%d slotPtr=%s self?=%d empty?=%d"),
 				*GetNameSafe(Item),

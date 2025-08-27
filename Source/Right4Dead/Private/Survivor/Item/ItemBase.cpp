@@ -100,8 +100,7 @@ void AItemBase::OnUnequipped()
 	// 수납
 	if (ASurvivor* Survivor = Cast<ASurvivor>(GetOwner()))
 	{
-		USceneComponent* Anchor = Survivor->InventoryAnchor ? (USceneComponent*)Survivor->InventoryAnchor
-													 : Survivor->GetRootComponent();
+		USceneComponent* Anchor = Survivor->InventoryAnchor ? Survivor->InventoryAnchor : Survivor->GetRootComponent();
 		AttachToComponent(Anchor, FAttachmentTransformRules::KeepRelativeTransform);
 	}
 	
@@ -254,9 +253,8 @@ void AItemBase::OnShoveOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
     const FHitResult& SweepResult)
 {
-    ACommonZombie* CommonZombie = Cast<ACommonZombie>(OtherActor);
 	//조건1: 좀비가 맞았는지?
-    if (CommonZombie)
+    if (ACommonZombie* CommonZombie = Cast<ACommonZombie>(OtherActor))
     {
         //조건2: 좀비가 플레이어 전방 기준 좌우 45도 안에 있는가?
         FVector ZombieLocation = (CommonZombie->GetActorLocation() - GetActorLocation()).GetSafeNormal();
