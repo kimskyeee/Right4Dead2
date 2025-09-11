@@ -83,6 +83,7 @@ https://github.com/user-attachments/assets/54b24535-b0e7-4d0f-86e2-f7dbef61c1c7
 
 ### 밀쳐내기
 > [🔗밀쳐내기 소스코드](https://github.com/kimskyeee/Right4Dead2/blob/main/Source/Right4Dead/Private/Survivor/Item/ItemBase.cpp#L206C1-L271C2)
+
 무기의 유무와 관계없이 **우클릭 시**, 전방에 원기둥을 생성해 영역을 계산합니다.
 이후 영역 내의 좀비들은 밀쳐내고 데미지를 적용합니다.
 
