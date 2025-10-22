@@ -1,7 +1,8 @@
 # <mark> Right 4 Dead 2 </mark>
 Right4Dead는 FPS 게임 **Left 4 Dead 2**의 플레이어와 무기 시스템을 언리얼 엔진으로 구현한 프로젝트입니다.
 
-🎥 아래의 사진을 클릭시 전체 게임 플레이 영상을 보실 수 있습니다.
+## <mark> 영상 보기 </mark>
+🎥 아래의 사진을 클릭시 구현 동영상을 보실 수 있습니다.
 
 [![Video Label](http://img.youtube.com/vi/5d-Z1wNdabQ/0.jpg)](https://youtu.be/5d-Z1wNdabQ)
 
@@ -25,7 +26,7 @@ Right4Dead는 FPS 게임 **Left 4 Dead 2**의 플레이어와 무기 시스템�
 
 <br>
 
-## <mark> 구현 상세 설명 </mark>
+# <mark> 구현 상세 설명 </mark>
 구현 기능의 소스 코드는 각 소제목 밑의 링크를 통해 확인하실 수 있습니다.
 
 각 기능의 더 자세한 설명은 [여기](https://kimskye.notion.site/Right-4-Dead-2-1ceb7f13b7a68097a582f736a828d96c)서도 확인하실 수 있습니다.
@@ -33,7 +34,7 @@ Right4Dead는 FPS 게임 **Left 4 Dead 2**의 플레이어와 무기 시스템�
 ---
 
 ## <mark> 1. 무기 슬롯 시스템 </mark>
-> [`USlotComponent` 소스코드](https://github.com/kimskyeee/Right4Dead2/blob/main/Source/Right4Dead/Private/Survivor/Item/SlotComponent.cpp)
+> [USlotComponent 소스코드](https://github.com/kimskyeee/Right4Dead2/blob/main/Source/Right4Dead/Private/Survivor/Item/SlotComponent.cpp)
 - `USlotComponent`를 설계해, 컴포넌트 에서 모든 아이템 흐름을 관리하고, UI와 Input, 플레이어 캐릭터, 아이템을 델리게이트로 연결하는 구조로 설계했습니다.
 - 무기 탐지 → 줍기 → 장착 → 해제/버리기 → 무기 전환까지의 전체 루프를 하나의 일관된 시스템으로 구현했습니다.
 
