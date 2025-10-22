@@ -1,5 +1,7 @@
 # <mark> Right 4 Dead 2 </mark>
-Right4Dead는 FPS 게임 **Left 4 Dead 2**의 플레이어와 무기 시스템을 언리얼 엔진으로 구현한 프로젝트입니다.
+Right4Dead는 FPS 게임 **Left 4 Dead 2**의 플레이어와 무기 시스템을 분석한 뒤, <br>
+언리얼 엔진의 Component를 이용해 재구현한 프로젝트입니다. <br>
+무기 슬롯 시스템과 무기별 공격로직, 전투UI를 담당해 구현했습니다.
 
 ## <mark> 영상 보기 </mark>
 🎥 아래의 사진을 클릭시 구현 동영상을 보실 수 있습니다.
